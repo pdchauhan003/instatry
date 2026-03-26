@@ -1,0 +1,101 @@
+// // middleware.js
+import { NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
+
+export async function middleware(req) {
+  const token = req.cookies.get("token")?.value;
+  const { pathname } = req.nextUrl;
+
+  const protectedRoutes = ["/dashboard", "/home"];
+  const isProtected = protectedRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
+
+  if (!isProtected) {
+    return NextResponse.next();
+  }
+
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+    // for another login account 
+    const { payload } = await jwtVerify(token, secret);
+    const userId = payload.id;
+    const sessionId = payload.sessionId;
+
+    const res = await fetch(`${req.nextUrl.origin}/api/auth/verify-session`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, sessionId })
+    });
+
+    const data = await res.json();
+    if (!data.valid) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+
+    return NextResponse.next()
+  } catch (error) {
+    // console.log("JWT Verify Error:", error.message);
+    // return NextResponse.redirect(new URL("/login", req.url));
+
+    const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh`, {
+      method: "POST",
+      headers: {
+        cookie: req.headers.get("cookie") || "",
+      },
+    });
+
+    if (refreshRes.ok) {
+      const response= NextResponse.next(); 
+      const refreshData=await refreshRes.json();
+      return response;
+    }
+
+    //refresh failed → logout
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+}
+
+export const config = {
+  matcher: ["/dashboard/:path*", "/home/:path*"],
+};
+
+
+
+// import { NextResponse } from "next/server";
+// import { jwtVerify } from "jose";
+
+// export async function middleware(req) {
+//   const accessToken = req.cookies.get("token")?.value;
+
+//   if (!accessToken) {
+//     return NextResponse.redirect(new URL("/login", req.url));
+//   }
+
+//   try {
+//     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+//     const { payload } = await jwtVerify(accessToken, secret);
+//     req.user = payload;
+//     return NextResponse.next();
+
+//   } catch {
+//     // 🔥 try refresh
+//     const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh`, {
+//       method: "POST",
+//       headers: {
+//         cookie: req.headers.get("cookie") || ""
+//       }
+//     });
+
+//     if (refreshRes.ok) {
+//       return NextResponse.next();
+//     }
+
+//     return NextResponse.redirect(new URL("/login", req.url));
+//   }
+// }
