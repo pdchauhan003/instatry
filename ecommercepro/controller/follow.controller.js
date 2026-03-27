@@ -1,7 +1,7 @@
 import { connectDB } from "@/lib/Connection";
 import { Follow,FollowStatus } from "@/lib/database";
 import mongoose from "mongoose";
-import redis from "@/services/redis";
+// import redis from "@/services/redis";
 
 export const findFriendOrNot = async (userId, friendId) => {
   await connectDB();

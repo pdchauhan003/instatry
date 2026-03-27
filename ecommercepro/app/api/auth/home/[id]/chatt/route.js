@@ -1,6 +1,6 @@
 import { getMessageUserData } from "@/controller/user.controller";
 import { Message } from "@/lib/database";
-import redis from "@/lib/redis";
+// import redis from "@/lib/redis";
 
 export async function POST(req, context) {
   const params = await context.params;

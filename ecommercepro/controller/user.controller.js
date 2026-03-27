@@ -24,7 +24,7 @@ export const individualUserData = async (userId) => {
 
     const user = await User.findById(userId).lean();
     if (user) {
-        await redis.setex(cacheKey, 3600, JSON.stringify(user)); // Cache for 1 hour
+        await redis.set(cacheKey, 3600, JSON.stringify(user)); // Cache for 1 hour
     }
     return user;
 };
@@ -41,7 +41,7 @@ export const getUserNameUsingId = async (userId) => {
 
     const user = await User.findById(userId).select('username image').lean();
     if (user) {
-        await redis.setex(cacheKey, 3600, JSON.stringify(user));
+        await redis.set(cacheKey, 3600, JSON.stringify(user));
     }
     return user?.username || '';
 };
@@ -59,7 +59,7 @@ export const getUserImageAndUsername = async (userId) => {
 
     const user = await User.findById(userId).select('username image').lean();
     if (user) {
-        await redis.setex(cacheKey, 3600, JSON.stringify(user));
+        await redis.set(cacheKey, 3600, JSON.stringify(user));
     }
     return user;
 };
