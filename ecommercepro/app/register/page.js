@@ -59,7 +59,7 @@ function RegisterPage() {
   return (
     <>
       <div className="h-screen overflow-y-auto flex justify-center px-4 py-10">
-        <div className="w-full h-max max-w-2xl bg-white rounded-2xl p-6 shadow-md">
+        <div className="w-full max-w-2xl bg-white rounded-2xl p-6 shadow-md">
           {/* Back Button */}
           <button className="mb-3">
             <ArrowLeft className="text-gray-600" />
