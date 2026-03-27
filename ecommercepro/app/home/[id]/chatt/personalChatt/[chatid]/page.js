@@ -25,7 +25,8 @@ export default function ChatPage() {
   // Fetch last messages
   useEffect(() => {
     const fetchMessages = async () => {
-      const res = await fetch(`http://localhost:1212/messages/${currentUserId}/${chatid}`);
+      // const res = await fetch(`http://localhost:1212/messages/${currentUserId}/${chatid}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/messages/${currentUserId}/${chatid}`);
       const data = await res.json();
       setMessages(data);
       if (data.length < 20) setHaseMore(false);
@@ -107,7 +108,7 @@ export default function ChatPage() {
     setLoadingOld(true);
     const oldest = messages[0].createdAt;
     const res = await fetch(
-      `http://localhost:1212/message/${currentUserId}/${chatid}/before/${oldest}`,
+      `${process.env.NEXT_PUBLIC_SOCKET_URL}/message/${currentUserId}/${chatid}/before/${oldest}`,
     );
     const data = await res.json();
     if (!data.length) setHaseMore(false);

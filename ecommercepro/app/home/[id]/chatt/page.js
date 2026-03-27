@@ -59,7 +59,7 @@ function AllChats() {
   // fetch online users
   useEffect(()=>{
     const fetchOnline = async ()=>{
-      const res = await fetch("http://localhost:1212/online-users");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/online-users`);
       const list = await res.json();
 
       const map={};

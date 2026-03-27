@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 
 export default function SocketListener({ userId }) {
   useEffect(() => {
-    const socket = io("http://localhost:1212");
+    const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`);
 
     socket.on("forceLogout", () => {
       alert("You logged in from another device");

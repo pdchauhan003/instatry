@@ -53,7 +53,7 @@ export default function NotificationPage() {
       }
     });
     return () => {
-      socket.off("newFollowReq"),socket.off('friendOrNot')
+      socket.off("newFollowReq"), socket.off('friendOrNot')
     };
   }, []);
 

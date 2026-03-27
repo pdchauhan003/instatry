@@ -35,10 +35,11 @@ export async function POST(req) {
 
     await user.save();
     try {
-        await fetch("http://localhost:1212/force-logout", {
+        // await fetch("http://localhost:1212/force-logout", {
+        await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/force-logout`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: checkUser._id.toString() })
+            body: JSON.stringify({ userId: user._id.toString() })
         });
         } 
     catch (e) {
