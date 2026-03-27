@@ -366,6 +366,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(1212, () => {
+server.listen(process.env.PORT, () => {
   console.log("Socket running on 1212");
 });
