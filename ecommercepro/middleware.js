@@ -1,6 +1,5 @@
 // // middleware.js
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import { jwtVerify } from "jose";
 
 export async function middleware(req) {
