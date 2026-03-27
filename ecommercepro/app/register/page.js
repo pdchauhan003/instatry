@@ -58,8 +58,8 @@ function RegisterPage() {
   };
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="w-full max-w-2xl bg-white rounded-2xl p-6 shadow-md">
+      <div className="h-screen overflow-y-auto flex justify-center px-4 py-10">
+        <div className="w-full h-max max-w-2xl bg-white rounded-2xl p-6 shadow-md">
           {/* Back Button */}
           <button className="mb-3">
             <ArrowLeft className="text-gray-600" />
@@ -74,7 +74,7 @@ function RegisterPage() {
           </div>
 
           {/* Form */}
-          <form className="space-y-4">
+          <form className="space-y-4 over">
             {/* Name */}
             <div>
               <label className="text-sm font-medium text-gray-700">Name</label>
