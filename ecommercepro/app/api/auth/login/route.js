@@ -34,17 +34,12 @@ export async function POST(req) {
     user.refreshToken = refreshToken;
 
     await user.save();
-    try {
-        // await fetch("http://localhost:1212/force-logout", {
-        await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/force-logout`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: user._id.toString() })
-        });
-        } 
-    catch (e) {
-        console.log("Socket server not reachable");
-    }
+    // Non-blocking call to socket server
+    fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/force-logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user._id.toString() })
+    }).catch(e => console.log("Socket server not reachable or error:", e.message));
 
     const accessToken = generateToken({
       id: user._id,

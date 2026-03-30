@@ -9,12 +9,15 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showForgot, setShowForgot] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const dispatch=useDispatch();
 
   const handleClick = async (e) => {      // when click login button then trigger
     e.preventDefault();  
-    const res = await fetch("/api/auth/login", {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -35,11 +38,11 @@ function LoginPage() {
       }
       
     }
-    else{
-    alert(data.message)
-    }
-    if (data.forgot) {
-      setShowForgot(true);
+    } catch (error) {
+      console.error("Login Error:", error);
+      alert("Login failed. Please check your connection.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -107,9 +110,15 @@ function LoginPage() {
           {/* Login Button */}
           <button
             onClick={handleClick}
-            className="w-full bg-purple-700 text-white py-3 rounded-full mt-6 font-semibold hover:bg-purple-800 transition"
+            disabled={loading}
+            className={`w-full ${loading ? 'bg-purple-400' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 rounded-full mt-6 font-semibold transition flex justify-center items-center gap-2`}
           >
-            Login
+            {loading ? (
+              <>
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                Logging in...
+              </>
+            ) : "Login"}
           </button>
 
           {/* Sign Up */}

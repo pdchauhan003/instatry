@@ -9,10 +9,11 @@ function RegisterPage() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const formData = new FormData();
       formData.append("name", name);
@@ -54,6 +55,8 @@ function RegisterPage() {
     } catch (error) {
       console.log("server error...", error);
       alert("Network error or server crash. Please check your connection.");
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -147,24 +150,43 @@ function RegisterPage() {
             </div>
             
             {/* profile picture */}
-            <div>
-              <label className="text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 block">
                 Profile Picture
               </label>
-              <input
-                type="file"
-                onChange={(e) => setImage(e.target.files[0])}
-                required
-              />
+              <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer group">
+                <input
+                  type="file"
+                  id="profile-upload"
+                  accept="image/*"
+                  onChange={(e) => setImage(e.target.files[0])}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  required
+                />
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-600 font-medium">
+                    {image ? image.name : "Tap to upload photo"}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Supports JPG, PNG, WEBP
+                  </p>
+                </div>
+              </div>
             </div>
           </form>
 
           {/* Register Button */}
           <button
             onClick={handleSubmit}
-            className="w-full bg-purple-700 text-white py-3 rounded-full mt-6 font-semibold hover:bg-purple-800 transition"
+            disabled={loading}
+            className={`w-full ${loading ? 'bg-purple-400' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 rounded-full mt-6 font-semibold transition flex justify-center items-center gap-2`}
           >
-            Register
+            {loading ? (
+              <>
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                Registering...
+              </>
+            ) : "Register"}
           </button>
 
           {/* Login Redirect */}
