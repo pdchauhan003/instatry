@@ -13,6 +13,7 @@ const User=require('./models/User')
 
 // mondodb connection 
 
+console.log("MONGO URI:", process.env.MONGODB_URI);
 mongoose.connect(`${process.env.MONGODB_URI}`)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log("DB Error:", err));
@@ -25,15 +26,35 @@ const app = express();   // instance of express
 const server = http.createServer(app);  //http server
 
 const cors = require("cors");  // for communication of diferent post req
-app.use(cors({ origin: "*" }));   // * for all page 
+
+// app.use(cors({ origin: "*" }));   // * for all page 
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://instagram-clone-3ntr.vercel.app/"
+  ],
+  credentials: true
+}));
+
 app.use(express.json());   //
 
 
 // socket io server 
+// const io = new Server(server, {
+//   cors: {
+//     origin: "*",
+//     methods: ["GET", "POST"],
+//   },
+// });
+
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: [
+      "http://localhost:3000",
+      "https://your-frontend-url.vercel.app"
+    ],
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
@@ -367,6 +388,8 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(process.env.PORT, () => {
-  console.log("Socket running on 1212");
+const PORT = process.env.PORT || 1212;
+
+server.listen(PORT, () => {
+  console.log(`Socket running on ${PORT}`);
 });

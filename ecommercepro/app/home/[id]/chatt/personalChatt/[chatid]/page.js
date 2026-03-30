@@ -26,9 +26,11 @@ export default function ChatPage() {
   useEffect(() => {
     const fetchMessages = async () => {
       // const res = await fetch(`http://localhost:1212/messages/${currentUserId}/${chatid}`);
+      console.log('NEXT_PUBLIC_SOCKET_URL siis:',process.env.NEXT_PUBLIC_SOCKET_URL)
       const res = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/messages/${currentUserId}/${chatid}`);
       const data = await res.json();
       setMessages(data);
+      console.log('data from ackend of messages is',messages)
       if (data.length < 20) setHaseMore(false);
     };
     if (currentUserId && chatid) fetchMessages();
