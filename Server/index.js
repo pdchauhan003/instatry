@@ -51,7 +51,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:3000",
-      "https://your-frontend-url.vercel.app"
+      "https://instagram-clone-3ntr.vercel.app/"
     ],
     methods: ["GET", "POST"],
     credentials: true
