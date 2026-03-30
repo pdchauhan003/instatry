@@ -49,11 +49,11 @@ function RegisterPage() {
           alert("error in sending otp...");
         }
       } else {
-        alert("error in server..", data.message);
+        alert(data.message || "Error in server during registration");
       }
     } catch (error) {
       console.log("server error...", error);
-      alert("server error.............");
+      alert("Network error or server crash. Please check your connection.");
     }
   };
   return (
