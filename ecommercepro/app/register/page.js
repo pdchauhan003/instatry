@@ -9,6 +9,7 @@ function RegisterPage() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const handleSubmit = async (e) => {
