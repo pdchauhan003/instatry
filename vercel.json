@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd ecommercepro && npm install && npm run build",
+  "outputDirectory": "ecommercepro/.next",
+  "installCommand": "npm install"
+}
