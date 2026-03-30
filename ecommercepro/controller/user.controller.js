@@ -1,6 +1,6 @@
 import { connectDB } from "@/services/mongodb";
 import User from "@/models/User";
-import redis from "@/services/redis";
+// import redis from "@/services/redis";
 import Bio from "@/models/Bio";
 import Message from "@/models/Message";
 import mongoose from 'mongoose'
@@ -14,61 +14,61 @@ export const getAllUserData = async (userId) => {
 export const individualUserData = async (userId) => {
     await connectDB();
     
-    const cacheKey = `user:${userId}`;
-    const cachedData = await redis.get(cacheKey);
+    // const cacheKey = `user:${userId}`;
+    // const cachedData = await redis.get(cacheKey);
     
-    if (cachedData) {
-        console.log("Serving user data from cache:", cacheKey);
-        return JSON.parse(cachedData);
-    }
+    // if (cachedData) {
+    //     console.log("Serving user data from cache:", cacheKey);
+    //     return JSON.parse(cachedData);
+    // }
 
     const user = await User.findById(userId).lean();
-    if (user) {
-        await redis.set(cacheKey, 3600, JSON.stringify(user)); // Cache for 1 hour
-    }
+    // if (user) {
+    //     await redis.set(cacheKey, 3600, JSON.stringify(user)); // Cache for 1 hour
+    // }
     return user;
 };
 
 export const getUserNameUsingId = async (userId) => {
     await connectDB();
     
-    const cacheKey = `user:${userId}:minimal`;
-    const cachedData = await redis.get(cacheKey);
+    // const cacheKey = `user:${userId}:minimal`;
+    // const cachedData = await redis.get(cacheKey);
     
-    if (cachedData) {
-        return JSON.parse(cachedData).username;
-    }
+    // if (cachedData) {
+    //     return JSON.parse(cachedData).username;
+    // }
 
     const user = await User.findById(userId).select('username image').lean();
-    if (user) {
-        await redis.set(cacheKey, 3600, JSON.stringify(user));
-    }
+    // if (user) {
+    //     await redis.set(cacheKey, 3600, JSON.stringify(user));
+    // }
     return user?.username || '';
 };
 
 export const getUserImageAndUsername = async (userId) => {
     await connectDB();
     
-    const cacheKey = `user:${userId}:minimal`;
-    const cachedData = await redis.get(cacheKey);
+    // const cacheKey = `user:${userId}:minimal`;
+    // const cachedData = await redis.get(cacheKey);
     
-    if (cachedData) {
-        console.log("Serving minimal user data from cache:", cacheKey);
-        return JSON.parse(cachedData);
-    }
+    // if (cachedData) {
+    //     console.log("Serving minimal user data from cache:", cacheKey);
+    //     return JSON.parse(cachedData);
+    // }
 
     const user = await User.findById(userId).select('username image').lean();
-    if (user) {
-        await redis.set(cacheKey, 3600, JSON.stringify(user));
-    }
+    // if (user) {
+    //     await redis.set(cacheKey, 3600, JSON.stringify(user));
+    // }
     return user;
 };
 
-export const clearUserCache = async (userId) => {
-    await redis.del(`user:${userId}`);
-    await redis.del(`user:${userId}:minimal`);
-    console.log(`Cleared cache for user: ${userId}`);
-};
+// export const clearUserCache = async (userId) => {
+//     await redis.del(`user:${userId}`);
+//     await redis.del(`user:${userId}:minimal`);
+//     console.log(`Cleared cache for user: ${userId}`);
+// };
 
 
 export const getUserBio=async(userId)=>{
@@ -96,7 +96,7 @@ export const updateUserField=async(userId,field,value)=>{
 export const updateBio=async(userId,value)=>{
     connectDB();
     const updatedBio=await Bio.updateOne({user:userId},{$set:{bio:value}},{new:true,upsert:true});
-    return updateBio
+    return updatedBio
 }
 
 export const getMessageUserData=async(Id)=>{

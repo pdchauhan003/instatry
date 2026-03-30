@@ -13,13 +13,13 @@ const User=require('./models/User')
 
 // mondodb connection 
 
-mongoose.connect(`${process.env.MONGODB_URI}`)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log("DB Error:", err));
-
-// mongoose.connect("mongodb://127.0.0.1:27017/EcommercePro")
+// mongoose.connect(`${process.env.MONGODB_URI}`)
 //   .then(() => console.log("MongoDB Connected"))
-//   .catch((error)=>console.log('mongo connection error',error))
+//   .catch(err => console.log("DB Error:", err));
+
+mongoose.connect("mongodb://127.0.0.1:27017/EcommercePro")
+  .then(() => console.log("MongoDB Connected"))
+  .catch((error)=>console.log('mongo connection error',error))
 
 const app = express();   // instance of express
 const server = http.createServer(app);  //http server
