@@ -59,6 +59,10 @@ const io = new Server(server, {
 });
 
 const onlineUsers = {};  // all connected sockets
+
+app.get("/", (req, res) => {
+  res.send("Server is running 🚀");
+});
  
 // this is used to fetch last 30 messages  not older only plast 30
 app.get("/messages/:user1/:user2", async (req, res) => {
