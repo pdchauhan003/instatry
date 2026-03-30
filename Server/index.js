@@ -31,6 +31,7 @@ const cors = require("cors");  // for communication of diferent post req
 app.use(cors({
   origin: [
     "http://localhost:3000",
+    "https://instagram-clone-3ntr.vercel.app",
     "https://instagram-clone-3ntr.vercel.app/"
   ],
   credentials: true
@@ -51,6 +52,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:3000",
+      "https://instagram-clone-3ntr.vercel.app",
       "https://instagram-clone-3ntr.vercel.app/"
     ],
     methods: ["GET", "POST"],

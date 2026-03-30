@@ -22,18 +22,15 @@ export default function ChatPage() {
   const bottomRef = useRef(null);
   const longPressTimer = useRef(null);
 
-  // Fetch last messages
+  // Fetch last messages and user info
   useEffect(() => {
     const fetchMessages = async () => {
-      // const res = await fetch(`http://localhost:1212/messages/${currentUserId}/${chatid}`);
-      console.log('NEXT_PUBLIC_SOCKET_URL siis:',process.env.NEXT_PUBLIC_SOCKET_URL)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/messages/${currentUserId}/${chatid}`);
+      const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
+      const res = await fetch(`${baseUrl}/messages/${currentUserId}/${chatid}`);
       const data = await res.json();
       setMessages(data);
-      console.log('data from ackend of messages is',messages)
       if (data.length < 20) setHaseMore(false);
     };
-    if (currentUserId && chatid) fetchMessages();
 
     const fetchUserInfo = async () => {
       const res = await fetch(`/api/auth/home/${id}/chatt/personalchatt`, {
@@ -42,19 +39,19 @@ export default function ChatPage() {
         body: JSON.stringify({ chatid }),
       });
       const data = await res.json();
-      console.log("data in fromt ", data);
       if (data.success) {
         setUserInfo({
           username: data.userData.username,
           image: data.userData.image,
         });
-      } else {
-        alert("error of fetching username and image");
       }
     };
-    if (currentUserId && chatid) fetchMessages();
-    if (currentUserId && chatid) fetchUserInfo();
-  }, [currentUserId, chatid]);
+
+    if (currentUserId && chatid) {
+      fetchMessages();
+      fetchUserInfo();
+    }
+  }, [currentUserId, chatid, id]);
 
   console.log("user info in fromtt is", userInfo);
 
@@ -109,8 +106,9 @@ export default function ChatPage() {
     if (!messages.length || !hasMore || loadingOld) return;
     setLoadingOld(true);
     const oldest = messages[0].createdAt;
+    const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SOCKET_URL}/message/${currentUserId}/${chatid}/before/${oldest}`,
+      `${baseUrl}/message/${currentUserId}/${chatid}/before/${oldest}`,
     );
     const data = await res.json();
     if (!data.length) setHaseMore(false);
