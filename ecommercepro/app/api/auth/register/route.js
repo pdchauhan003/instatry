@@ -76,7 +76,8 @@ export async function POST(req) {
   } catch (error) {
     console.error("REGISTER ERROR FULL:", error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: `Server error: ${error.message || 'Unknown error'}` },
+      { status: 500 }
     );
   }
 }
