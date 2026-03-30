@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "@socket.io/redis-adapter": "^8.3.0",
     "cors": "^2.8.6",
