@@ -32,12 +32,10 @@ app.use(cors({
   origin: [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://instatry-eight.vercel.app",
-    "https://instatry-jqfult3hl-prathams-projects-808806ac.vercel.app"
+    /\.vercel\.app$/
   ],
   credentials: true
 }));
-
 app.use(express.json());   //
 
 
@@ -54,8 +52,7 @@ const io = new Server(server, {
     origin: [
       "http://localhost:3000",
       "http://localhost:3001",
-      "https://instatry-eight.vercel.app",
-      "https://instatry-jqfult3hl-prathams-projects-808806ac.vercel.app"
+      /\.vercel\.app$/
     ],
     methods: ["GET", "POST"],
     credentials: true
