@@ -10,7 +10,7 @@ function AddPost() {
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [option,setOption]=useState('')
+  const [option, setOption] = useState('')
 
   const handleBack = () => router.back();
 
@@ -25,7 +25,7 @@ function AddPost() {
     const formData = new FormData();
     formData.append("image", image);
     formData.append("caption", caption);
-    formData.append('option',type);
+    formData.append('option', type);
 
     const res = await fetch(`/api/auth/home/${id}/addpost`, {
       method: "POST",
@@ -48,14 +48,14 @@ function AddPost() {
         <h2 className="font-semibold">New Post</h2>
         <div className="flex gap-5">
           <button
-            onClick={()=>handleAdd('post')}
+            onClick={() => handleAdd('post')}
             // onClick={handleAdd()}
             className="text-sm font-medium text-blue-500"
           >
             Post
           </button>
           <button
-            onClick={()=>handleAdd('story')}
+            onClick={() => handleAdd('story')}
             className="text-sm font-medium text-blue-500"
           >
             Story
@@ -68,24 +68,25 @@ function AddPost() {
 
         {/* Image Upload */}
         {!preview ? (
-          <label className="flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 cursor-pointer hover:bg-gray-900 transition">
+          <label htmlFor="image-upload" className="flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 cursor-pointer hover:bg-gray-900 transition">
             <p className="text-gray-400">Click to select image</p>
             <input
+              id="image-upload"
               type="file"
               accept="image/*"
-              hidden
+              className="hidden"
               onChange={(e) => handleImage(e.target.files[0])}
             />
           </label>
         ) : (
-        <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden">
-          <Image
-            src={preview}
-            alt="preview"
-            fill
-            className="object-cover"
-          />
-        </div>
+          <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden">
+            <Image
+              src={preview}
+              alt="preview"
+              fill
+              className="object-cover"
+            />
+          </div>
         )}
 
         {/* Caption part3 */}

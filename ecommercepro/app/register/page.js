@@ -149,13 +149,13 @@ function RegisterPage() {
                 required
               />
             </div>
-            
+
             {/* profile picture */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 block">
                 Profile Picture
               </label>
-              <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer group">
+              <label htmlFor="profile-upload" className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer group block">
                 <input
                   type="file"
                   id="profile-upload"
@@ -172,7 +172,7 @@ function RegisterPage() {
                     Supports JPG, PNG, WEBP
                   </p>
                 </div>
-              </div>
+              </label>
             </div>
           </form>
 
