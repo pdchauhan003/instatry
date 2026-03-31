@@ -1,4 +1,4 @@
-import {User} from '@/lib/database';
+import { User } from '@/lib/database';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/Connection';
 import { uploadCloudinary } from '@/handler/UploadCloudinary';
@@ -19,7 +19,7 @@ export async function POST(req) {
 
     if (!name || !email || !password || !number || !username || !image) {
       console.log("Validation Failedd");
-      return Response.json({message:'Please fill all fields' });
+      return Response.json({ message: 'Please fill all fields' });
     }
     // const findEmail = await User.findOne({ email });
     // const findUsername = await User.findOne({ username });
@@ -57,21 +57,22 @@ export async function POST(req) {
     //     }
     //   ).end(buffer);
     // });
+    if (image) {
+      const uploadResult = await uploadCloudinary(image)
+    }
 
-    const uploadResult=await uploadCloudinary(image)
-    
     const user = new User({
       name,
       email,
       password: hashedPassword,
       number,
       username,
-      image : uploadResult.secure_url,
+      image: uploadResult?.secure_url || '',
     });
     await user.save();
     console.log("USER SAVED SUCCESSFULLY");
     return Response.json(
-      {success:true}
+      { success: true }
     );
   } catch (error) {
     console.error("REGISTER ERROR FULL:", error);
