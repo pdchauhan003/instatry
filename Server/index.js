@@ -29,14 +29,19 @@ const cors = require("cors");  // for communication of diferent post req
 
 // app.use(cors({ origin: "*" }));   // * for all page 
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    /\.vercel\.app$/
-  ],
+  origin: function (origin, callback) {
+    if (
+      !origin ||
+      origin.includes("localhost") ||
+      origin.endsWith(".vercel.app")
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
-app.use(express.json());   //
 
 
 // socket io server 
@@ -49,16 +54,20 @@ app.use(express.json());   //
 
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      /\.vercel\.app$/
-    ],
-    methods: ["GET", "POST"],
+    origin: (origin, callback) => {
+      if (
+        !origin ||
+        origin.includes("localhost") ||
+        origin.endsWith(".vercel.app")
+      ) {
+        callback(null, true);
+      } else {
+        callback("Not allowed", false);
+      }
+    },
     credentials: true
-  },
+  }
 });
-
 const onlineUsers = {};  // all connected sockets
 
 app.get("/", (req, res) => {
@@ -226,7 +235,7 @@ io.on("connection", (socket) => {
   })
 
   // for deleting messages
-  socket.on("deleteMessage", async (messageId) => {
+  socket.on("deleteMessage", async ({messageId}) => {
     await Message.findByIdAndDelete(messageId);
     io.emit("messageDeleted", messageId);
   });
