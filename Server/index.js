@@ -31,8 +31,9 @@ const cors = require("cors");  // for communication of diferent post req
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://instatry-theta.vercel.app",
-    "https://instatry-theta.vercel.app/"
+    "http://localhost:3001",
+    "https://instatry-eight.vercel.app",
+    "https://instatry-jqfult3hl-prathams-projects-808806ac.vercel.app"
   ],
   credentials: true
 }));
@@ -52,8 +53,9 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:3000",
-      "https://instatry-theta.vercel.app",
-      "https://instatry-theta.vercel.app/"
+      "http://localhost:3001",
+      "https://instatry-eight.vercel.app",
+      "https://instatry-jqfult3hl-prathams-projects-808806ac.vercel.app"
     ],
     methods: ["GET", "POST"],
     credentials: true

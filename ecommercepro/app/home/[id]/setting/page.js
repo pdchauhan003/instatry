@@ -9,18 +9,22 @@ function SettingPage() {
     const res = await fetch(`/api/auth/home/${id}/setting/logout`, {
       method: "POST",
     });
-    if (!res.ok) {
-      console.error("Logout failed");
-      return;
-    }
+    // if (!res.ok) {
+    //   console.error("Logout failed");
+    //   return;
+    // }
     const data = await res.json();
     if (data?.success) {
       router.replace("/login");
       router.refresh();
     }
+    else {
+      console.error("Logout failed");
+      return;
+    }
   };
-  
-  const handlesavedPost=async()=>{
+
+  const handlesavedPost = async () => {
     router.replace(`/home/${id}/setting/savedposts`)
   }
   return (
