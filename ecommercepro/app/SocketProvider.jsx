@@ -18,15 +18,16 @@ export default function SocketProvider({ children }) {
     console.log("socket joined for user:", id);
 
     socket.on("sessionEnded", () => {
-      // alert("You logged in from another device");
-    socket.disconnect();
+      alert("You logged in from another device");
+      window.location.href = "/login";
+      socket.disconnect();
     });
 
     socket.on("forceLogout", () => {
       alert("You logged in from another device");
-    window.location.href = "/login";
+      window.location.href = "/login";
     });
-    return()=>socket.disconnect();
+    return () => socket.disconnect();
   }, [id]);
 
   return children;
