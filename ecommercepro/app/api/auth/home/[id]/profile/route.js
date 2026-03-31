@@ -20,34 +20,20 @@ export async function POST(req, context) {
       return Response.json({ success: false, message: "User not found" }, { status: 404 });
     }
 
-    const isFriend = await findFriendOrNot(id, user._id);//check friend or not
-    const isPending = await findPendingReq(id, user._id);//check req is pending or not
+    const [isFriend, isPending, posts, followers, followings, followerCount, followingCount, bio] = await Promise.all([
+      findFriendOrNot(id, user._id),
+      findPendingReq(id, user._id),
+      IndividualPosts(user._id),
+      getFollowersFromDB(user._id),
+      getFollowingsFromDB(user._id),
+      getFollowersCount(user._id),
+      getFollowingsCount(user._id),
+      getUserBioOnly(user._id)
+    ]);
 
-    let friends=false;
-    let requested=false;
+    const friends = isFriend && !isPending;
+    const requested = !!isPending;
 
-    if(isFriend && !isPending){
-      friends=true;
-    }
-    if (isPending) {
-      requested = true;
-    }
-
-    let posts = [];
-    if (isFriend) {
-      posts = await IndividualPosts(user._id);
-    }
-    console.log('posts is searched persons',posts)
-
-    // const followers=await checkFollowers(user._id);  //followers
-    // const followings=await checkFollowings(user._id);  // followings
-    const followers=await getFollowersFromDB(user._id);
-    const followings=await getFollowingsFromDB(user._id);
-    const followerCount=await getFollowersCount(user._id);
-    const followingCount=await getFollowingsCount(user._id)
-
-    const bio=await getUserBioOnly(user._id)
-    console.log('bio in server friend',bio)
     return Response.json({
       success: true,
       friend: friends,

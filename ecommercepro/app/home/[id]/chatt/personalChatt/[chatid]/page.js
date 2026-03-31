@@ -14,12 +14,13 @@ export default function ChatPage() {
 
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [hasMore, setHaseMore] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
   const [loadingOld, setLoadingOld] = useState(false);
   const [activeMessage, setActiveMessage] = useState(null);
   const [userInfo, setUserInfo] = useState({ username: "", image: "" });
 
   const bottomRef = useRef(null);
+  const shouldScrollRef = useRef(true);
   const longPressTimer = useRef(null);
 
   // Fetch last messages and user info
@@ -29,7 +30,9 @@ export default function ChatPage() {
       const res = await fetch(`${baseUrl}/messages/${currentUserId}/${chatid}`);
       const data = await res.json();
       setMessages(data);
-      if (data.length < 20) setHaseMore(false);
+      if (data && data.length < 20) setHasMore(false);
+      shouldScrollRef.current = true;
+      console.log("Chat messages fetched:", data?.length || 0);
     };
 
     const fetchUserInfo = async () => {
@@ -47,9 +50,15 @@ export default function ChatPage() {
       }
     };
 
+    const initializeChat = async () => {
+      await Promise.all([
+        fetchMessages(),
+        fetchUserInfo()
+      ]);
+    };
+
     if (currentUserId && chatid) {
-      fetchMessages();
-      fetchUserInfo();
+      initializeChat();
     }
   }, [currentUserId, chatid, id]);
 
@@ -57,7 +66,10 @@ export default function ChatPage() {
 
   // Socket listeners
   useEffect(() => {
-    const handleReceive = (data) => setMessages((prev) => [...prev, data]);
+    const handleReceive = (data) => {
+      setMessages((prev) => [...prev, data]);
+      shouldScrollRef.current = true;
+    };
     const handleSeen = ({ by }) => {
       if (by === chatid) {
         setMessages((prev) =>
@@ -87,7 +99,7 @@ export default function ChatPage() {
 
     return () => {
       socket.off("receiveMessage", handleReceive);
-      socket.off("messagesSeen", handleSeen);
+      socket.off("messageSeen", handleSeen);
       socket.off("messageDeleted", handleDeleted);
     };
   }, [chatid, currentUserId, queryClient]);
@@ -99,6 +111,7 @@ export default function ChatPage() {
       to: chatid,
       message,
     });
+    shouldScrollRef.current = true;
     setMessage("");
   };
 
@@ -111,14 +124,17 @@ export default function ChatPage() {
       `${baseUrl}/message/${currentUserId}/${chatid}/before/${oldest}`,
     );
     const data = await res.json();
-    if (!data.length) setHaseMore(false);
+    if (!data.length) setHasMore(false);
     else setMessages((prev) => [...data, ...prev]);
     setLoadingOld(false);
+    shouldScrollRef.current = false;
   };
 
-  // Auto scroll to bottom
+  // Auto scroll to bottom (only for new messages)
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "auto" });
+    if (shouldScrollRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "auto" });
+    }
   }, [messages]);
 
   // Open menu
@@ -180,7 +196,8 @@ export default function ChatPage() {
         onScroll={(e) => e.target.scrollTop < 50 && fetchOldMessages()}
       >
         {messages.map((msg, i) => {
-          const isMe = msg.from === currentUserId;
+          // Check if 'from' is current user ID (handles both String and Array from your model)
+          const isMe = (Array.isArray(msg.from) ? msg.from[0] : msg.from)?.toString() === currentUserId?.toString();
           return (
             <div
               key={i}

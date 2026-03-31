@@ -71,15 +71,22 @@ export const getUserImageAndUsername = async (userId) => {
 // };
 
 
-export const getUserBio=async(userId)=>{
+export const getUserBio = async (userId) => {
     await connectDB();
-    const name=await User.findOne({_id:userId}).select('name');
-    const bio=await Bio.findOne({user:userId}).select('bio')
-    const userNameAndImage=await getUserImageAndUsername(userId);
-    console.log('username and image data is :',userNameAndImage)
-    const udata={userNameAndImage,bio,name}
-    return udata
-}
+    const [user, bio] = await Promise.all([
+        User.findById(userId).select('name username image').lean(),
+        Bio.findOne({ user: userId }).select('bio').lean()
+    ]);
+
+    return {
+        userNameAndImage: {
+            username: user?.username,
+            image: user?.image
+        },
+        bio,
+        name: { name: user?.name }
+    };
+};
 
 export const getUserBioOnly=async(userId)=>{
     await connectDB();

@@ -80,10 +80,13 @@ app.get("/messages/:user1/:user2", async (req, res) => {
   // const limit=30;
 
   try {
+    const u1 = new mongoose.Types.ObjectId(user1);
+    const u2 = new mongoose.Types.ObjectId(user2);
+
     const messages = await Message.find({
       $or: [
-        { from: user1, to: user2 },
-        { from: user2, to: user1 },
+        { from: u1, to: u2 },
+        { from: u2, to: u1 },
       ],
     }).sort({ createdAt: -1 }).limit(20);
 
@@ -99,8 +102,11 @@ app.get('/message/:user1/:user2/before/:cursor', async (req, res) => {
   const { user1, user2, cursor } = req.params;
   // const limit=30
   try {
+    const u1 = new mongoose.Types.ObjectId(user1);
+    const u2 = new mongoose.Types.ObjectId(user2);
+
     const messages = await Message.find({
-      $or: [{ from: user1, to: user2 }, { from: user2, to: user1 }],
+      $or: [{ from: u1, to: u2 }, { from: u2, to: u1 }],
       createdAt: { $lt: new Date(cursor) }
     }).sort({ createdAt: -1 }).limit(20);
     res.json(messages.reverse())

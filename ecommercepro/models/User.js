@@ -2,8 +2,8 @@ import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    username: { type: String, required: true },
-    email: { type: String, required: true },
+    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
     number: { type: String, required: true },
     password: { type: String, required: true },
     image: { type: String },
@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
     contacts: [{ type: String }],
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
     savedposts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
-    sessionId: { type: String },
+    sessionId: { type: String, index: true },
     refreshToken:{type:String},
 }, { timestamps: true });
 
