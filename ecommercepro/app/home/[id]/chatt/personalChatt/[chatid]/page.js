@@ -72,7 +72,7 @@ export default function ChatPage() {
     };
 
     socket.on("receiveMessage", handleReceive);
-    socket.on("messagesSeen", handleSeen);
+    socket.on("messageSeen", handleSeen);
     socket.on("messageDeleted", handleDeleted);
 
     // mark messages seen
@@ -188,11 +188,10 @@ export default function ChatPage() {
             >
               <div
                 className={`relative message-bubble max-w-[70%] px-4 py-2 rounded-2xl text-sm break-words 
-                ${
-                  isMe
+                ${isMe
                     ? "bg-white text-black rounded-br-sm"
                     : "bg-gray-800 text-white rounded-bl-sm"
-                }`}
+                  }`}
                 onClick={() => openMenu(msg)}
                 onTouchStart={() => handleTouchStart(msg)}
                 onTouchEnd={handleTouchEnd}
@@ -213,9 +212,8 @@ export default function ChatPage() {
                 {/* Popup menu inside message */}
                 {activeMessage === msg._id && (
                   <div
-                    className={`absolute ${
-                      isMe ? "right-2" : "left-2"
-                    } top-1/2 transform -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-40`}
+                    className={`absolute ${isMe ? "right-2" : "left-2"
+                      } top-1/2 transform -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-40`}
                   >
                     <button
                       onClick={() => {
