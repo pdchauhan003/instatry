@@ -5,7 +5,8 @@ const savePostSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 });
 
-savePostSchema.index({ post: 1 });
+// savePostSchema.index({ post: 1 });
+savePostSchema.index({ user: 1 });
 
 const Saved = mongoose.models.Saved || mongoose.model('Saved', savePostSchema);
 export default Saved;

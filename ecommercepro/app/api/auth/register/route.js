@@ -19,6 +19,7 @@ export async function POST(req) {
 
     if (!name || !email || !password || !number || !username || !image) {
       console.log("Validation Failedd");
+      if (!image) alert('image in not found');
       return Response.json({ message: 'Please fill all fields' });
     }
     // const findEmail = await User.findOne({ email });

@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 
 function AddPost() {
   const router = useRouter();
   const { id } = useParams();
+  const fileInputRef = useRef(null);
 
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
@@ -68,16 +69,24 @@ function AddPost() {
 
         {/* Image Upload */}
         {!preview ? (
-          <label htmlFor="image-upload" className="flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 cursor-pointer hover:bg-gray-900 transition">
+          <div 
+            onClick={() => fileInputRef.current && fileInputRef.current.click()}
+            className="flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 cursor-pointer hover:bg-gray-900 transition"
+          >
             <p className="text-gray-400">Click to select image</p>
             <input
+              ref={fileInputRef}
               id="image-upload"
               type="file"
               accept="image/*"
-              className="hidden"
-              onChange={(e) => handleImage(e.target.files[0])}
+              style={{ display: "none" }}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleImage(e.target.files[0]);
+                }
+              }}
             />
-          </label>
+          </div>
         ) : (
           <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden">
             <Image

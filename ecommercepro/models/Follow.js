@@ -5,8 +5,8 @@ const followSchema = new mongoose.Schema({
     following: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 }, { timestamps: true });
 
-followSchema.index({ follower: 1 });
-followSchema.index({ following: 1 });
+followSchema.index({ follower: 1,following: 1 });
+// followSchema.index({ following: 1 });
 
 const Follow = mongoose.models.Follow || mongoose.model("Follow", followSchema);
 export default Follow;

@@ -1,9 +1,10 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 function RegisterPage() {
+  const fileInputRef = useRef(null);
   const [email, setEmail] = useState("");
   const [number, setNumber] = useState("");
   const [name, setName] = useState("");
@@ -155,14 +156,21 @@ function RegisterPage() {
               <label className="text-sm font-medium text-gray-700 block">
                 Profile Picture
               </label>
-              <label htmlFor="profile-upload" className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer group block">
+              <div 
+                onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer group block"
+              >
                 <input
+                  ref={fileInputRef}
                   type="file"
                   id="profile-upload"
                   accept="image/*"
-                  onChange={(e) => setImage(e.target.files[0])}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  required
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setImage(e.target.files[0]);
+                    }
+                  }}
+                  style={{ display: "none" }}
                 />
                 <div className="space-y-1">
                   <p className="text-sm text-gray-600 font-medium">
@@ -172,7 +180,7 @@ function RegisterPage() {
                     Supports JPG, PNG, WEBP
                   </p>
                 </div>
-              </label>
+              </div>
             </div>
           </form>
 

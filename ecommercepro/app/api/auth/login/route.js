@@ -14,14 +14,12 @@ export async function POST(req) {
     const user = await User.findOne({ email });
 
     if (!user) {
-      alert('User not found')
       return NextResponse.json({ success: false, message: "User not found" });
     }
 
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
-      alert('Password is wrong')
       return NextResponse.json({
         success: false,
         message: "Wrong password",
