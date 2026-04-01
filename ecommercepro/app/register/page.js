@@ -156,7 +156,7 @@ function RegisterPage() {
               <label className="text-sm font-medium text-gray-700 block">
                 Profile Picture
               </label>
-              {/* <div
+              <div
                 onClick={() => fileInputRef.current && fileInputRef.current.click()}
                 className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer group block"
               >
@@ -180,12 +180,7 @@ function RegisterPage() {
                     Supports JPG, PNG, WEBP
                   </p>
                 </div>
-              </div> */}
-
-              <input type="file" className="border-2 border-white my-2" name='image' onChange={(e) => setImage(e.target.value)}
-                placeholder="File"
-                style={{ display: "none" }}
-              />
+              </div>
             </div>
           </form>
 
