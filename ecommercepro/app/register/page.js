@@ -156,11 +156,11 @@ function RegisterPage() {
               <label className="text-sm font-medium text-gray-700 block">
                 Profile Picture
               </label>
-              <div 
+              <div
                 onClick={() => fileInputRef.current && fileInputRef.current.click()}
                 className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer group block"
               >
-                <input
+                {/* <input
                   ref={fileInputRef}
                   type="file"
                   id="profile-upload"
@@ -171,15 +171,23 @@ function RegisterPage() {
                     }
                   }}
                   style={{ display: "none" }}
+                /> */}
+                <input type="file" className="border-2 border-white my-2" name='image' onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setImage(e.target.files[0]);
+                  }
+                }}
+                  placeholder="File"
+                  style={{ display: "none" }}
                 />
-                <div className="space-y-1">
+                {/* <div className="space-y-1">
                   <p className="text-sm text-gray-600 font-medium">
                     {image ? image.name : "Tap to upload photo"}
                   </p>
                   <p className="text-xs text-gray-400">
                     Supports JPG, PNG, WEBP
                   </p>
-                </div>
+                </div> */}
               </div>
             </div>
           </form>

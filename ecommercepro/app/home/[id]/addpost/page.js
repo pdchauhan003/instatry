@@ -69,12 +69,12 @@ function AddPost() {
 
         {/* Image Upload */}
         {!preview ? (
-          <div 
+          <div
             onClick={() => fileInputRef.current && fileInputRef.current.click()}
             className="flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 cursor-pointer hover:bg-gray-900 transition"
           >
             <p className="text-gray-400">Click to select image</p>
-            <input
+            {/* <input
               ref={fileInputRef}
               id="image-upload"
               type="file"
@@ -85,6 +85,16 @@ function AddPost() {
                   handleImage(e.target.files[0]);
                 }
               }}
+            /> */}
+
+            <input type="file" className="border-2 border-white my-2" name='image' onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                handleImage(e.target.files[0]);
+              }
+            }}
+              ref={fileInputRef}
+              placeholder="File"
+              style={{ display: "none" }}
             />
           </div>
         ) : (
