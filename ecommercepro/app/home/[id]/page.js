@@ -87,7 +87,7 @@
 
 
 import { allFriends } from "@/controller/post&story.controller";
-import PostCard from "@/Componants/PostCard";
+// import PostCard from "@/Componants/PostCard";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Plus, Heart } from "lucide-react";

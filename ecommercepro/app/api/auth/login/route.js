@@ -5,6 +5,7 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { generateToken, generateRefreshToken } from "@/lib/jwt";
 import { connectDB } from "@/lib/Connection";
+import redis from "@/services/redis";
 
 export async function POST(req) {
   try {

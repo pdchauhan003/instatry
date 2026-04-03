@@ -7,6 +7,7 @@ const storySchema = new mongoose.Schema({
     storyCreatedAt: { type: Date, default: '' },
     createdAt: { type: Date, default: Date.now, expires: 60 * 60 * 24 },
 }, { timestamps: true });
+storySchema.index({author:1})
 
 const Story = mongoose.models.Story || mongoose.model('Story', storySchema);
 export default Story;
