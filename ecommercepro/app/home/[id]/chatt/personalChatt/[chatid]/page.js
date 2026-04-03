@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import socket from "@/lib/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export default function ChatPage() {
   const { id, chatid } = useParams();
@@ -158,22 +159,19 @@ export default function ChatPage() {
   const handleProfile = () => {
     router.push(`/home/${id}/profile/${userInfo.username}`);
   };
+
+  const handleCall=()=>{
+    router.push(`/home/${id}/callroom/${chatid}`)
+  }
   return (
     <div className="flex flex-col h-full bg-black text-white">
+
       {/* Header */}
-      <div
-        className="p-3 border-b border-gray-800 flex items-center gap-3"
-        onClick={handleProfile}
-      >
-        <div className="w-10 h-10 rounded-full overflow-hidden relative bg-gray-700">
+      <div className="p-3 border-b border-gray-800 flex items-center gap-3">
+
+        <div className="w-10 h-10 rounded-full overflow-hidden relative bg-gray-700" onClick={handleProfile}>
           {userInfo?.image ? (
-            <Image
-              src={userInfo.image}
-              width={300}
-              height={300}
-              alt={userInfo.username}
-              className="object-cover w-full h-full"
-            />
+            <Image src={userInfo.image} width={300} height={300} alt={userInfo.username} className="object-cover w-full h-full"/>
           ) : (
             <div className="flex items-center justify-center w-full h-full text-sm text-gray-300">
               {userInfo.username?.charAt(0).toUpperCase()}
@@ -181,6 +179,8 @@ export default function ChatPage() {
           )}
         </div>
         <p className="font-semibold">{userInfo.username || "Chat"}</p>
+
+        <Button onClick={handleCall} className=''>call</Button>
       </div>
 
       {/* Loading older messages */}

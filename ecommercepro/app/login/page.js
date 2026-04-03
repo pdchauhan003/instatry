@@ -36,8 +36,11 @@ function LoginPage() {
         router.replace(`/home/${data.id}`);
         router.refresh();
       }
-      
     }
+    if(data.forgot){
+        alert(data.message)
+        setShowForgot(true);
+      }
     } catch (error) {
       console.error("Login Error:", error);
       alert("Login failed. Please check your connection.");

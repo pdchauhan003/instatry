@@ -391,6 +391,21 @@ io.on("connection", (socket) => {
     }
   })
 
+  socket.on('call-user',({to,offer})=>{
+    io.to(onlineUsers[to]).emit('incoming-call',{
+      from:socket.id,
+      offer
+    })
+  })
+
+  socket.on('answer-call',({to,answer})=>{
+    io.to(onlineUsers[to]).emit('call-accepted',{answer});
+  });
+
+  socket.on('ice-candidate',({to,candidate})=>{
+    io.to(to).emit('ice.candidate',candidate);
+  });
+
   // disconnectingg
   socket.on("disconnect", () => {
     for (let uid in onlineUsers) {
