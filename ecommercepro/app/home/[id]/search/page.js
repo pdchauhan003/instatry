@@ -5,7 +5,7 @@ import Image from "next/image";
 import { searchApi } from "@/handler/SearchApi";
 
 function SearchPage() {
-  
+
   const [username, setUserName] = useState(""); // set searched after select username
   const [users, setUsers] = useState([]); // store all username which is searched
   const { id } = useParams(); // logged in user id
@@ -20,9 +20,9 @@ function SearchPage() {
       // });
       // const data = await res.json();
 
-      const data=await searchApi(id,username);
+      const data = await searchApi(id, username);
 
-      console.log('search data is ',data)
+      console.log('search data is ', data)
       setUsers(data.users || []); // if user search then store username in array[]
       setPname(data.user.username); // loggen in user name
     } catch (err) {
@@ -34,7 +34,7 @@ function SearchPage() {
     const delay = setTimeout(fetchData);
     return () => clearTimeout(delay);
   }, [username]);
-  
+
   console.log("pname is", pname);
 
   const handleProfile = (usernamee) => {
@@ -67,7 +67,7 @@ function SearchPage() {
             onClick={() => handleProfile(user.username)}
             className="flex p-3 rounded-md mb-2 cursor-pointer hover:bg-gray-700"
           >
-            <Image src={user?.image} style={{width:'30px',height:'30px',borderRadius:'50%'}} width={300} height={300} className="mr-3" alt='image1'/>
+            <Image src={user?.image} style={{ width: '30px', height: '30px', borderRadius: '50%' }} width={300} height={300} className="mr-3" loading="lazy" alt='image1' />
             {user?.username}
           </div>
         ))}

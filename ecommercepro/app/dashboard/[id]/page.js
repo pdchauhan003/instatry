@@ -19,7 +19,14 @@ function Dashboard() {
       <div className={styles.productcontainer}>
         {data.map((i) => (
           <div className={styles.productcard} key={i.id}>
-            <img src={i.thumbnail} alt={i.title} />
+            <Image
+              src={i.thumbnail}
+              alt={i.title}
+              width={400}
+              height={300}
+              className="w-full h-48 object-cover rounded-t-lg"
+              loading="lazy"
+            />
             <h3>{i.title}</h3>
             <p>{i.brand}</p>
             <p className={styles.price}>${i.price}</p>

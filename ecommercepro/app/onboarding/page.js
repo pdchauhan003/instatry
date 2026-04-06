@@ -4,6 +4,7 @@ import { useState } from "react";
 import im1 from '../../public/im1.webp'
 import im2 from '../../public/im2.webp'
 import im3 from '../../public/im3.webp'
+import Image from "next/image";
 function BoardingPage(){
     const router=useRouter();
     const[current,setCurrent]=useState(0);
@@ -118,7 +119,14 @@ function BoardingPage(){
           {slides.map((item, index) => (
             <div key={index} style={slide}>
 
-              <img src={item.image} style={image} />
+              <Image
+                src={item.image}
+                alt={item.title}
+                width={300}
+                height={300}
+                style={image}
+                priority={index === 0}
+              />
 
               <h2>{item.title}</h2>
               <p>{item.desc}</p>

@@ -18,10 +18,11 @@ export default function StoryAvatar({ story, userId }) {
       {story?.author?.image && (
         <Image
           src={story.author.image}
-          width={300}
-          height={300}
-          className="w-16 h-16 rounded-full border-2 border-pink-500"
+          width={64}
+          height={64}
+          className="w-16 h-16 rounded-full border-2 border-pink-500 object-cover"
           alt="story"
+          loading="lazy"
         />
       )}
       <p className="text-xs mt-1">{story?.author?.username}</p>

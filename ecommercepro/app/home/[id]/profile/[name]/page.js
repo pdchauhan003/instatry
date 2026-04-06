@@ -6,8 +6,9 @@ import socket from "@/lib/socket";
 import Image from "next/image";
 import { profilePageContent } from "@/Componants/ProfileUpperPage";
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogClose,} from "@/components/ui/dialog"; // ShadCN dialog
-import FollowingFeed from "@/Componants/FollowingFeed";
-import FollowerFeed from "@/Componants/FollowerFeed";
+import dynamic from "next/dynamic";
+const FollowingFeed = dynamic(() => import("@/Componants/FollowingFeed"), { ssr: false });
+const FollowerFeed = dynamic(() => import("@/Componants/FollowerFeed"), { ssr: false });
 import { Button } from "@/components/ui/button";
 import { handleUnfollow } from "@/handler/UnFollowhandler";
 // import { handleFollow } from "@/handler/follow&unfollow.handler";

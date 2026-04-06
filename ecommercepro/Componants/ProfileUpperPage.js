@@ -34,10 +34,11 @@ export const profilePageContent = ({
             {fdData?.image && (
               <Image
                 src={fdData.image}
-                width={400}
-                height={400}
-                alt="hehhe"
+                width={96}
+                height={96}
+                alt="profile"
                 className="w-full h-full rounded-full object-cover"
+                priority
               />
             )}
           </div>

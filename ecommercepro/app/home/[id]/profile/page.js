@@ -1,7 +1,8 @@
 "use client";
 
-import FollowerFeed from "@/Componants/FollowerFeed";
-import FollowingFeed from "@/Componants/FollowingFeed";
+import dynamic from "next/dynamic";
+const FollowerFeed = dynamic(() => import("@/Componants/FollowerFeed"), { ssr: false });
+const FollowingFeed = dynamic(() => import("@/Componants/FollowingFeed"), { ssr: false });
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
@@ -66,10 +67,11 @@ function PersonalProfilePage() {
               ourData?.image && (
                 <Image
                   src={ourData.image}
-                  width={400}
-                  height={400}
-                  alt='image hehe'
+                  width={96}
+                  height={96}
+                  alt='profile image'
                   className="w-full h-full rounded-full object-cover"
+                  priority
                 />
 
               )

@@ -222,8 +222,9 @@ import { useRouter } from "next/navigation";
 import { MoreVertical, Bookmark, Heart } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { addPost, removePost } from "@/redux/savedSlice";
-import SharePannel from "./SharePannel";
-import CommentDrawer from "./CommentOfPost";
+import dynamic from "next/dynamic";
+const SharePannel = dynamic(() => import("./SharePannel"), { ssr: false });
+const CommentDrawer = dynamic(() => import("./CommentOfPost"), { ssr: false });
 import {
   Dialog,
   DialogContent,
@@ -409,9 +410,10 @@ export default function PostCard({
         <Image
           src={post.post}
           alt="post"
-          width={2000}
-          height={2000}
-          className="w-full"
+          width={800}
+          height={800}
+          className="w-full h-auto"
+          loading="lazy"
         />
 
         {showHeart && (
