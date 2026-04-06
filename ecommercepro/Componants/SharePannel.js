@@ -129,16 +129,19 @@ function SharePannel({ post, userId, onClose }) {
           contacts.map((friend) => (
             <div
               key={friend._id}
-              className="flex items-center gap-3 p-2 hover:bg-gray-800 rounded"
+              className="flex items-center gap-3 p-3 hover:bg-gray-800 transition-colors cursor-pointer border-b border-gray-900 last:border-0"
+              onClick={() => handleSelect(friend)}
             >
-              <Image
-                src={friend?.image}
-                width={300}
-                height={300}
-                className="w-8 h-8 rounded-full"
-                alt="friend"
-              />
-              <p className="flex-1">{friend.username}</p>
+              <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-700 bg-gray-900 shrink-0">
+                <Image
+                  src={friend?.image}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                  alt="friend"
+                />
+              </div>
+              <p className="flex-1 font-medium text-sm">{friend.username}</p>
               <Button
                 size="sm"
                 onClick={() => handleSelect(friend)}
@@ -155,15 +158,19 @@ function SharePannel({ post, userId, onClose }) {
         )}
       </div>
 
-      <div className="border-t border-gray-700 pt-3 mt-2 flex gap-2">
+      <div className="p-4 border-t border-gray-800 bg-black flex gap-3">
         <Button
-          className="flex-1"
+          className="flex-1 h-11 font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all disabled:bg-gray-800 disabled:text-gray-500"
           onClick={handleSend}
           disabled={selectedUser.length === 0}
         >
-          Done
+          Send to {selectedUser.length > 0 ? selectedUser.length : ""}
         </Button>
-        <Button className="flex-1" variant="secondary" onClick={onClose}>
+        <Button 
+          className="flex-1 h-11 font-semibold rounded-xl bg-gray-800 hover:bg-gray-700 text-white transition-all" 
+          variant="secondary" 
+          onClick={onClose}
+        >
           Cancel
         </Button>
       </div>

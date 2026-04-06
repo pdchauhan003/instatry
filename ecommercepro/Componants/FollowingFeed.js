@@ -71,25 +71,49 @@ function FollowingFeed({ id }) {
   }
   console.log('followings list in front',followings);
   return (
-    <div className="max-h-96 overflow-y-auto px-4 py-2">
-      {followings.length === 0 && (
-        <p className="text-gray-400 text-sm text-center">No followings yet</p>
-      )}
-      {followings.map((f) => (
-        <div key={f._id} className="flex items-center gap-3 py-2 border-b border-gray-700">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-600">
-            {f.following.image ? (
-              <Image src={f.following.image} width={40} height={40} alt={f.following.username} className="object-cover w-full h-full"/>
-            ) : (
-              <div className="flex items-center justify-center w-full h-full text-sm text-gray-300">
-                {f.following.username.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-          <p className="font-medium">{f.following.username}</p>
-          <Button className='ml-auto' onClick={()=>unfollowMutation.mutate({friendId:f.following._id})}>Unfollow</Button>
+    <div className="max-h-96 overflow-y-auto px-1 py-1 no-scrollbar">
+      {followings.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-10 text-gray-500">
+          <svg className="w-12 h-12 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+          <p className="text-sm">No followings yet</p>
         </div>
-      ))}
+      ) : (
+        followings.map((f) => (
+          <div key={f._id} className="flex items-center gap-3 py-3 px-2 border-b border-gray-900 last:border-0 hover:bg-gray-900/40 transition-colors rounded-lg">
+            <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-800 border border-gray-700 shrink-0">
+              {f.following.image ? (
+                <Image 
+                  src={f.following.image} 
+                  width={44} 
+                  height={44} 
+                  alt={f.following.username} 
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full text-sm font-bold text-gray-500">
+                  {f.following.username.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col flex-1">
+              <p className="font-bold text-sm tracking-tight truncate max-w-[120px]">
+                {f.following.username}
+              </p>
+              <p className="text-xs text-gray-500">Following</p>
+            </div>
+            <Button 
+              variant="secondary" 
+              size="sm"
+              className="ml-auto rounded-xl text-xs font-bold h-8 px-4 bg-gray-100 hover:bg-gray-200 text-black border-none" 
+              onClick={() => unfollowMutation.mutate({ friendId: f.following._id })}
+            >
+              Unfollow
+            </Button>
+          </div>
+        ))
+      )}
     </div>
   );
 }

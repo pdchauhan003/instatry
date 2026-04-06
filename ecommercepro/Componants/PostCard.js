@@ -463,11 +463,10 @@ export default function PostCard({
         </button>
       </div>
 
-      {/* Share Dialog */}
       <Dialog open={showShare} onOpenChange={setShowShare}>
-        <DialogContent className="bg-black text-white w-full max-w-md h-[90vh] sm:h-auto p-4 rounded-none sm:rounded-lg">
-          <DialogHeader>
-            <DialogTitle>Share Post</DialogTitle>
+        <DialogContent className="bg-black text-white w-[95vw] sm:w-full max-w-md max-h-[85vh] h-full sm:h-auto overflow-hidden p-0 rounded-2xl border border-gray-800 flex flex-col">
+          <DialogHeader className="p-4 border-b border-gray-800">
+            <DialogTitle className="text-center text-lg font-bold">Share Post</DialogTitle>
           </DialogHeader>
 
           <SharePannel

@@ -6,6 +6,7 @@ import socket from "@/lib/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Phone, Video, MoreHorizontal, Check, CheckCheck, ChevronLeft } from "lucide-react";
 
 export default function ChatPage() {
   const { id, chatid } = useParams();
@@ -167,20 +168,37 @@ export default function ChatPage() {
     <div className="flex flex-col h-full bg-black text-white">
 
       {/* Header */}
-      <div className="p-3 border-b border-gray-800 flex items-center gap-3">
-
-        <div className="w-10 h-10 rounded-full overflow-hidden relative bg-gray-700" onClick={handleProfile}>
+      <div className="p-3 border-b border-gray-800 flex items-center gap-3 sticky top-0 bg-black/80 backdrop-blur-md z-50">
+        <button onClick={() => router.back()} className="md:hidden">
+          <ChevronLeft size={24} />
+        </button>
+        
+        <div className="w-10 h-10 rounded-full overflow-hidden relative bg-gray-800 border border-gray-700 cursor-pointer shrink-0" onClick={handleProfile}>
           {userInfo?.image ? (
-            <Image src={userInfo.image} width={300} height={300} alt={userInfo.username} className="object-cover w-full h-full"/>
+            <Image src={userInfo.image} width={40} height={40} alt={userInfo.username} className="object-cover w-full h-full"/>
           ) : (
-            <div className="flex items-center justify-center w-full h-full text-sm text-gray-300">
+            <div className="flex items-center justify-center w-full h-full text-sm font-bold text-gray-400">
               {userInfo.username?.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
-        <p className="font-semibold">{userInfo.username || "Chat"}</p>
+        
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-sm truncate">{userInfo.username || "Chat"}</p>
+          <p className="text-[10px] text-green-500 font-medium">Online</p>
+        </div>
 
-        <Button onClick={handleCall} className=''>call</Button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleCall} className="p-2 hover:bg-gray-800 rounded-full transition-colors">
+            <Phone size={20} className="text-gray-300" />
+          </button>
+          <button onClick={handleCall} className="p-2 hover:bg-gray-800 rounded-full transition-colors">
+            <Video size={20} className="text-gray-300" />
+          </button>
+          <button className="p-2 hover:bg-gray-800 rounded-full transition-colors">
+            <MoreHorizontal size={20} className="text-gray-300" />
+          </button>
+        </div>
       </div>
 
       {/* Loading older messages */}
@@ -213,17 +231,17 @@ export default function ChatPage() {
                 onTouchStart={() => handleTouchStart(msg)}
                 onTouchEnd={handleTouchEnd}
               >
-                {msg.message}
+                <p className="leading-relaxed">{msg.message}</p>
 
                 {/* Seen check */}
                 {isMe && (
-                  <span className="text-xs opacity-50 ml-2">
+                  <div className="flex justify-end mt-1 -mr-1">
                     {msg.isSeen ? (
-                      <span className="text-blue-800">✔</span>
+                      <CheckCheck size={14} className="text-blue-500" />
                     ) : (
-                      <span className="text-red-800">✔</span>
+                      <Check size={14} className="text-gray-500" />
                     )}
-                  </span>
+                  </div>
                 )}
 
                 {/* Popup menu inside message */}
@@ -276,20 +294,24 @@ export default function ChatPage() {
         <div ref={bottomRef}></div>
       </div>
 
-      {/* Input */}
-      <div className="fixed bottom-0 left-0 right-0 md:left-64 md:right-0 bg-black border-t border-gray-800 p-3 flex gap-2">
-        <input
-          className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 outline-none"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
-        />
-        <button
-          onClick={sendMessage}
-          className="bg-white text-black px-4 rounded-xl font-medium active:scale-95 transition"
-        >
-          Send
-        </button>
+      {/* Input area */}
+      <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-black/90 backdrop-blur-md border-t border-gray-800 p-4 pt-2">
+        <div className="flex items-center gap-3 max-w-4xl mx-auto bg-gray-900 border border-gray-800 rounded-2xl px-4 py-1.5 shadow-2xl">
+          <input
+            className="flex-1 bg-transparent border-none py-2 text-sm outline-none placeholder:text-gray-600"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            placeholder="Type a message..."
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!message.trim()}
+            className="text-blue-500 font-bold text-sm hover:text-blue-400 active:scale-95 transition-all disabled:text-gray-700"
+          >
+            Send
+          </button>
+        </div>
       </div>
     </div>
   );

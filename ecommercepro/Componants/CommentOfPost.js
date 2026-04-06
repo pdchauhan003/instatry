@@ -127,7 +127,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetContent
                 side="bottom"
-                className="h-[90vh] rounded-t-2xl p-0 bg-black text-white"
+                className="h-[90vh] rounded-t-2xl p-0 bg-black text-white flex flex-col"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
             >
