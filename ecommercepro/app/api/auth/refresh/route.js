@@ -30,7 +30,8 @@ export async function POST(req){
         httpOnly: true,
         secure:true,
         sameSite:'strict',
-        path:'/'
+        path:'/',
+        maxAge:60*15 // 15 min
         });
 
         return response;
