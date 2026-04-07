@@ -102,6 +102,7 @@ export default async function homePage(context) {
   const params = await context.params;
   const searchParams=await context.searchParams;
   const id = params.id;
+  console.log('id in home page is',id)
   const cursor = searchParams?.cursor || null;
   const data = await gethomeData(id, cursor);
   const UName = await getUserNameUsingId(id);

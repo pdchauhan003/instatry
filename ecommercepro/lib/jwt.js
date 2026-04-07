@@ -1,18 +1,15 @@
 import jwt from 'jsonwebtoken';
 
-
-// export function generateToken({user,sessionId}){
-//     return jwt.sign({id:user._id,email:user.email,sessionId:sessionId},process.env.JWT_SECRET,{expiresIn:'1d'});
-// }
-
-export function generateToken(data){
-    return jwt.sign(data,process.env.JWT_SECRET,{expiresIn:'2m'});
+export function generateAccessToken(data){
+    console.log('accesstoken data is in jwt :',data)
+    return jwt.sign({userId:data.id,role:data.role,sessionId:data.sessionId},process.env.ACCESS_SECRET,{expiresIn:'2m'});
 }
 
 export function generateRefreshToken(data){
-    return jwt.sign(data,process.env.REFRESH_SECRET,{expiresIn:'7d'})
+    console.log('refresh tokrn data in jwt :',data)
+    return jwt.sign({userId:data.id,sessionId:data.sessionId},process.env.REFRESH_SECRET,{expiresIn:'7d'})
 }
 
-export function verifyToken(token){
-    return jwt.verify(token, process.env.JWT_SECRET);
-}
+// export function verifyToken(token){
+//     return jwt.verify(token, process.env.JWT_SECRET);
+// }

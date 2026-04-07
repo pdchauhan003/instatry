@@ -113,7 +113,8 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { User } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
-import { generateToken } from "@/lib/jwt";
+// import { generateToken } from "@/lib/jwt";
+import { generateAccessToken } from "@/lib/jwt";
 import crypto from 'crypto';
 
 export const authOptions = {
@@ -180,7 +181,7 @@ export const authOptions = {
                 existingUser.sessionId = newSessionId;
                 await existingUser.save(); //save session id in db
 
-                const jwtToken = generateToken({
+                const jwtToken = generateAccessToken({
                     user: existingUser,
                     sessionId: newSessionId,
                 });
@@ -194,7 +195,7 @@ export const authOptions = {
                 const user = await User.findOne({ email: token.email });
 
                 if (user) {
-                    const jwtToken = generateToken({
+                    const jwtToken = generateAccessToken({
                         user,
                         sessionId: user.sessionId,
                     });

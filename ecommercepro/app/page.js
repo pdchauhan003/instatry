@@ -13,6 +13,7 @@ function FirstPage() {
       const data = await res.json();
 
       if (data.success) {
+        console.log('success in first page',data.userId)
         router.replace(`/home/${data.userId}`);
       } else {
         router.replace(`/login`);
@@ -20,7 +21,7 @@ function FirstPage() {
     } catch (error) {
       router.replace("/login");
     }
-  }, 100);
+  }, 1000);
     return () => clearTimeout(timer);
   }, []);
   return (

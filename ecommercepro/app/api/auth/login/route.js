@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { User } from "@/lib/database.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import { generateToken, generateRefreshToken } from "@/lib/jwt";
+import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
 import { connectDB } from "@/lib/Connection";
 import redis from "@/services/redis";
 
@@ -31,7 +31,7 @@ export async function POST(req) {
     const sessionId = crypto.randomBytes(32).toString("hex");
     user.sessionId = sessionId;
 
-    const refreshToken = generateRefreshToken({ id: user._id });
+    const refreshToken = generateRefreshToken({ id: user._id,sessionId:sessionId });
     user.refreshToken = refreshToken;
 
     await user.save();
@@ -42,7 +42,7 @@ export async function POST(req) {
         body: JSON.stringify({ userId: user._id.toString() })
     }).catch(e => console.log("Socket server not reachable or error:", e.message));
 
-    const accessToken = generateToken({
+    const accessToken = generateAccessToken({
       id: user._id,
       role: user.role,
       sessionId,
@@ -56,14 +56,16 @@ export async function POST(req) {
     });
 
     //Set cookies
-    response.cookies.set("token", accessToken, {
+    response.cookies.set("accessToken", accessToken, {
       httpOnly: true,
+      secure:true,
       sameSite: "strict",
       path: "/",
     });
 
     response.cookies.set("refreshToken", refreshToken, {
       httpOnly: true,
+      secure:true,
       sameSite: "strict",
       path: "/",
     });

@@ -10,8 +10,9 @@ export async function POST(req){
   const user = await User.findById(userId);
 
   if(!user || user.sessionId !== sessionId){
+    alert('session is not valid')
     return Response.json({ valid: false });
   }
-
+  alert('session is valid')
   return Response.json({ valid: true });
 }

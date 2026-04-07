@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useDispatch } from "react-redux";
 import { setAuthUser } from "@/redux/authSlice";
 import { signIn } from "next-auth/react";
+
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,16 +24,18 @@ function LoginPage() {
       body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
-    console.log(data);
+    console.log('data in login page is ',data);
     if(data.success){
+      console.log('data .id is ',data.id)
       if (!data.role || !data.id) {
         alert(data.message || "Login failed");
-      return;
+        return;
       }
       if (data.role === "admin") {
         router.replace(`/admin/dashboard/${data.id}`);
         router.refresh();
       } else if (data.role === "user") {
+        console.log('user route is run in login ')
         router.replace(`/home/${data.id}`);
         router.refresh();
       }

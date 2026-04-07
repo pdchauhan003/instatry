@@ -16,7 +16,7 @@ export async function GET(req) {
     const response = NextResponse.redirect(new URL(`/home/${session.dbId}`, req.url));
     console.log("SESSION:", session);
     // Set the custom token cookie on the response
-    response.cookies.set("token", session.jwt, {
+    response.cookies.set("accessToken", session.jwt, {
     httpOnly: true,
     path: "/",
     maxAge: 60 * 60 * 24,

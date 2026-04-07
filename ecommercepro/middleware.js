@@ -1,9 +1,10 @@
 // // middleware.js
 import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+// import { jwtVerify } from "jose";
+import jwt from 'jsonwebtoken'
 
 export async function middleware(req) {
-  const token = req.cookies.get("token")?.value;
+  const token = req.cookies.get("accessToken")?.value;
   const { pathname } = req.nextUrl;
 
   const protectedRoutes = ["/dashboard", "/home"];
@@ -19,12 +20,14 @@ export async function middleware(req) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
   try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    // const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
     // for another login account 
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.id;
-    const sessionId = payload.sessionId;
+    // const { payload } = await jwtVerify(token, secret);
+
+    const decode=jwt.verify(token,process.env.ACCESS_SECRET)
+    const userId = decode.userId;
+    const sessionId = decode.sessionId;
 
     const res = await fetch(`${req.nextUrl.origin}/api/auth/verify-session`, {
       method: "POST",
@@ -34,9 +37,12 @@ export async function middleware(req) {
 
     const data = await res.json();
     if (!data.valid) {
+      console.log('session is not verified')
       return NextResponse.redirect(new URL("/login", req.url));
     }
-
+    else{
+      console.log('session is verified')
+    }
     return NextResponse.next()
   } catch (error) {
     // console.log("JWT Verify Error:", error.message);
@@ -50,9 +56,7 @@ export async function middleware(req) {
     });
 
     if (refreshRes.ok) {
-      const response= NextResponse.next(); 
-      const refreshData=await refreshRes.json();
-      return response;
+      return NextResponse.next(); 
     }
 
     //refresh failed → logout
