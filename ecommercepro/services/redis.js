@@ -51,4 +51,4 @@ const testRedis = async () => {
     }
 }
 testRedis();
-export default redis;
+export default redis; 
