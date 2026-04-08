@@ -1,43 +1,43 @@
 import { cookies } from "next/headers";
 import jwt from 'jsonwebtoken'
-import {User} from '@/lib/database.js';
+import { User } from '@/lib/database.js';
 import { generateAccessToken } from "@/lib/jwt";
 import { connectDB } from "@/services/mongodb";
 import { NextResponse } from "next/server";
 
-export async function POST(req){
+export async function POST(req) {
     await connectDB();
     // const cookieStore=await cookies();
-    const refreshToken=await req.cookies.get('refreshToken')?.value;
-    if(!refreshToken){
-        return NextResponse.json({message:'No refresh token'});
+    const refreshToken = await req.cookies.get('refreshToken')?.value;
+    if (!refreshToken) {
+        return NextResponse.json({ message: 'No refresh token' });
     }
-    try{
-        const decode=jwt.verify(refreshToken,process.env.REFRESH_SECRET);
-        const user=await User.findById(decode.userId);
-        if(!user || user.refreshToken !== refreshToken){
-            return Response.json({message:'invalid refresh token'});
+    try {
+        const decode = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
+        const user = await User.findById(decode.userId);
+        if (!user || user.refreshToken !== refreshToken) {
+            return Response.json({ message: 'invalid refresh token' });
         }
-        const newAccessToken=generateAccessToken({
-            id:user._id,
-            role:user.role,
-            sessionId:user.sessionId
+        const newAccessToken = generateAccessToken({
+            id: user._id,
+            role: user.role,
+            sessionId: user.sessionId
         });
 
-        const response = NextResponse.json({ success: true,userId: user._id, });
+        const response = NextResponse.json({ success: true, userId: user._id, });
 
         response.cookies.set("accessToken", newAccessToken, {
-        httpOnly: true,
-        secure:true,
-        sameSite:'strict',
-        path:'/',
-        maxAge:60*15 // 15 min
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            path: '/',
+            // maxAge:60*15 // 15 min
         });
 
         return response;
 
     }
-    catch(error){
-        return Response.json({message:'Expired refresh token'})
+    catch (error) {
+        return Response.json({ message: 'Expired refresh token' })
     }
 }

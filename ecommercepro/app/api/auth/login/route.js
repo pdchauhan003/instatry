@@ -61,7 +61,7 @@ export async function POST(req) {
       secure:true,
       sameSite: "strict",
       path: "/",
-      maxAge:60*15 // 15 min
+      // maxAge:60*15 // 15 min
     });
 
     response.cookies.set("refreshToken", refreshToken, {
@@ -69,7 +69,7 @@ export async function POST(req) {
       secure:true,
       sameSite: "strict",
       path: "/",
-      maxAge:60*60*24*7 //7 days
+      // maxAge:60*60*24*7 //7 days
     });
 
     return response;
