@@ -27,4 +27,4 @@ export async function PUT(req, context) {
     success: true,
     post: updatedPost,
   });
-}
+}  
