@@ -88,10 +88,20 @@ function EditPage(){
             <Image src={userData?.userNameAndImage?.image} className="mx-auto rounded-full h-30 w-30" width={200} height={200} alt="images"/>
           )}
           <br/>
-          <input type="file" className="border-2 border-white my-2" name='image' onChange={(e)=>dispatch({value:e.target.value,type:e.target.name})} placeholder="File"/>
-          <br/>
-          <span>change profile picture</span>
-          <br/>
+          <input 
+            type="file" 
+            id="image-upload"
+            accept="image/*"
+            className="hidden" 
+            name='image' 
+            onChange={(e) => dispatch({ value: e.target.files[0], type: e.target.name })}
+          />
+          <label 
+            htmlFor="image-upload"
+            className="inline-block px-4 py-1 mt-2 text-sm text-blue-500 font-medium cursor-pointer active:opacity-50"
+          >
+            Change profile picture
+          </label>
           <input type="text" value={state.name} className="border-2 border-white my-2 w-full rounded-sm p-3" placeholder="Name" name="name" onChange={(e)=>dispatch({value:e.target.value,type:e.target.name})}/>
           <br/>
           <input type="text" value={state.username} className="border-2 border-white my-2 w-full rounded-sm p-3" placeholder="username" name="username" onChange={(e)=>dispatch({value:e.target.value,type:e.target.name})}/>

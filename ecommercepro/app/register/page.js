@@ -156,8 +156,8 @@ function RegisterPage() {
               <label className="text-sm font-medium text-gray-700 block">
                 Profile Picture
               </label>
-              <div
-                onClick={() => fileInputRef.current && fileInputRef.current.click()}
+              <label
+                htmlFor="profile-upload"
                 className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer group block"
               >
                 <input
@@ -180,7 +180,7 @@ function RegisterPage() {
                     Supports JPG, PNG, WEBP
                   </p>
                 </div>
-              </div>
+              </label>
             </div>
           </form>
 
