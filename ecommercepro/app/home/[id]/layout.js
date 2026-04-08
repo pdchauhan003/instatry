@@ -1,13 +1,21 @@
 "use client";
 import { useParams, usePathname, useRouter} from "next/navigation";
 import SocketProvider from "@/app/SocketProvider";
+import { Home, Search, MessageCircle, ShoppingBag, User, Settings } from "lucide-react";
 
 export default function RootLayoutt({ children }) {
   const { id } = useParams();
   const pathname = usePathname();
   const router = useRouter();
-  // check if current page is Home
-  const isHomePage = pathname === `/home/${id}`;
+  // check if current page is one of the allowed mobile nav pages
+  const allowedPaths = [
+    `/home/${id}`,
+    `/home/${id}/search`,
+    `/home/${id}/chatt`,
+    `/home/${id}/profile`,
+    `/home/${id}/setting`
+  ];
+  const showMobileNav = allowedPaths.includes(pathname);
 
   const handleNav = (href) => {
     if (pathname === href) {
@@ -41,14 +49,27 @@ export default function RootLayoutt({ children }) {
         </SocketProvider>
       </main>
 
-      {/* mobile Bottom Navbar (Home only) */}
-      {isHomePage && (
-        <nav className="md:hidden fixed bottom-0 left-0 w-full bg-black border-t border-gray-800 flex justify-around py-3">
-          <button onClick={() => handleNav(`/home/${id}`)} className="hover:text-gray-400">Home</button>
-          <button onClick={() => handleNav(`/home/${id}/search`)} className="hover:text-gray-400">Search</button>
-          <button onClick={() => handleNav(`/home/${id}/chatt`)} className="hover:text-gray-400">Chat</button>
-          <button onClick={() => handleNav(`/home/${id}/profile`)} className="hover:text-gray-400">Profile</button>
-          <button onClick={() => handleNav(`/home/${id}/setting`)} className="hover:text-gray-400">Settings</button>
+      {/* mobile Bottom Navbar */}
+      {showMobileNav && (
+        <nav className="md:hidden fixed bottom-0 left-0 w-full bg-black/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 px-2 pb-6 z-50">
+          <button onClick={() => handleNav(`/home/${id}`)} className="text-white hover:text-gray-400 active:scale-90 transition-transform">
+            <Home size={28} strokeWidth={2} />
+          </button>
+          <button onClick={() => handleNav(`/home/${id}/search`)} className="text-white hover:text-gray-400 active:scale-90 transition-transform">
+            <Search size={28} strokeWidth={2} />
+          </button>
+          <button onClick={() => handleNav(`/home/${id}/chatt`)} className="text-white hover:text-gray-400 active:scale-90 transition-transform">
+            <MessageCircle size={28} strokeWidth={2} />
+          </button>
+          <button onClick={() => handleNav(`/dashboard/${id}`)} className="text-white hover:text-gray-400 active:scale-90 transition-transform">
+            <ShoppingBag size={28} strokeWidth={2} />
+          </button>
+          <button onClick={() => handleNav(`/home/${id}/profile`)} className="text-white hover:text-gray-400 active:scale-90 transition-transform">
+            <User size={28} strokeWidth={2} />
+          </button>
+          <button onClick={() => handleNav(`/home/${id}/setting`)} className="text-white hover:text-gray-400 active:scale-90 transition-transform">
+            <Settings size={28} strokeWidth={2} />
+          </button>
         </nav>
       )}
     </div>
