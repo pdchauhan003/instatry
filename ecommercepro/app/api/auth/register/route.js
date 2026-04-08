@@ -58,8 +58,9 @@ export async function POST(req) {
     //     }
     //   ).end(buffer);
     // });
-    if (image) {
-      const uploadResult = await uploadCloudinary(image)
+    let uploadResult = null;
+    if (image && typeof image !== 'string' && image.size > 0) {
+      uploadResult = await uploadCloudinary(image)
     }
 
     const user = new User({

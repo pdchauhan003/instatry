@@ -14,7 +14,7 @@ export async function POST(req, context) {
   const caption = formData.get("caption");
   const option=formData.get('option');
 
-  if (!image) {
+  if (!image || typeof image === 'string' || image.size === 0) {
     return Response.json({ success: false, message: "Image required" });
   }
 

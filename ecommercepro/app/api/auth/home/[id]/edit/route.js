@@ -32,7 +32,7 @@ export async function PUT(req, context) {
         updatedFields.push("username");
     }
 
-    if (image && image.size > 0) {
+    if (image && typeof image !== 'string' && image.size > 0) {
         const uploadResult = await uploadCloudinary(image);
         await updateUserField(id, "image", uploadResult.secure_url);
         updatedFields.push("image");
