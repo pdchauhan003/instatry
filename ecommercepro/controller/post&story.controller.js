@@ -69,182 +69,14 @@ import mongoose from 'mongoose'
 
 
 
-// export const allFriends = async (userId, cursor = null) => {
-//   await connectDB();
-
-//   const userObjectId = new mongoose.Types.ObjectId(userId);
-
-//   // -------------------------------
-//   // 1. GET CONNECTIONS (FAST)
-//   // -------------------------------
-//   const connections = await Follow.aggregate([
-//     {
-//       $match: {
-//         $or: [
-//           { follower: userObjectId },
-//           { following: userObjectId }
-//         ]
-//       }
-//     },
-//     {
-//       $project: {
-//         users: ["$follower", "$following"]
-//       }
-//     },
-//     { $unwind: "$users" },
-//     {
-//       $group: {
-//         _id: null,
-//         users: { $addToSet: "$users" }
-//       }
-//     }
-//   ]);
-
-//   let userIds = connections[0]?.users || [];
-//   userIds.push(userObjectId); // include self
-
-//   // -------------------------------
-//   // 2. POSTS (AGGREGATION + CURSOR)
-//   // -------------------------------
-//   const matchStage = {
-//     author: { $in: userIds }
-//   };
-
-//   if (cursor) {
-//     matchStage._id = { $lt: new mongoose.Types.ObjectId(cursor) };
-//   }
-
-//   const posts = await Post.aggregate([
-//     { $match: matchStage },
-
-//     { $sort: { _id: -1 } },
-
-//     { $limit: 10 },
-
-//     // JOIN USER
-//     {
-//       $lookup: {
-//         from: "users",
-//         localField: "author",
-//         foreignField: "_id",
-//         as: "author"
-//       }
-//     },
-//     { $unwind: "$author" },
-
-//     // COMMENTS COUNT (NO FULL LOAD)
-//     {
-//       $lookup: {
-//         from: "comments",
-//         localField: "_id",
-//         foreignField: "post",
-//         as: "comments"
-//       }
-//     },
-
-//     {
-//       $addFields: {
-//         likesCount: { $size: "$likes" },
-//         commentsCount: { $size: "$comments" }
-//       }
-//     },
-
-//     // CLEAN DATA (VERY IMPORTANT)
-//     {
-//       $project: {
-//         post: 1,
-//         caption: 1,
-//         createdAt: 1,
-//         likes: 1, // keep for frontend compatibility
-//         likesCount: 1,
-//         commentsCount: 1,
-//         "author._id": 1,
-//         "author.username": 1,
-//         "author.image": 1
-//       }
-//     }
-//   ]);
-
-//   const nextCursor =
-//     posts.length > 0 ? posts[posts.length - 1]._id.toString() : null;
-
-//   // -------------------------------
-//   // 3. STORIES (GROUPED LIKE INSTAGRAM)
-//   // -------------------------------
-//   const stories = await Story.aggregate([
-//     {
-//       $match: {
-//         author: { $in: userIds }
-//       }
-//     },
-//     { $sort: { createdAt: -1 } },
-
-//     // ONE STORY PER USER
-//     {
-//       $group: {
-//         _id: "$author",
-//         story: { $first: "$$ROOT" }
-//       }
-//     },
-
-//     {
-//       $lookup: {
-//         from: "users",
-//         localField: "_id",
-//         foreignField: "_id",
-//         as: "author"
-//       }
-//     },
-//     { $unwind: "$author" },
-
-//     {
-//       $project: {
-//         _id: "$story._id",
-//         story: "$story.story",
-//         caption: "$story.caption",
-//         createdAt: "$story.createdAt",
-//         "author.username": 1,
-//         "author.image": 1
-//       }
-//     }
-//   ]);
-
-//   // -------------------------------
-//   // 4. SAVED POSTS (FAST)
-//   // -------------------------------
-//   const savedPosts = await Saved.find({ user: userObjectId })
-//     .select("post")
-//     .lean();
-
-//   const savedIds = savedPosts.map(s => s.post.toString());
-
-//   // -------------------------------
-//   // 5. USER BASIC INFO
-//   // -------------------------------
-//   const user = await User.findById(userObjectId)
-//     .select("username image")
-//     .lean();
-
-//   if (!user) return null;
-
-//   return JSON.parse(JSON.stringify({
-//     user,
-//     posts,
-//     stories,
-//     savedIds,
-//     nextCursor
-//   }));
-// }
-
-
 export const allFriends = async (userId, cursor = null) => {
   await connectDB();
 
   const userObjectId = new mongoose.Types.ObjectId(userId);
 
-  // ✅ Step 1: Get connections (lean + minimal)
+  //connections 
   const connections = await Follow.find({
-    $or: [{ follower: userObjectId }, { following: userObjectId }]
+   follower: userObjectId 
   })
     .select("follower following")
     .lean();
@@ -264,14 +96,14 @@ export const allFriends = async (userId, cursor = null) => {
     match._id = { $lt: new mongoose.Types.ObjectId(cursor) };
   }
 
-  // ✅ Step 2: Optimized aggregation
+  // posts aggregation
   const posts = await Post.aggregate([
     { $match: match },
 
     { $sort: { _id: -1 } },
     { $limit: 10 },
 
-    // ✅ Join user (only required fields)
+    // Join user 
     {
       $lookup: {
         from: "users",
@@ -285,7 +117,7 @@ export const allFriends = async (userId, cursor = null) => {
     },
     { $unwind: "$author" },
 
-    // ✅ Convert everything to STRING (IMPORTANT)
+    //Convert everything to STRING 
     {
       $addFields: {
         _id: { $toString: "$_id" },
@@ -300,7 +132,7 @@ export const allFriends = async (userId, cursor = null) => {
       }
     },
 
-    // ✅ Final shape (small payload)
+    // structure
     {
       $project: {
         post: 1,
@@ -314,7 +146,7 @@ export const allFriends = async (userId, cursor = null) => {
 
   const nextCursor = posts.length ? posts[posts.length - 1]._id : null;
 
-  // ✅ Parallel queries
+  // Parallel queries
   const [stories, savedPosts, user] = await Promise.all([
     Story.aggregate([
       { $match: { author: { $in: ids } } },
@@ -364,6 +196,8 @@ export const allFriends = async (userId, cursor = null) => {
     nextCursor
   };
 };
+
+
 
 export const IndividualPosts = async (userId) => {
   await connectDB();
