@@ -182,7 +182,8 @@ export const authOptions = {
                 await existingUser.save(); //save session id in db
 
                 const jwtToken = generateAccessToken({
-                    user: existingUser,
+                    id: existingUser._id,
+                    role: existingUser.role,
                     sessionId: newSessionId,
                 });
 
@@ -196,7 +197,8 @@ export const authOptions = {
 
                 if (user) {
                     const jwtToken = generateAccessToken({
-                        user,
+                        id: user._id,
+                        role: user.role,
                         sessionId: user.sessionId,
                     });
 

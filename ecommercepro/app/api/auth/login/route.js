@@ -49,16 +49,19 @@ export async function POST(req) {
     });
 
     //Create response
+    // eslint-disable-next-line no-unused-vars
+    const { password: _, ...userData } = user.toObject();
     const response = NextResponse.json({
       success: true,
       role: user.role,
       id: user._id,
+      user: userData,
     });
 
     //Set cookies
     response.cookies.set("accessToken", accessToken, {
       httpOnly: true,
-      secure:true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
       // maxAge:60*15 // 15 min
@@ -66,7 +69,7 @@ export async function POST(req) {
 
     response.cookies.set("refreshToken", refreshToken, {
       httpOnly: true,
-      secure:true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
       // maxAge:60*60*24*7 //7 days

@@ -26,13 +26,14 @@ function LoginPage() {
     const data = await res.json();
     console.log('data in login page is ',data);
     if(data.success){
+      dispatch(setAuthUser(data.user));
       console.log('data .id is ',data.id)
       if (!data.role || !data.id) {
         alert(data.message || "Login failed");
         return;
       }
       if (data.role === "admin") {
-        router.replace(`/admin/dashboard/${data.id}`);
+        router.replace(`/home/${data.id}`);
         router.refresh();
       } else if (data.role === "user") {
         console.log('user route is run in login ')

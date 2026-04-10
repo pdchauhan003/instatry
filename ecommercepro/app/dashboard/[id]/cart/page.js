@@ -76,7 +76,7 @@ function CartList() {
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm">
           <div className="text-6xl mb-4">🛒</div>
           <h2 className="text-2xl font-bold text-slate-700">Your cart is empty!</h2>
-          <p className="text-slate-500 mt-2 mb-6">Looks like you haven't added anything yet.</p>
+          <p className="text-slate-500 mt-2 mb-6">Looks like you havent added anything yet.</p>
           <button
             onClick={() => router.push(`/dashboard/${id}`)}
             className="active:scale-95 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-8 rounded-2xl transition-all"

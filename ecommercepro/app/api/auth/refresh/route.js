@@ -28,7 +28,7 @@ export async function POST(req) {
 
         response.cookies.set("accessToken", newAccessToken, {
             httpOnly: true,
-            secure: true,
+            secure: process.env.NODE_ENV === "production",
             sameSite: 'strict',
             path: '/',
             // maxAge:60*15 // 15 min
@@ -38,6 +38,6 @@ export async function POST(req) {
 
     }
     catch (error) {
-        return Response.json({ message: 'Expired refresh token' })
+        return Response.json({ message: 'Expired refresh token' }, { status: 401 })
     }
 }

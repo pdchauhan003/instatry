@@ -1,6 +1,6 @@
 import { connectDB } from "@/services/mongodb";
 import User from "@/models/User";
-// import redis from "@/services/redis";
+import redis from "@/services/redis";
 import Bio from "@/models/Bio";
 import Message from "@/models/Message";
 import mongoose from 'mongoose'
@@ -22,7 +22,7 @@ export const individualUserData = async (userId) => {
     //     return JSON.parse(cachedData);
     // }
 
-    const user = await User.findById(userId).lean();
+    const user = await User.findById(userId).select('-password').lean();
     // if (user) {
     //     await redis.set(cacheKey, 3600, JSON.stringify(user)); // Cache for 1 hour
     // }
@@ -49,18 +49,18 @@ export const getUserNameUsingId = async (userId) => {
 export const getUserImageAndUsername = async (userId) => {
     await connectDB();
     
-    // const cacheKey = `user:${userId}:minimal`;
-    // const cachedData = await redis.get(cacheKey);
+    const cacheKey = `user:${userId}:minimal`;
+    const cachedData = await redis.get(cacheKey);
     
-    // if (cachedData) {
-    //     console.log("Serving minimal user data from cache:", cacheKey);
-    //     return JSON.parse(cachedData);
-    // }
+    if (cachedData) {
+        console.log("Serving minimal user data from cache:", cacheKey);
+        return JSON.parse(cachedData);
+    }
 
     const user = await User.findById(userId).select('username image').lean();
-    // if (user) {
-    //     await redis.set(cacheKey, 3600, JSON.stringify(user));
-    // }
+    if (user) {
+        await redis.set(cacheKey, 3600, JSON.stringify(user));
+    }
     return user;
 };
 
@@ -96,7 +96,11 @@ export const getUserBioOnly=async(userId)=>{
 
 export const updateUserField=async(userId,field,value)=>{
     connectDB();
+    
     const updatedData=await User.findByIdAndUpdate(userId,{$set:{[field]:value}},{new:true,upsert:true})
+    if(updatedData){
+        await redis.set(`user:${userId}:minimal`,JSON.stringify({username:updatedData.username,image:updatedData.image}))
+    }
     return updatedData
 }
 

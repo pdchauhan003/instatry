@@ -10,12 +10,14 @@ const userSchema = new mongoose.Schema({
     otp: { type: String },
     googleId: { type: String },
     provider: { type: String, default: "credentials" },
-    role: { type: String, enum: ['admin', 'user'], default: 'user' },
+    role: { type: String, enum: ['admin', 'user', 'seller'], default: 'user' },
     contacts: [{ type: String }],
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
     savedposts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
     sessionId: { type: String, index: true },
     refreshToken:{type:String},
+    verificationStatus: {type: String,enum:['none','Pending','pending','approved','rejected','seller'],default: "none"}, // none | pending | approved | rejected | seller},
+    isVerifiedSeller: {type: Boolean,default: false,},
 }, { timestamps: true });
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);

@@ -1,12 +1,39 @@
 "use client";
 import { useParams, usePathname, useRouter} from "next/navigation";
 import SocketProvider from "@/app/SocketProvider";
-import { Home, Search, MessageCircle, ShoppingBag, User, Settings } from "lucide-react";
+import { Home, Search, MessageCircle, ShoppingBag, User, Settings, ShieldCheck } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { setAuthUser } from "@/redux/authSlice";
+import { useEffect } from "react";
 
 export default function RootLayoutt({ children }) {
   const { id } = useParams();
   const pathname = usePathname();
   const router = useRouter();
+
+  const { user } = useSelector(state => state.auth);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+      if (!id || user) return;
+      const fetchUserData = async () => {
+          try {
+              const res = await fetch(`/api/auth/home/${id}/profile`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ id }),
+              });
+              const data = await res.json();
+              if (data.success) {
+                  dispatch(setAuthUser(data.user));
+              }
+          } catch (error) {
+              console.error("Error hydrating user:", error);
+          }
+      };
+      fetchUserData();
+  }, [id, user, dispatch]);
+  
   // check if current page is one of the allowed mobile nav pages
   const allowedPaths = [
     `/home/${id}`,
@@ -40,6 +67,12 @@ export default function RootLayoutt({ children }) {
         <button onClick={() => handleNav(`/dashboard/${id}`)} className="text-left hover:text-gray-400">Shopping</button>
         <button onClick={() => handleNav(`/home/${id}/setting`)} className="text-left hover:text-gray-400">Settings</button>
         <button onClick={() => handleNav(`/home/${id}/profile`)} className="text-left hover:text-gray-400">Profile</button>
+        {user?.role === "admin" && (
+          <button onClick={() => handleNav(`/admin/verify`)} className="text-left text-emerald-400 font-bold hover:text-emerald-300 flex items-center gap-2">
+            <ShieldCheck size={20} />
+            Admin Panel
+          </button>
+        )}
       </nav>
 
       {/* Scroll Container */}
@@ -67,6 +100,11 @@ export default function RootLayoutt({ children }) {
           <button onClick={() => handleNav(`/home/${id}/profile`)} className="text-white hover:text-gray-400 active:scale-90 transition-transform">
             <User size={28} strokeWidth={2} />
           </button>
+          {user?.role === "admin" && (
+            <button onClick={() => handleNav(`/admin/verify`)} className="text-emerald-400 hover:text-emerald-300 active:scale-90 transition-transform">
+              <ShieldCheck size={28} strokeWidth={2} />
+            </button>
+          )}
           <button onClick={() => handleNav(`/home/${id}/setting`)} className="text-white hover:text-gray-400 active:scale-90 transition-transform">
             <Settings size={28} strokeWidth={2} />
           </button>
