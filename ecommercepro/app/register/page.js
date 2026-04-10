@@ -170,7 +170,7 @@ function RegisterPage() {
                       setImage(e.target.files[0]);
                     }
                   }}
-                  style={{ display: "none" }}
+                  className="absolute w-px h-px opacity-0 overflow-hidden"
                 />
                 <div className="space-y-1">
                   <p className="text-sm text-gray-600 font-medium">

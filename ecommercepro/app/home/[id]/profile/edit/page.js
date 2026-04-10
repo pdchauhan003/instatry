@@ -92,7 +92,7 @@ function EditPage(){
             type="file" 
             id="image-upload"
             accept="image/*"
-            className="hidden" 
+            className="absolute w-px h-px opacity-0 overflow-hidden" 
             name='image' 
             onChange={(e) => dispatch({ value: e.target.files[0], type: e.target.name })}
           />

@@ -89,7 +89,7 @@ function AddPost() {
 
             <input 
               type="file" 
-              className="hidden" 
+              className="absolute w-px h-px opacity-0 overflow-hidden" 
               name='image' 
               id="image-upload"
               accept="image/*"
