@@ -3,6 +3,7 @@ import { QueryClient,QueryClientProvider } from "@tanstack/react-query"; // for 
 import { useState } from "react";
 import {Provider} from 'react-redux';
 import { store } from '@/redux/store' // for redux store
+import SessionHydrator from '@/Componants/SessionHydrator';
 function Providers({children}){
     const[client]=useState(new QueryClient());
 
@@ -10,6 +11,7 @@ function Providers({children}){
         <>
             <QueryClientProvider client={client}>
                 <Provider store={store}>
+                        <SessionHydrator />
                         {children}    
                 </Provider>
             </QueryClientProvider>

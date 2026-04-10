@@ -27,18 +27,15 @@ function LoginPage() {
     console.log('data in login page is ',data);
     if(data.success){
       dispatch(setAuthUser(data.user));
+      // Persist user to localStorage so Redux can be rehydrated on refresh
+      try { localStorage.setItem('auth_user', JSON.stringify(data.user)); } catch(e) {}
       console.log('data .id is ',data.id)
-      if (!data.role || !data.id) {
-        alert(data.message || "Login failed");
-        return;
-      }
-      if (data.role === "admin") {
+      if (data.role && data.id) {
+        console.log(`User logged in as ${data.role}. Redirecting to /home/${data.id}`);
         router.replace(`/home/${data.id}`);
         router.refresh();
-      } else if (data.role === "user") {
-        console.log('user route is run in login ')
-        router.replace(`/home/${data.id}`);
-        router.refresh();
+      } else {
+        alert(data.message || "Login failed: Missing role or ID");
       }
     }
     if(data.forgot){

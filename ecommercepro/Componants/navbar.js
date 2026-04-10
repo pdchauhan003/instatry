@@ -54,6 +54,9 @@ function Navbar(){
         checkSellerStatus();
     }, [id]);
 
+    console.log('[NAVBAR DEBUG] Current User:', user);
+    console.log('[NAVBAR DEBUG] User Role:', user?.role);
+
     return(
         <>
         <div >
@@ -68,7 +71,7 @@ function Navbar(){
                   </Link>
                 </li>
               )}
-              {user?.role === "admin" && (
+              {(user?.role?.toLowerCase() === "admin") && (
                 <li>
                   <Link href="/admin/verify" style={{textDecoration:'none', color: '#10b981', fontWeight: 'bold'}}>
                     Admin Panel

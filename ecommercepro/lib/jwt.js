@@ -2,12 +2,14 @@ import jwt from 'jsonwebtoken';
 
 export function generateAccessToken(data){
     console.log('accesstoken data is in jwt :',data)
-    return jwt.sign({userId:data.id,role:data.role,sessionId:data.sessionId},process.env.ACCESS_SECRET,{expiresIn:'2m'});
+    const userId = data.id?.toString() || data.id;
+    return jwt.sign({userId,role:data.role,sessionId:data.sessionId},process.env.ACCESS_SECRET,{expiresIn:'1h'});
 }
 
 export function generateRefreshToken(data){
     console.log('refresh tokrn data in jwt :',data)
-    return jwt.sign({userId:data.id,sessionId:data.sessionId},process.env.REFRESH_SECRET,{expiresIn:'7d'})
+    const userId = data.id?.toString() || data.id;
+    return jwt.sign({userId,sessionId:data.sessionId},process.env.REFRESH_SECRET,{expiresIn:'7d'})
 }
 
 // export function verifyToken(token){
