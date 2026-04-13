@@ -14,6 +14,7 @@ export async function POST(req) {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
+    service:'gmail',
     secure: false,
     auth: {
       user: process.env.EMAIL_USER,
@@ -28,12 +29,19 @@ export async function POST(req) {
     text: `Your OTP is: ${otp}.`,
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log('mail error:', error);
-      return Response.json({ status: "error", message: "Email sending failed" });
-    }
-  });
+  // transporter.sendMail(mailOptions, (error, info) => {
+  //   if (error) {
+  //     console.log('mail error:', error);
+  //     return Response.json({ status: "error", message: "Email sending failed" });
+  //   }
+  // });
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully");
+  } catch (error) {
+    console.log("mail error:", error);
+    return Response.json({ success: false, message: "Email failed" });
+  }
   // return Response.json({ status: "ok", message: "OTP sent to your email" });
   console.log('Otp sended...', otp)
   return Response.json({ success: true });
