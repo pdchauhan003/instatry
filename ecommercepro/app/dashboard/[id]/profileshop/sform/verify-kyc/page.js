@@ -65,7 +65,7 @@ export default function VerifyKYC() {
                 Waiting for admin approval
               </p>
               <p className="text-sm text-gray-500 mt-4 px-4">
-                Your request has been sent for verification. You will see the "Add Product" option in your navbar once approved.
+                Your request has been sent for verification. You will see the Add Product option in your navbar once approved.
               </p>
             </div>
           </>
@@ -100,4 +100,4 @@ export default function VerifyKYC() {
       </div>
     </div>
   );
-}
+}

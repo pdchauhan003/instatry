@@ -87,7 +87,6 @@ export const config = {
 //     return NextResponse.next();
 
 //   } catch {
-//     // 🔥 try refresh
 //     const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh`, {
 //       method: "POST",
 //       headers: {

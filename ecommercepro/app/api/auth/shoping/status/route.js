@@ -7,7 +7,7 @@ export async function POST(req) {
     await connectDB();
 
     const body = await req.json();
-    const userId = body.id; // frontend sends id
+    const userId = body.id; 
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });

@@ -73,7 +73,7 @@ function Navbar(){
               )}
               {(user?.role?.toLowerCase() === "admin") && (
                 <li>
-                  <Link href="/admin/verify" style={{textDecoration:'none', color: '#10b981', fontWeight: 'bold'}}>
+                  <Link href="/admin/verify" style={{textDecoration:'none', fontWeight: 'bold'}}>
                     Admin Panel
                   </Link>
                 </li>
