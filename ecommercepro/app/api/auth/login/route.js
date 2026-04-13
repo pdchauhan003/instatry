@@ -36,7 +36,7 @@ export async function POST(req) {
 
     await user.save();
     // Non-blocking call to socket server
-    fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/force-logout`, {
+    fetch(`${process.env.SOCKET_URL}/force-logout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user._id.toString() })

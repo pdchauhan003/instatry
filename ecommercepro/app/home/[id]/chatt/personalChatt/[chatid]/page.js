@@ -28,7 +28,7 @@ export default function ChatPage() {
   // Fetch last messages and user info
   useEffect(() => {
     const fetchMessages = async () => {
-      const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
+      const baseUrl = process.env.SOCKET_URL?.replace(/\/$/, "");
       const res = await fetch(`${baseUrl}/messages/${currentUserId}/${chatid}`);
       const data = await res.json();
       setMessages(data);
@@ -44,6 +44,7 @@ export default function ChatPage() {
         body: JSON.stringify({ chatid }),
       });
       const data = await res.json();
+      console.log("user info in fromtt is", data);
       if (data.success) {
         setUserInfo({
           username: data.userData.username,
@@ -121,7 +122,7 @@ export default function ChatPage() {
     if (!messages.length || !hasMore || loadingOld) return;
     setLoadingOld(true);
     const oldest = messages[0].createdAt;
-    const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
+    const baseUrl = process.env.SOCKET_URL?.replace(/\/$/, "");
     const res = await fetch(
       `${baseUrl}/message/${currentUserId}/${chatid}/before/${oldest}`,
     );
@@ -161,7 +162,7 @@ export default function ChatPage() {
     router.push(`/home/${id}/profile/${userInfo.username}`);
   };
 
-  const handleCall=()=>{
+  const handleCall = () => {
     router.push(`/home/${id}/callroom/${chatid}`)
   }
   return (
@@ -172,17 +173,17 @@ export default function ChatPage() {
         <button onClick={() => router.back()} className="md:hidden">
           <ChevronLeft size={24} />
         </button>
-        
+
         <div className="w-10 h-10 rounded-full overflow-hidden relative bg-gray-800 border border-gray-700 cursor-pointer shrink-0" onClick={handleProfile}>
           {userInfo?.image ? (
-            <Image src={userInfo.image} width={40} height={40} alt={userInfo.username} className="object-cover w-full h-full"/>
+            <Image src={userInfo.image} width={40} height={40} alt={userInfo.username} className="object-cover w-full h-full" />
           ) : (
             <div className="flex items-center justify-center w-full h-full text-sm font-bold text-gray-400">
               {userInfo.username?.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm truncate">{userInfo.username || "Chat"}</p>
           <p className="text-[10px] text-green-500 font-medium">Online</p>

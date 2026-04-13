@@ -14,11 +14,11 @@ export default function NotificationPage() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/notification/${id}`);
+        const res = await fetch(`${process.env.SOCKET_URL}/notification/${id}`);
         const data = await res.json();
         if (Array.isArray(data)) {
           setRequests(data);
-        } 
+        }
         else {
           setRequests([]);
         }
@@ -57,7 +57,7 @@ export default function NotificationPage() {
     };
   }, []);
 
-  
+
   // accept
   const handleAccept = (senderId) => {
     // setShowOption(true);
@@ -79,10 +79,10 @@ export default function NotificationPage() {
   };
 
   //follow back 
-  const handleFollowBack=(senderId)=>{
-    socket.emit('followback',{
-      from:id,
-      to:senderId
+  const handleFollowBack = (senderId) => {
+    socket.emit('followback', {
+      from: id,
+      to: senderId
     })
     setRequests((prev) =>
       prev.filter((req) => req.from._id !== senderId)

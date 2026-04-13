@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter,useParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 export default function TermsPage() {
   const [accepted, setAccepted] = useState(false);
   const router = useRouter();
-    const {id}=useParams();
+  const { id } = useParams();
   const handleSubmit = async () => {
     try {
       // 1. Accept Terms
@@ -28,7 +28,7 @@ export default function TermsPage() {
 
       // 3. Open Razorpay Checkout
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: process.env.RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
         name: "Seller Verification",
@@ -49,7 +49,7 @@ export default function TermsPage() {
           }
         },
         modal: {
-          ondismiss: function() {
+          ondismiss: function () {
             alert("Payment cancelled. You must pay ₹1 to become a seller.");
           }
         },
@@ -95,9 +95,8 @@ export default function TermsPage() {
         <button
           disabled={!accepted}
           onClick={handleSubmit}
-          className={`w-full py-2 text-white rounded ${
-            accepted ? "bg-blue-600" : "bg-gray-400"
-          }`}
+          className={`w-full py-2 text-white rounded ${accepted ? "bg-blue-600" : "bg-gray-400"
+            }`}
         >
           Continue
         </button>
