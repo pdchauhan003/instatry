@@ -23,7 +23,9 @@ function RegisterPage() {
       formData.append("password", password);
       formData.append("number", number);
       formData.append("username", username);
-      formData.append("image", image);
+      if (image instanceof File) {
+        formData.append("image", image);
+      }
       const res = await fetch("/api/auth/register", {
         method: "POST",
         body: formData,
@@ -165,12 +167,9 @@ function RegisterPage() {
                   type="file"
                   id="profile-upload"
                   accept="image/*"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      setImage(e.target.files[0]);
-                    }
-                  }}
-                  className="absolute w-px h-px opacity-0 overflow-hidden"
+                  capture="environment"
+                  onChange={(e) => setImage(e.target.files?.[0])}
+                  className="hidden"
                 />
                 <div className="space-y-1">
                   <p className="text-sm text-gray-600 font-medium">

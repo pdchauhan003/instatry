@@ -87,10 +87,10 @@ function AddPost() {
               }}
             /> */}
 
-            <input 
-              type="file" 
-              className="absolute w-px h-px opacity-0 overflow-hidden" 
-              name='image' 
+            <input
+              type="file"
+              className="absolute w-px h-px opacity-0 overflow-hidden"
+              name='image'
               id="image-upload"
               accept="image/*"
               onChange={(e) => {
