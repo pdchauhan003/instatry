@@ -81,7 +81,7 @@ function RegisterPage() {
           </div>
 
           {/* Form */}
-          <form className="space-y-4 over">
+          <form className="space-y-4 over" onClick={handleSubmit}>
             {/* Name */}
             <div>
               <label className="text-sm font-medium text-gray-700">Name</label>
@@ -185,7 +185,7 @@ function RegisterPage() {
 
           {/* Register Button */}
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
             className={`w-full ${loading ? 'bg-purple-400' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 rounded-full mt-6 font-semibold transition flex justify-center items-center gap-2`}
           >

@@ -48,11 +48,8 @@ export const getUserNameUsingId = async (userId) => {
 
 export const getUserImageAndUsername = async (userId) => {
     await connectDB();
-
     const cacheKey = `user:${userId}`;
-
     const cachedData = await redis.get(cacheKey);
-
     if (cachedData) {
         try {
             console.log("Serving from cache:", cacheKey);
@@ -62,17 +59,10 @@ export const getUserImageAndUsername = async (userId) => {
             await redis.del(cacheKey);
         }
     }
-
-    const user = await User.findById(userId)
-        .select("username image")
-        .lean();
-
+    const user = await User.findById(userId).select("username image").lean();
     if (user) {
-        await redis.set(cacheKey, JSON.stringify(user), {
-            EX: 3600,
-        });
+        await redis.set(cacheKey, JSON.stringify(user), {EX: 3600,});
     }
-
     return user;
 };
 
@@ -91,10 +81,7 @@ export const getUserBio = async (userId) => {
     ]);
 
     return {
-        userNameAndImage: {
-            username: user?.username,
-            image: user?.image
-        },
+        userNameAndImage: {username: user?.username,image: user?.image},
         bio,
         name: { name: user?.name }
     };
