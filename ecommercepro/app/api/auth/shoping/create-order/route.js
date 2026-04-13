@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { razorpay } from "@/lib/razorpay";
+import { getRazorpayInstance } from "@/lib/razorpay";
 import { connectDB } from "@/services/mongodb";
 import Payment from "@/models/Payment";
+export const dynamic = "force-dynamic";
 
 export async function POST(req) {
   try {
@@ -9,7 +10,7 @@ export async function POST(req) {
 
     const { id } = await req.json();
     const userId = id;
-
+    const razorpay = getRazorpayInstance();
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
