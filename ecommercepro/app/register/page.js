@@ -162,17 +162,17 @@ function RegisterPage() {
               {/* Hidden Input */}
               <input
                 type="file"
+                id="profile-picture-input"
                 ref={fileInputRef}
                 accept="image/*"
-                capture="environment"
                 onChange={(e) => setImage(e.target.files?.[0])}
                 className="hidden"
               />
 
               {/* Clickable Box */}
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer"
+              <label
+                htmlFor="profile-picture-input"
+                className="block border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer active:bg-gray-50"
               >
                 <p className="text-sm text-gray-600 font-medium">
                   {image ? image.name : "Tap to upload photo"}
@@ -180,7 +180,7 @@ function RegisterPage() {
                 <p className="text-xs text-gray-400">
                   Supports JPG, PNG, WEBP
                 </p>
-              </div>
+              </label>
             </div>
           </form>
 

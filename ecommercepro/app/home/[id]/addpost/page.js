@@ -74,22 +74,9 @@ function AddPost() {
             className="flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 cursor-pointer hover:bg-gray-900 transition"
           >
             <p className="text-gray-400">Click to select image</p>
-            {/* <input
-              ref={fileInputRef}
-              id="image-upload"
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  handleImage(e.target.files[0]);
-                }
-              }}
-            /> */}
-
             <input
               type="file"
-              className="absolute w-px h-px opacity-0 overflow-hidden"
+              className="hidden"
               name='image'
               id="image-upload"
               accept="image/*"

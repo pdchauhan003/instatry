@@ -94,7 +94,6 @@ function EditPage() {
             type="file"
             id="image-upload"
             accept="image/*"
-            capture="environment" // optional (opens camera directly on some devices)
             className="hidden"
             name="image"
             onChange={(e) =>
