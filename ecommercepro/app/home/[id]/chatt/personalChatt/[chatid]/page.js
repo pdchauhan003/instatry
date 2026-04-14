@@ -28,7 +28,7 @@ export default function ChatPage() {
   // Fetch last messages and user info
   useEffect(() => {
     const fetchMessages = async () => {
-      const baseUrl = process.env.SOCKET_URL?.replace(/\/$/, "");
+      const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
       const res = await fetch(`${baseUrl}/messages/${currentUserId}/${chatid}`);
       const data = await res.json();
       setMessages(data);
@@ -122,7 +122,7 @@ export default function ChatPage() {
     if (!messages.length || !hasMore || loadingOld) return;
     setLoadingOld(true);
     const oldest = messages[0].createdAt;
-    const baseUrl = process.env.SOCKET_URL?.replace(/\/$/, "");
+    const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
     const res = await fetch(
       `${baseUrl}/message/${currentUserId}/${chatid}/before/${oldest}`,
     );

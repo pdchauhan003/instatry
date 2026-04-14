@@ -158,28 +158,29 @@ function RegisterPage() {
               <label className="text-sm font-medium text-gray-700 block">
                 Profile Picture
               </label>
-              <label
-                htmlFor="profile-upload"
-                className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer group block"
-              >
-                <input
-                  type="file"
-                  id="profile-upload"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => setImage(e.target.files?.[0])}
-                  style={{ display: "none" }}   // ✅ safest for mobile
-                />
 
-                <div className="space-y-1">
-                  <p className="text-sm text-gray-600 font-medium">
-                    {image ? image.name : "Tap to upload photo"}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Supports JPG, PNG, WEBP
-                  </p>
-                </div>
-              </label>
+              {/* Hidden Input */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                capture="environment"
+                onChange={(e) => setImage(e.target.files?.[0])}
+                className="hidden"
+              />
+
+              {/* Clickable Box */}
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer"
+              >
+                <p className="text-sm text-gray-600 font-medium">
+                  {image ? image.name : "Tap to upload photo"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Supports JPG, PNG, WEBP
+                </p>
+              </div>
             </div>
           </form>
 
