@@ -35,7 +35,7 @@ function RegisterPage() {
         alert("User Registered.........", data.message);
         try {
           const resp = await fetch(
-            "/api/auth/varification/afterregister/send-otp",
+            "/api/auth/send-otp",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
