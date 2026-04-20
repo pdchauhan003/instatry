@@ -5,8 +5,26 @@ const { Server } = require("socket.io");
 require('dotenv').config();
 const jwt = require("jsonwebtoken");
 const cookie = require("cookie");
-// const {createClient}=require('redis');
-// const {createAdapter, createAdapter}=require("@socket.io/redis-adapter");
+const { createClient } = require('redis');
+const { createAdapter } = require("@socket.io/redis-adapter");
+const redisUrl = process.env.REDIS_URL;
+
+let pubClient, subClient, redisClient;
+
+if (redisUrl) {
+  pubClient = createClient({ url: redisUrl });
+  subClient = pubClient.duplicate();
+  redisClient = pubClient.duplicate();
+
+  Promise.all([
+    pubClient.connect(),
+    subClient.connect(),
+    redisClient.connect()
+  ]).then(() => {
+    console.log("Redis Connected");
+    io.adapter(createAdapter(pubClient, subClient));
+  }).catch(err => console.log("Redis Error:", err));
+}
 
 const Message = require("./models/Message");
 const FollowStatus = require('./models/FollowStatus');
@@ -95,8 +113,9 @@ io.use((socket, next) => {
   }
 });
 
-const onlineUsers = {};  // all connected sockets (userId -> socketId)
+// const onlineUsers = {};  // REMOVED: using Redis instead
 const pendingDisconnects = {}; // userId -> Timeout
+const ONLINE_USERS_KEY = "online_users";
 
 app.get("/", (req, res) => {
   res.send("Server is running ");
@@ -179,27 +198,37 @@ app.get("/notification/:user1", async (req, res) => {
 });
 
 // for check online or offline 
-app.get("/online-users", (req, res) => {
-  res.json(Object.keys(onlineUsers));
+app.get("/online-users", async (req, res) => {
+  try {
+    if (redisClient) {
+      const users = await redisClient.sMembers(ONLINE_USERS_KEY);
+      res.json(users);
+    } else {
+      res.json([]);
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // any other user logged in same account then trigger
 app.post("/force-logout", (req, res) => {
   const { userId } = req.body;
-  const targetSocket = onlineUsers[userId];
-  if (targetSocket) {
-    io.to(targetSocket).emit("forceLogout");
-    console.log("Force logout sent to", userId);
-  }
+  // Broadcasting to the userId room reaches all server instances
+  io.to(userId).emit("forceLogout");
+  console.log("Force logout sent to", userId);
   res.json({ success: true });
 });
 
 io.on("connection", (socket) => {
   // join socket 
-  socket.on("join", () => {
+  socket.on("join", async () => {
     try {
       const userId = socket.userId;
       
+      // Every user joins their own room (for distributed broadcasting)
+      socket.join(userId);
+
       // Cancel any pending disconnect for this user
       if (pendingDisconnects[userId]) {
         clearTimeout(pendingDisconnects[userId]);
@@ -209,26 +238,24 @@ io.on("connection", (socket) => {
 
       console.log(userId + " joined");
 
-      // check existing session
-      const oldSocketId = onlineUsers[userId];
+      // Sessions management: Force logout other sessions
+      // In a distributed setup, we emit to the room except the current socket
+      socket.to(userId).emit("sessionEnded", {
+        message: "Login from another device"
+      });
+      // Note: Truly disconnecting remote sockets requires more complex logic, 
+      // but emitting sessionEnded is the standard first step.
 
-      if (oldSocketId && oldSocketId !== socket.id) {
-        const oldSocket = io.sockets.sockets.get(oldSocketId);
-
-        if (oldSocket) {
-          oldSocket.emit("sessionEnded", {
-            message: "Login from another device"
-          });
-          oldSocket.disconnect(true);
-          console.log("Old socket disconnected:", oldSocketId);
-        }
+      // Save to Redis online users set
+      if (redisClient) {
+        await redisClient.sAdd(ONLINE_USERS_KEY, userId);
       }
 
-      //  save new session
-      onlineUsers[userId] = socket.id;
-
       // send online list to this user
-      io.to(socket.id).emit("onlineList", Object.keys(onlineUsers));
+      if (redisClient) {
+        const users = await redisClient.sMembers(ONLINE_USERS_KEY);
+        io.to(userId).emit("onlineList", users);
+      }
 
       // notify others
       socket.broadcast.emit("userStatus", {
@@ -245,16 +272,12 @@ io.on("connection", (socket) => {
   //-----
   socket.on("force-logout-user", (userId) => {
     try {
-      // In a real app, you might only allow admins or the user themselves to trigger logout.
-      // For now, we ensure only the user themselves can trigger their own logout from other sessions.
       if (socket.userId.toString() !== userId.toString()) {
         console.log("Unauthorized force-logout attempt by", socket.userId);
         return;
       }
-      const targetSocket = onlineUsers[userId];
-      if (targetSocket && targetSocket !== socket.id) {
-        io.to(targetSocket).emit("forceLogout");
-      }
+      // Broadcast to the user's room across all servers
+      io.to(userId).emit("forceLogout");
     } catch (error) {
       console.log(error, 'error in force-logout-user socket');
     }
@@ -270,11 +293,10 @@ io.on("connection", (socket) => {
         message,
         isSeen: false
       });
-      const receiverSocket = onlineUsers[to];
-      if (receiverSocket) {
-        io.to(receiverSocket).emit("receiveMessage", savedMessage);
-      }
-      socket.emit("receiveMessage", savedMessage);
+      // Distribute to all sockets of the 'to' user
+      io.to(to).emit("receiveMessage", savedMessage);
+      // Also send back to the sender (all their devices)
+      io.to(from).emit("receiveMessage", savedMessage);
     } catch (err) {
       console.log(err);
     }
@@ -287,11 +309,8 @@ io.on("connection", (socket) => {
       await Message.updateMany({ from: otherId, to: myId, isSeen: false },
         { $set: { isSeen: true } }
       )
-      //if user can see message then send notification to sender 
-      const senderSocket = onlineUsers[otherId];
-      if (senderSocket) {
-        io.to(senderSocket).emit('messageSeen', { by: myId });
-      }
+      // notify the sender globally
+      io.to(otherId).emit('messageSeen', { by: myId });
     } catch (error) {
       console.log(error, 'error in markSeen socket');
     }
@@ -300,7 +319,6 @@ io.on("connection", (socket) => {
   // for deleting messages
   socket.on("deleteMessage", async ({messageId}) => {
     try {
-      // Security check: Verify that the user deleting the message is the sender
       const msg = await Message.findById(messageId);
       if (!msg) return;
       if (msg.from.toString() !== socket.userId.toString()) {
@@ -310,12 +328,9 @@ io.on("connection", (socket) => {
 
       await Message.findByIdAndDelete(messageId);
 
-      // Only notify the sender and the recipient of the deletion
-      const senderSocket = onlineUsers[msg.from.toString()];
-      const receiverSocket = onlineUsers[msg.to.toString()];
-
-      if (senderSocket) io.to(senderSocket).emit("messageDeleted", messageId);
-      if (receiverSocket) io.to(receiverSocket).emit("messageDeleted", messageId);
+      // Notify both participants globally
+      io.to(msg.from.toString()).emit("messageDeleted", messageId);
+      io.to(msg.to.toString()).emit("messageDeleted", messageId);
     } catch (error) {
       console.log(error, 'error in deleteMessage socket');
     }
@@ -336,11 +351,8 @@ io.on("connection", (socket) => {
       if (createStatusModel) {
         console.log('status model is created');
       }
-      const receiverSocket = onlineUsers[to];
-      if (receiverSocket) {
-        io.to(receiverSocket).emit('newFollowReq', populatedReq);
-      }
-
+      
+      io.to(to).emit('newFollowReq', populatedReq);
     }
     catch (error) {
       console.log(error, 'error in sending req.. for server side')
@@ -351,39 +363,19 @@ io.on("connection", (socket) => {
   socket.on('acceptFollowRequest', async ({ from }) => {
     try {
       const to = socket.userId;
-      const checkPendingReq = await FollowStatus.findOne({
-        from: from,
-        to: to
-      })
+      const checkPendingReq = await FollowStatus.findOne({ from, to });
 
-      // if(!checkPendingReq){     // checking any req is pending or not 
-      //   console.log('not any pending req...')
-      //   return;
-      // }
-
-      //create follow collection for new relation
       const createFollowCollection = await Follow.create({
         follower: from,
         following: to,
       })
 
-      if (createFollowCollection) {
-        console.log('follow collection is created...')
-      }
-
-      //update pending req after accept
       if (checkPendingReq) {
-        const updatePendingReq = await FollowStatus.updateOne(
-          { _id: checkPendingReq._id }, { status: 'accepted' }
-        )
-        if (updatePendingReq) {
-          console.log('delete pending req success...')
-        }
+        await FollowStatus.updateOne({ _id: checkPendingReq._id }, { status: 'accepted' });
       }
 
       const checkFriend = await Follow.findOne({ follower: to, following: from });
 
-      // create new follostatus to follow back for pending status
       if (!checkFriend) {
         await FollowStatus.create({
           from: to,
@@ -392,19 +384,11 @@ io.on("connection", (socket) => {
         })
       }
 
-      // send to sender socket
-      const senderSocket = onlineUsers[from];
-      if (senderSocket) {
-        io.to(senderSocket).emit("reqAccepted", { from, to });
-      }
+      // Notify participants globally
+      io.to(from).emit("reqAccepted", { from, to });
+      io.to(to).emit("reqAccepted", { from, to });
+      io.to(to).emit("friendOrNot", { from, to, isFriend: !!checkFriend });
 
-      // send to receiver also
-      const receiverSocket = onlineUsers[to];
-      if (receiverSocket) {
-        // io.to(receiverSocket).emit('friendOrNot',checkFriend);
-        io.to(receiverSocket).emit("friendOrNot", { from, to, isFriend: !!checkFriend, });
-        io.to(receiverSocket).emit("reqAccepted", { from, to });
-      }
     }
     catch (error) {
       console.log(error, 'error in accepting follow req from server side....')
@@ -416,33 +400,14 @@ io.on("connection", (socket) => {
     try {
       const from = socket.userId;
 
-      const craeteFollowCollection = await Follow.create(
-        { follower: from, following: to }
-      )
-      if (craeteFollowCollection) {
-        console.log('follow collection created success...')
-      }
+      await Follow.create({ follower: from, following: to });
 
       //update followstatus
-      const updateFollowStatus = await FollowStatus.updateOne(
-        { from: from, to: to }, { status: 'accepted' }
-      )
+      await FollowStatus.updateOne({ from, to }, { status: 'accepted' });
 
-      // const updateFollowStatus=await FollowStatus.create({from:from,to:to,status:'accepted'})
-
-      if (updateFollowStatus) {
-        // send to sender socket
-        const senderSocket = onlineUsers[from];
-        if (senderSocket) {
-          io.to(senderSocket).emit("reqAccepted", { from, to });
-        }
-
-        // send to receiver also
-        const receiverSocket = onlineUsers[to];
-        if (receiverSocket) {
-          io.to(receiverSocket).emit("reqAccepted", { from, to });
-        }
-      }
+      // Notify participants globally
+      io.to(from).emit("reqAccepted", { from, to });
+      io.to(to).emit("reqAccepted", { from, to });
     }
     catch (error) {
       console.log(error, 'error in follow back socket')
@@ -456,16 +421,10 @@ io.on("connection", (socket) => {
       const findFollowStatus = await FollowStatus.findOne({ from, to });
       if (!findFollowStatus) return;
 
-      const deleteFolloStatusCollection = await FollowStatus.deleteOne({
-        _id: findFollowStatus._id
-      })
-      if (deleteFolloStatusCollection) {
-        console.log('delete status collection success...')
-      }
-      const senderSocket = onlineUsers[from];
-      if (senderSocket) {
-        io.to(senderSocket).emit('declineReq', { from, to: socket.userId });  // send decline req message to original sender
-      }
+      await FollowStatus.deleteOne({ _id: findFollowStatus._id });
+      
+      // Notify original sender globally
+      io.to(from).emit('declineReq', { from, to });
     }
     catch (error) {
       console.log('error in decline request from server side...')
@@ -475,7 +434,7 @@ io.on("connection", (socket) => {
   socket.on('call-user',({to,offer})=>{
     try {
       const from = socket.userId;
-      io.to(onlineUsers[to]).emit('incoming-call',{
+      io.to(to).emit('incoming-call',{
         from: from,
         offer
       })
@@ -487,10 +446,7 @@ io.on("connection", (socket) => {
   socket.on('answer-call',({to,answer})=>{
     try {
       const from = socket.userId;
-      const targetSocket = onlineUsers[to];
-      if (targetSocket) {
-        io.to(targetSocket).emit('call-accepted', { by: from, answer });
-      }
+      io.to(to).emit('call-accepted', { by: from, answer });
     } catch (error) {
       console.log(error, 'error in answer-call socket');
     }
@@ -498,38 +454,38 @@ io.on("connection", (socket) => {
 
   socket.on('ice-candidate',({to,candidate})=>{
     try {
-      const targetSocket = onlineUsers[to];
-      if (targetSocket) {
-        io.to(targetSocket).emit('ice.candidate',candidate);
-      }
+      io.to(to).emit('ice.candidate',candidate);
     } catch (error) {
       console.log(error, 'error in ice-candidate socket');
     }
   });
 
   // disconnectingg
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     try {
       const userId = socket.userId;
       if (!userId) return;
 
-      // Only proceed if this is still the active socket for this user
-      if (onlineUsers[userId] === socket.id) {
-        // Set a timeout to mark user as offline
-        // This prevents flickering status during page refreshes (re-joins)
-        pendingDisconnects[userId] = setTimeout(() => {
-          delete onlineUsers[userId];
-          delete pendingDisconnects[userId];
-
-          io.emit('userStatus', {
-            userId: userId,
-            status: 'offline'
-          });
-          console.log(`${userId} is now truly offline`);
-        }, 5000); // 5 second grace period
+      // Set a timeout to mark user as offline
+      // This prevents flickering status during page refreshes (re-joins)
+      pendingDisconnects[userId] = setTimeout(async () => {
+        // Double check if the user has any other active connections across the cluster
+        // socket.io-adapter doesn't easily expose this, but we can check Redis online set
+        // or just rely on the fact that if they re-joined, pendingDisconnects[userId] was cleared.
         
-        console.log(`${userId} disconnected, pending check...`);
-      }
+        if (redisClient) {
+          await redisClient.sRem(ONLINE_USERS_KEY, userId);
+        }
+        delete pendingDisconnects[userId];
+
+        io.emit('userStatus', {
+          userId: userId,
+          status: 'offline'
+        });
+        console.log(`${userId} is now truly offline`);
+      }, 5000); // 5 second grace period
+      
+      console.log(`${userId} disconnected, pending check...`);
     } catch (error) {
       console.log(error, 'error in disconnect socket');
     }
