@@ -71,7 +71,6 @@ function ProfilePage() {
   const handleAAdd = async () => {
     try {
       socket.emit("sendFollowRequest", {
-        from: id,
         to: friendId,
         status: "pending",
       });
@@ -153,7 +152,7 @@ function ProfilePage() {
   // },[])
 
   const handleFollowBack=()=>{
-    socket.emit('followback',{from:id,to:friendId})
+    socket.emit('followback',{to:friendId})
     setStatus('following')
     setFriend(true);
   }

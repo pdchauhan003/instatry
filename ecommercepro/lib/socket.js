@@ -1,12 +1,16 @@
 import { io } from "socket.io-client";
 
 // const socket = io( `${process.env.NEXT_PUBLIC_SOCKET_URL}` ||"http://localhost:1212");
-const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`);
-if (socket) {
-    console.log('socket connected')
-}
-else {
-    console.log('socket not connected')
-}
+const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:1212"}`, {
+    withCredentials: true,
+});
+
+socket.on("connect", () => {
+    console.log('socket connected:', socket.id);
+});
+
+socket.on("connect_error", (error) => {
+    console.error('socket connection error:', error.message);
+});
 
 export default socket;

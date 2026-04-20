@@ -3,6 +3,8 @@ const http = require("http");
 const mongoose = require("mongoose");
 const { Server } = require("socket.io");
 require('dotenv').config();
+const jwt = require("jsonwebtoken");
+const cookie = require("cookie");
 // const {createClient}=require('redis');
 // const {createAdapter, createAdapter}=require("@socket.io/redis-adapter");
 
@@ -12,7 +14,6 @@ const Follow = require('./models/Follow');
 const User = require('./models/User')
 
 // mondodb connection 
-
 console.log("MONGO URI:", process.env.MONGODB_URI);
 mongoose.connect(`${process.env.MONGODB_URI}`)
   .then(() => console.log("MongoDB Connected"))
@@ -68,7 +69,34 @@ const io = new Server(server, {
     credentials: true
   }
 });
-const onlineUsers = {};  // all connected sockets
+
+// authentication middleware
+io.use((socket, next) => {
+  try {
+    const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+    const token = cookies.accessToken || socket.handshake.auth?.token;
+
+    if (!token) {
+      console.log("No token provided");
+      return next(new Error("Authentication error: No token provided"));
+    }
+
+    jwt.verify(token, process.env.ACCESS_SECRET, (err, decoded) => {
+      if (err) {
+        console.log("Token verification failed:", err.message);
+        return next(new Error("Authentication error: Invalid token"));
+      }
+      socket.userId = decoded.userId;
+      next();
+    });
+  } catch (err) {
+    console.error("Middleware error:", err);
+    next(new Error("Internal server error during authentication"));
+  }
+});
+
+const onlineUsers = {};  // all connected sockets (userId -> socketId)
+const pendingDisconnects = {}; // userId -> Timeout
 
 app.get("/", (req, res) => {
   res.send("Server is running ");
@@ -168,8 +196,17 @@ app.post("/force-logout", (req, res) => {
 
 io.on("connection", (socket) => {
   // join socket 
-  socket.on("join", (userId) => {
+  socket.on("join", () => {
     try {
+      const userId = socket.userId;
+      
+      // Cancel any pending disconnect for this user
+      if (pendingDisconnects[userId]) {
+        clearTimeout(pendingDisconnects[userId]);
+        delete pendingDisconnects[userId];
+        console.log(`Cancelled pending disconnect for ${userId}`);
+      }
+
       console.log(userId + " joined");
 
       // check existing session
@@ -208,8 +245,14 @@ io.on("connection", (socket) => {
   //-----
   socket.on("force-logout-user", (userId) => {
     try {
+      // In a real app, you might only allow admins or the user themselves to trigger logout.
+      // For now, we ensure only the user themselves can trigger their own logout from other sessions.
+      if (socket.userId.toString() !== userId.toString()) {
+        console.log("Unauthorized force-logout attempt by", socket.userId);
+        return;
+      }
       const targetSocket = onlineUsers[userId];
-      if (targetSocket) {
+      if (targetSocket && targetSocket !== socket.id) {
         io.to(targetSocket).emit("forceLogout");
       }
     } catch (error) {
@@ -218,8 +261,9 @@ io.on("connection", (socket) => {
   });
 
   // for chatting 
-  socket.on("sendMessage", async ({ from, to, message }) => {
+  socket.on("sendMessage", async ({ to, message }) => {
     try {
+      const from = socket.userId;
       const savedMessage = await Message.create({
         from,
         to,
@@ -237,8 +281,9 @@ io.on("connection", (socket) => {
   });
 
   //for unreaded message badge 
-  socket.on('markSeen', async ({ myId, otherId }) => {
+  socket.on('markSeen', async ({ otherId }) => {
     try {
+      const myId = socket.userId;
       await Message.updateMany({ from: otherId, to: myId, isSeen: false },
         { $set: { isSeen: true } }
       )
@@ -255,6 +300,14 @@ io.on("connection", (socket) => {
   // for deleting messages
   socket.on("deleteMessage", async ({messageId}) => {
     try {
+      // Security check: Verify that the user deleting the message is the sender
+      const msg = await Message.findById(messageId);
+      if (!msg) return;
+      if (msg.from.toString() !== socket.userId.toString()) {
+        console.log("Unauthorized delete attempt by", socket.userId);
+        return;
+      }
+
       await Message.findByIdAndDelete(messageId);
       io.emit("messageDeleted", messageId);
     } catch (error) {
@@ -263,8 +316,9 @@ io.on("connection", (socket) => {
   });
 
   // sending follow req
-  socket.on('sendFollowRequest', async ({ from, to, status }) => {
+  socket.on('sendFollowRequest', async ({ to, status }) => {
     try {
+      const from = socket.userId;
       const createStatusModel = await FollowStatus.create({
         from: from,
         to: to,
@@ -288,8 +342,9 @@ io.on("connection", (socket) => {
   })
 
   //accept follow req
-  socket.on('acceptFollowRequest', async ({ from, to }) => {
+  socket.on('acceptFollowRequest', async ({ from }) => {
     try {
+      const to = socket.userId;
       const checkPendingReq = await FollowStatus.findOne({
         from: from,
         to: to
@@ -351,8 +406,9 @@ io.on("connection", (socket) => {
   })
 
   //if user can get follow back then it trigger
-  socket.on('followback', async ({ from, to }) => {
+  socket.on('followback', async ({ to }) => {
     try {
+      const from = socket.userId;
 
       const craeteFollowCollection = await Follow.create(
         { follower: from, following: to }
@@ -388,9 +444,12 @@ io.on("connection", (socket) => {
   })
 
   // decline request
-  socket.on('declineReq', async ({ from, to }) => {
+  socket.on('declineReq', async ({ from }) => {
     try {
+      const to = socket.userId;
       const findFollowStatus = await FollowStatus.findOne({ from, to });
+      if (!findFollowStatus) return;
+
       const deleteFolloStatusCollection = await FollowStatus.deleteOne({
         _id: findFollowStatus._id
       })
@@ -399,7 +458,7 @@ io.on("connection", (socket) => {
       }
       const senderSocket = onlineUsers[from];
       if (senderSocket) {
-        io.to(senderSocket).emit('declineReq', { from, to });  // send decline req message
+        io.to(senderSocket).emit('declineReq', { from, to: socket.userId });  // send decline req message to original sender
       }
     }
     catch (error) {
@@ -409,8 +468,9 @@ io.on("connection", (socket) => {
 
   socket.on('call-user',({to,offer})=>{
     try {
+      const from = socket.userId;
       io.to(onlineUsers[to]).emit('incoming-call',{
-        from:socket.id,
+        from: from,
         offer
       })
     } catch (error) {
@@ -420,7 +480,11 @@ io.on("connection", (socket) => {
 
   socket.on('answer-call',({to,answer})=>{
     try {
-      io.to(onlineUsers[to]).emit('call-accepted',{answer});
+      const from = socket.userId;
+      const targetSocket = onlineUsers[to];
+      if (targetSocket) {
+        io.to(targetSocket).emit('call-accepted', { by: from, answer });
+      }
     } catch (error) {
       console.log(error, 'error in answer-call socket');
     }
@@ -428,7 +492,10 @@ io.on("connection", (socket) => {
 
   socket.on('ice-candidate',({to,candidate})=>{
     try {
-      io.to(to).emit('ice.candidate',candidate);
+      const targetSocket = onlineUsers[to];
+      if (targetSocket) {
+        io.to(targetSocket).emit('ice.candidate',candidate);
+      }
     } catch (error) {
       console.log(error, 'error in ice-candidate socket');
     }
@@ -437,15 +504,25 @@ io.on("connection", (socket) => {
   // disconnectingg
   socket.on("disconnect", () => {
     try {
-      for (let uid in onlineUsers) {
-        if (onlineUsers[uid] === socket.id) {
-          delete onlineUsers[uid];
+      const userId = socket.userId;
+      if (!userId) return;
+
+      // Only proceed if this is still the active socket for this user
+      if (onlineUsers[userId] === socket.id) {
+        // Set a timeout to mark user as offline
+        // This prevents flickering status during page refreshes (re-joins)
+        pendingDisconnects[userId] = setTimeout(() => {
+          delete onlineUsers[userId];
+          delete pendingDisconnects[userId];
 
           io.emit('userStatus', {
-            userId: uid,
+            userId: userId,
             status: 'offline'
           });
-        }
+          console.log(`${userId} is now truly offline`);
+        }, 5000); // 5 second grace period
+        
+        console.log(`${userId} disconnected, pending check...`);
       }
     } catch (error) {
       console.log(error, 'error in disconnect socket');

@@ -10,12 +10,19 @@ export default function SocketProvider({ children }) {
   useEffect(() => {
     if (!id) return;
 
+    const handleConnect = () => {
+      console.log("Socket connected, emitting join");
+      socket.emit("join");
+    };
+
     if (!socket.connected) {
       socket.connect();
+    } else {
+      // already connected, just join
+      handleConnect();
     }
-    // always join when id available
-    socket.emit("join", id);
-    console.log("socket joined for user:", id);
+
+    socket.on("connect", handleConnect);
 
     socket.on("sessionEnded", () => {
       alert("You logged in from another device");
@@ -27,7 +34,11 @@ export default function SocketProvider({ children }) {
       alert("You logged in from another device");
       window.location.href = "/login";
     });
-    return () => socket.disconnect();
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.disconnect();
+    };
   }, [id]);
 
   return children;

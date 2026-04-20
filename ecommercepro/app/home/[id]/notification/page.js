@@ -63,7 +63,6 @@ export default function NotificationPage() {
     // setShowOption(true);
     socket.emit("acceptFollowRequest", {
       from: senderId,
-      to: id,
     });
   };
 
@@ -71,7 +70,6 @@ export default function NotificationPage() {
   const handleDecline = (senderId) => {
     socket.emit("declineReq", {
       from: senderId,
-      to: id,
     });
     setRequests((prev) =>
       prev.filter((req) => req.from._id !== senderId)
@@ -81,7 +79,6 @@ export default function NotificationPage() {
   //follow back 
   const handleFollowBack = (senderId) => {
     socket.emit('followback', {
-      from: id,
       to: senderId
     })
     setRequests((prev) =>

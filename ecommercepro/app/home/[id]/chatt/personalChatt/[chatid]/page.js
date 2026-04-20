@@ -54,13 +54,18 @@ export default function ChatPage() {
     };
 
     const initializeChat = async () => {
+      console.log("Initializing chat with:", { currentUserId, chatid });
+      if (!currentUserId || !chatid || currentUserId === "undefined" || chatid === "undefined") {
+        console.warn("Missing IDs for chat initialization");
+        return;
+      }
       await Promise.all([
         fetchMessages(),
         fetchUserInfo()
       ]);
     };
 
-    if (currentUserId && chatid) {
+    if (id && chatid) {
       initializeChat();
     }
   }, [currentUserId, chatid, id]);
@@ -91,7 +96,7 @@ export default function ChatPage() {
     socket.on("messageDeleted", handleDeleted);
 
     // mark messages seen
-    socket.emit("markSeen", { myId: currentUserId, otherId: chatid });
+    socket.emit("markSeen", { otherId: chatid });
 
     // reset unread count
     queryClient.setQueryData(["friends", currentUserId], (old = []) =>
@@ -110,7 +115,6 @@ export default function ChatPage() {
   const sendMessage = () => {
     if (!message.trim()) return;
     socket.emit("sendMessage", {
-      from: currentUserId,
       to: chatid,
       message,
     });
@@ -276,8 +280,6 @@ export default function ChatPage() {
                         onClick={() => {
                           socket.emit("deleteMessage", {
                             messageId: msg._id,
-                            from: currentUserId,
-                            to: chatid,
                           });
                           setActiveMessage(null);
                         }}

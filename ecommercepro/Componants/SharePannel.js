@@ -109,7 +109,6 @@ function SharePannel({ post, userId, onClose }) {
     selectedUser.forEach((receiverId) => {
       const messageContent = `📤 ${post.author.username} shared a post: ${post.post}`;
       socket.emit("sendMessage", {
-        from: userId,
         to: receiverId,
         message: messageContent,
         postId: post._id, //
