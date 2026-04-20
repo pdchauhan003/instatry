@@ -81,25 +81,6 @@ function AllChats() {
     return () => socket.off("userStatus");
   }, []);
 
-  useEffect(() => {
-    socket.on("receiveMessage", (msg) => {
-      if (msg.to === id) {
-        queryClient.setQueryData(['friends', id], (oldContacts) => {
-          return oldContacts.map(user =>
-            user._id === msg.from
-              ? {
-                ...user,
-                unreadCount: (user.unreadCount || 0) + 1,
-                lastMessageTime: new Date()
-              }
-              : user
-          ).sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime)  // move sender to top
-          );
-        });
-      }
-    });
-    return () => socket.off("receiveMessage");
-  }, [id, queryClient]);
 
   if (isLoading) return <p>Loading...</p>
 

@@ -1,11 +1,21 @@
 "use client";
-import { useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { useParams, usePathname } from "next/navigation";
 import socket from "@/lib/socket";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function SocketProvider({ children }) {
   const params = useParams();
   const id = params?.id;
+  const pathname = usePathname();
+  const queryClient = useQueryClient();
+  const pathnameRef = useRef(pathname);
+
+  // Keep the ref updated with the latest pathname
+  // This prevents "stale closures" in the socket listeners
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
 
   useEffect(() => {
     if (!id) return;
@@ -30,6 +40,36 @@ export default function SocketProvider({ children }) {
       socket.disconnect();
     });
 
+    const handleReceiveMessage = (msg) => {
+      // Check if message is for the logged in user
+      if (msg.to === id) {
+        // If the user is ALREADY in the chat room with the sender, 
+        // we don't increment the global "unread" counter.
+        // This prevents the stale badge issue when returning to the chat list.
+        const activeChatPath = `/home/${id}/chatt/personalChatt/${msg.from}`;
+        if (pathnameRef.current === activeChatPath) {
+          console.log("User in active chat, skipping badge update");
+          return;
+        }
+
+        console.log("Global message received, updating badge cache");
+        queryClient.setQueryData(['friends', id], (oldContacts) => {
+          if (!oldContacts) return oldContacts;
+          return oldContacts.map(user =>
+            user._id === msg.from
+              ? {
+                ...user,
+                unreadCount: (user.unreadCount || 0) + 1,
+                lastMessageTime: new Date()
+              }
+              : user
+          ).sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime));
+        });
+      }
+    };
+
+    socket.on("receiveMessage", handleReceiveMessage);
+
     socket.on("forceLogout", () => {
       alert("You logged in from another device");
       window.location.href = "/login";
@@ -37,6 +77,7 @@ export default function SocketProvider({ children }) {
 
     return () => {
       socket.off("connect", handleConnect);
+      socket.off("receiveMessage", handleReceiveMessage);
       socket.disconnect();
     };
   }, [id]);

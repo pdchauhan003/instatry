@@ -77,6 +77,12 @@ export default function ChatPage() {
     const handleReceive = (data) => {
       setMessages((prev) => [...prev, data]);
       shouldScrollRef.current = true;
+
+      // If the message is from the other person, mark it as seen immediately
+      // This triggers the "double-tick" for the sender instantly
+      if (data.from === chatid) {
+        socket.emit("markSeen", { otherId: chatid });
+      }
     };
     const handleSeen = ({ by }) => {
       if (by === chatid) {
