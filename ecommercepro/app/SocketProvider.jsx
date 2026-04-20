@@ -31,8 +31,10 @@ export default function SocketProvider({ children }) {
       if (token) {
         console.log("Status: [Socket] Injecting auth token from storage");
         socket.auth = { ...socket.auth, token };
+        socket.connect();
+      } else {
+        console.warn("Status: [Socket] No token found in storage, deferring connection until login");
       }
-      socket.connect();
     } else {
       // already connected, just join
       handleConnect();

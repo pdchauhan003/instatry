@@ -13,6 +13,9 @@ socket.on("connect", () => {
 
 socket.on("connect_error", (error) => {
     console.error('Status: [Socket] Connection error:', error.message);
+    if (error.message.includes("Authentication error")) {
+        console.warn("Tip: If you just deployed, try logging out and logging back in once to refresh your auth token.");
+    }
 });
 
 export default socket;

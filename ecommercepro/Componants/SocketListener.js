@@ -12,9 +12,12 @@ export default function SocketListener({ userId }) {
 
     const token = localStorage.getItem('auth_token');
     if (token) {
+      console.log("Status: [SocketListener] Injecting auth token from storage");
       socket.auth = { token };
+      socket.connect();
+    } else {
+      console.warn("Status: [SocketListener] No token found, deferring connection");
     }
-    socket.connect();
 
     socket.on("forceLogout", () => {
       alert("You logged in from another device");
