@@ -11,6 +11,13 @@ const redisUrl = process.env.REDIS_URL;
 
 let pubClient, subClient, redisClient;
 
+// Startup check for JWT secrets
+if (!process.env.ACCESS_SECRET) {
+  console.error("CRITICAL: ACCESS_SECRET is not defined in environment variables!");
+} else {
+  console.log("Status: [Startup] ACCESS_SECRET is loaded");
+}
+
 const setupRedis = (ioInstance) => {
   if (!redisUrl) return;
 
@@ -115,8 +122,12 @@ io.use((socket, next) => {
 
     jwt.verify(token, process.env.ACCESS_SECRET, (err, decoded) => {
       if (err) {
-        console.log("Status: [Auth Middleware] Token verification failed:", err.message);
-        return next(new Error("Authentication error: Invalid token"));
+        console.error(`Status: [Auth Middleware] Token verification failed [${err.name}]: ${err.message}`);
+        // If it's a signature mismatch, it's definitely a secret mismatch between frontend/backend
+        if (err.message.includes("invalid signature")) {
+           console.warn("Status: [Auth Middleware] Hint: Check if ACCESS_SECRET on Render matches Vercel exactly!");
+        }
+        return next(new Error(`Authentication error: Invalid token (${err.name})`));
       }
 
       // Ensure userId is a string for consistent room names and Redis keys
