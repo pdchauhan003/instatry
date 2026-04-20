@@ -53,7 +53,7 @@ export async function POST(req) {
 
     // auto request to admin
     await User.findByIdAndUpdate(userId, {
-      verificationStatus: "Pending",
+      verificationStatus: "pending",
     });
 
     return NextResponse.json({

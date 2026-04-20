@@ -7,7 +7,7 @@ export async function GET(req) {
     await connectDB();
 
     // Find all users with Pending verification status
-    const pendingSellers = await User.find({ verificationStatus: "Pending" }).select("-password").lean();
+    const pendingSellers = await User.find({ verificationStatus: "pending" }).select("-password").lean();
 
     return NextResponse.json(pendingSellers);
   } catch (error) {

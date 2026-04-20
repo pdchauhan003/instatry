@@ -54,7 +54,7 @@ export default function VerifyKYC() {
         )}
 
         {/* waiting for approval */}
-        {(status === "Pending" || status === "pending") && (
+        {status === "pending" && (
           <>
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">

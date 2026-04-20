@@ -24,7 +24,7 @@ export async function POST(req) {
       });
     }
 
-    await User.findByIdAndUpdate(userId, { verificationStatus: 'Pending' });
+    await User.findByIdAndUpdate(userId, { verificationStatus: 'pending' });
 
     return NextResponse.json({ success: true });
   } catch (error) {

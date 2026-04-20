@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
     savedposts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
     sessionId: { type: String, index: true },
     refreshToken: { type: String },
-    verificationStatus: { type: String, enum: ['none', 'Pending', 'pending', 'approved', 'rejected', 'seller'], default: "none" }, // none | pending | approved | rejected | seller},
+    verificationStatus: { type: String, enum: ['none', 'pending', 'approved', 'rejected', 'seller'], default: "none" }, // none | pending | approved | rejected | seller},
     isVerifiedSeller: { type: Boolean, default: false, },
     otpExpiry: { type: Date },
     otpRequestCount: { type: Number, default: 0 },
