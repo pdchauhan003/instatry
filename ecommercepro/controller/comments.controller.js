@@ -2,15 +2,20 @@ import { Post,Comment } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
 
 export const getAllPostComments=async(postId)=>{
-    await connectDB();
-    const commentData=await Comment.find({post:postId}).populate({
-        path:'author',
-        select:'username image'
-    })
+    try {
+        await connectDB();
+        const commentData = await Comment.find({ post: postId }).populate({
+          path: "author",
+          select: "username image",
+        });
 
-    if(!commentData){
-        return Response.json({message:'not comment found'});
+        if(!commentData){
+            return []; // Return empty array if no comments
+        }
+
+        return commentData;
+    } catch (error) {
+        console.error("Error in getAllPostComments controller:", error);
+        throw error;
     }
-
-    return commentData;
 }

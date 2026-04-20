@@ -70,176 +70,206 @@ import mongoose from 'mongoose'
 
 
 export const allFriends = async (userId, cursor = null) => {
-  await connectDB();
+  try {
+    await connectDB();
 
-  const userObjectId = new mongoose.Types.ObjectId(userId);
+    const userObjectId = new mongoose.Types.ObjectId(userId);
 
-  //connections 
-  const connections = await Follow.find({
-   follower: userObjectId 
-  })
-    .select("follower following")
-    .lean();
+    //connections 
+    const connections = await Follow.find({
+      follower: userObjectId
+    })
+      .select("follower following")
+      .lean();
 
-  const userIds = new Set([userId]);
+    const userIds = new Set([userId]);
 
-  for (const c of connections) {
-    userIds.add(c.follower.toString());
-    userIds.add(c.following.toString());
-  }
-
-  const ids = [...userIds].map((id) => new mongoose.Types.ObjectId(id));
-
-  const match = { author: { $in: ids } };
-
-  if (cursor) {
-    match._id = { $lt: new mongoose.Types.ObjectId(cursor) };
-  }
-
-  // posts aggregation
-  const posts = await Post.aggregate([
-    { $match: match },
-
-    { $sort: { _id: -1 } },
-    { $limit: 10 },
-
-    // Join user 
-    {
-      $lookup: {
-        from: "users",
-        localField: "author",
-        foreignField: "_id",
-        pipeline: [
-          { $project: { username: 1, image: 1 } }
-        ],
-        as: "author"
-      }
-    },
-    { $unwind: "$author" },
-
-    //Convert everything to STRING 
-    {
-      $addFields: {
-        _id: { $toString: "$_id" },
-        "author._id": { $toString: "$author._id" },
-        likes: {
-          $map: {
-            input: "$likes",
-            as: "l",
-            in: { $toString: "$$l" }
-          }
-        }
-      }
-    },
-
-    // structure
-    {
-      $project: {
-        post: 1,
-        caption: 1,
-        createdAt: 1,
-        likes: 1,
-        author: 1
-      }
+    for (const c of connections) {
+      userIds.add(c.follower.toString());
+      userIds.add(c.following.toString());
     }
-  ]);
 
-  const nextCursor = posts.length ? posts[posts.length - 1]._id : null;
+    const ids = [...userIds].map((id) => new mongoose.Types.ObjectId(id));
 
-  // Parallel queries
-  const [stories, savedPosts, user] = await Promise.all([
-    Story.aggregate([
-      { $match: { author: { $in: ids } } },
-      { $sort: { createdAt: -1 } },
+    const match = { author: { $in: ids } };
 
-      {
-        $group: {
-          _id: "$author",
-          story: { $first: "$$ROOT" }
-        }
-      },
+    if (cursor) {
+      match._id = { $lt: new mongoose.Types.ObjectId(cursor) };
+    }
 
+    // posts aggregation
+    const posts = await Post.aggregate([
+      { $match: match },
+
+      { $sort: { _id: -1 } },
+      { $limit: 10 },
+
+      // Join user 
       {
         $lookup: {
           from: "users",
-          localField: "_id",
+          localField: "author",
           foreignField: "_id",
-          pipeline: [{ $project: { username: 1, image: 1 } }],
+          pipeline: [
+            { $project: { username: 1, image: 1 } }
+          ],
           as: "author"
         }
       },
       { $unwind: "$author" },
 
+      //Convert everything to STRING 
       {
         $addFields: {
           _id: { $toString: "$_id" },
-          "author._id": { $toString: "$author._id" }
+          "author._id": { $toString: "$author._id" },
+          likes: {
+            $map: {
+              input: "$likes",
+              as: "l",
+              in: { $toString: "$$l" }
+            }
+          }
+        }
+      },
+
+      // structure
+      {
+        $project: {
+          post: 1,
+          caption: 1,
+          createdAt: 1,
+          likes: 1,
+          author: 1
         }
       }
-    ]),
+    ]);
 
-    Saved.find({ user: userObjectId }).select("post").lean(),
+    const nextCursor = posts.length ? posts[posts.length - 1]._id : null;
 
-    User.findById(userObjectId)
-      .select("username image")
-      .lean()
-  ]);
+    // Parallel queries
+    const [stories, savedPosts, user] = await Promise.all([
+      Story.aggregate([
+        { $match: { author: { $in: ids } } },
+        { $sort: { createdAt: -1 } },
 
-  return {
-    user: {
-      ...user,
-      _id: user._id.toString()
-    },
-    posts,
-    stories,
-    savedIds: savedPosts.map((s) => s.post.toString()),
-    nextCursor
-  };
+        {
+          $group: {
+            _id: "$author",
+            story: { $first: "$$ROOT" }
+          }
+        },
+
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "_id",
+            pipeline: [{ $project: { username: 1, image: 1 } }],
+            as: "author"
+          }
+        },
+        { $unwind: "$author" },
+
+        {
+          $addFields: {
+            _id: { $toString: "$_id" },
+            "author._id": { $toString: "$author._id" }
+          }
+        }
+      ]),
+
+      Saved.find({ user: userObjectId }).select("post").lean(),
+
+      User.findById(userObjectId)
+        .select("username image")
+        .lean()
+    ]);
+
+    return {
+      user: {
+        ...user,
+        _id: user?._id?.toString()
+      },
+      posts,
+      stories,
+      savedIds: savedPosts.map((s) => s.post.toString()),
+      nextCursor
+    };
+  } catch (error) {
+    console.error("Error in allFriends controller:", error);
+    throw error;
+  }
 };
 
 
 
 export const IndividualPosts = async (userId) => {
-  await connectDB();
-  const posts = await Post.find({ author: userId })
-    .sort({ createdAt: -1 })
-    .lean();
+  try {
+    await connectDB();
+    const posts = await Post.find({ author: userId })
+      .sort({ createdAt: -1 })
+      .lean();
 
-  return posts;
+    return posts;
+  } catch (error) {
+    console.error("Error in IndividualPosts controller:", error);
+    throw error;
+  }
 }
 
 export const deletePost = async (postId) => {
-  await connectDB();
-  const res = await Post.deleteOne({ _id: postId });
-  return !!res
+  try {
+    await connectDB();
+    const res = await Post.deleteOne({ _id: postId });
+    return !!res
+  } catch (error) {
+    console.error("Error in deletePost controller:", error);
+    throw error;
+  }
 }
 
 export const savePost = async (postId, userId) => {
-  await connectDB();
-  const res = await Saved.create({
-    post: postId,
-    user: userId
-  })
-  return res;
+  try {
+    await connectDB();
+    const res = await Saved.create({
+      post: postId,
+      user: userId
+    })
+    return res;
+  } catch (error) {
+    console.error("Error in savePost controller:", error);
+    throw error;
+  }
 }
 
 export const unsavePost = async (postId, userId) => {
-  await connectDB();
-  const res = await Saved.deleteOne({ post: postId, user: userId })
-  return res;
+  try {
+    await connectDB();
+    const res = await Saved.deleteOne({ post: postId, user: userId })
+    return res;
+  } catch (error) {
+    console.error("Error in unsavePost controller:", error);
+    throw error;
+  }
 }
 
 export const getSavedPosts = async (userId) => {
-  await connectDB();
-  const savedPosts = await Saved.find({ user: userId }).populate({
-    path: "post",
-    populate: {
-      path: "author",
-      select: "username image"
-    }
-  }).lean();
+  try {
+    await connectDB();
+    const savedPosts = await Saved.find({ user: userId }).populate({
+      path: "post",
+      populate: {
+        path: "author",
+        select: "username image"
+      }
+    }).lean();
 
-  return JSON.parse(JSON.stringify(savedPosts));
+    return JSON.parse(JSON.stringify(savedPosts));
+  } catch (error) {
+    console.error("Error in getSavedPosts controller:", error);
+    throw error;
+  }
 };
 
 export const getLikes = async (postId) => {

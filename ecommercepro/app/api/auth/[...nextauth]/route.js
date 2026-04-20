@@ -126,87 +126,96 @@ export const authOptions = {
     ],
     callbacks: {
         async signIn({ user, account }) {
-            await connectDB()
-            const email = user.email
-            let existingUser = await User.findOne({ email })
-            if (!existingUser) {
-                const newUser = new User({
-                    name: user.name || "Google User",
-                    email: user.email,
-                    username: user.email.split("@")[0] + Date.now(),
-                    image: user.image,
-                    googleId: account.providerAccountId,
-                    provider: "google",
-                    password: crypto.randomBytes(16).toString("hex"),
-                    number: "0000000000"
-                })
-                await newUser.save()
+            try {
+                await connectDB()
+                const email = user.email
+                let existingUser = await User.findOne({ email })
+                if (!existingUser) {
+                    const newUser = new User({
+                        name: user.name || "Google User",
+                        email: user.email,
+                        username: user.email.split("@")[0] + Date.now(),
+                        image: user.image,
+                        googleId: account.providerAccountId,
+                        provider: "google",
+                        password: crypto.randomBytes(16).toString("hex"),
+                        number: "0000000000"
+                    })
+                    await newUser.save()
+                }
+                return true
+            } catch (error) {
+                console.error("Error in NextAuth signIn callback:", error);
+                return false;
             }
-            return true
         },
         async redirect({ url, baseUrl }) {
             return baseUrl + "/api/auth/google-success";
         },
 
         async jwt({ token, account, profile }) {
+            try {
+                await connectDB();
 
-            await connectDB();
+                // first login with google
+                if (account && account.provider === "google") {
+                    const email = profile?.email;
 
-            // first login with google
-            if (account && account.provider === "google") {
-                const email = profile?.email;
+                    let existingUser = await User.findOne({ email });
 
-                let existingUser = await User.findOne({ email });
+                    //if account is not exists then create a new account
+                    if (!existingUser) {
+                        const newUser = new User({
+                            name: profile?.name || "Google User",
+                            email,
+                            username: email.split("@")[0] + Date.now(),
+                            image: profile?.picture,
+                            googleId: account.providerAccountId,
+                            provider: "google",
+                            password: crypto.randomBytes(16).toString("hex"),
+                            number: "0000000000",
+                        });
 
-                //if account is not exists then create a new account
-                if (!existingUser) {
-                    const newUser = new User({
-                        name: profile?.name || "Google User",
-                        email,
-                        username: email.split("@")[0] + Date.now(),
-                        image: profile?.picture,
-                        googleId: account.providerAccountId,
-                        provider: "google",
-                        password: crypto.randomBytes(16).toString("hex"),
-                        number: "0000000000",
-                    });
+                        await newUser.save();
+                        existingUser = newUser;
+                    }
 
-                    await newUser.save();
-                    existingUser = newUser;
-                }
+                    //generate session id
+                    const newSessionId = crypto.randomBytes(32).toString("hex");
 
-                //generate session id
-                const newSessionId = crypto.randomBytes(32).toString("hex");
+                    existingUser.sessionId = newSessionId;
+                    await existingUser.save(); //save session id in db
 
-                existingUser.sessionId = newSessionId;
-                await existingUser.save(); //save session id in db
-
-                const jwtToken = generateAccessToken({
-                    id: existingUser._id,
-                    role: existingUser.role,
-                    sessionId: newSessionId,
-                });
-
-                token.jwt = jwtToken;
-                token.dbId = existingUser._id.toString();
-                token.email = existingUser.email;
-            }
-
-            if (!token.dbId && token.email) {
-                const user = await User.findOne({ email: token.email });
-
-                if (user) {
                     const jwtToken = generateAccessToken({
-                        id: user._id,
-                        role: user.role,
-                        sessionId: user.sessionId,
+                        id: existingUser._id,
+                        role: existingUser.role,
+                        sessionId: newSessionId,
                     });
 
                     token.jwt = jwtToken;
-                    token.dbId = user._id.toString();
+                    token.dbId = existingUser._id.toString();
+                    token.email = existingUser.email;
                 }
+
+                if (!token.dbId && token.email) {
+                    const user = await User.findOne({ email: token.email });
+
+                    if (user) {
+                        const jwtToken = generateAccessToken({
+                            id: user._id,
+                            role: user.role,
+                            sessionId: user.sessionId,
+                        });
+
+                        token.jwt = jwtToken;
+                        token.dbId = user._id.toString();
+                    }
+                }
+                return token;
+            } catch (error) {
+                console.error("Error in NextAuth jwt callback:", error);
+                return token;
             }
-            return token;
         },
         async session({ session, token }) {
             session.jwt = token.jwt

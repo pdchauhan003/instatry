@@ -169,43 +169,51 @@ app.post("/force-logout", (req, res) => {
 io.on("connection", (socket) => {
   // join socket 
   socket.on("join", (userId) => {
-    console.log(userId + " joined");
+    try {
+      console.log(userId + " joined");
 
-    // check existing session
-    const oldSocketId = onlineUsers[userId];
+      // check existing session
+      const oldSocketId = onlineUsers[userId];
 
-    if (oldSocketId && oldSocketId !== socket.id) {
-      const oldSocket = io.sockets.sockets.get(oldSocketId);
+      if (oldSocketId && oldSocketId !== socket.id) {
+        const oldSocket = io.sockets.sockets.get(oldSocketId);
 
-      if (oldSocket) {
-        oldSocket.emit("sessionEnded", {
-          message: "Login from another device"
-        });
-        oldSocket.disconnect(true);
-        console.log("Old socket disconnected:", oldSocketId);
+        if (oldSocket) {
+          oldSocket.emit("sessionEnded", {
+            message: "Login from another device"
+          });
+          oldSocket.disconnect(true);
+          console.log("Old socket disconnected:", oldSocketId);
+        }
       }
+
+      //  save new session
+      onlineUsers[userId] = socket.id;
+
+      // send online list to this user
+      io.to(socket.id).emit("onlineList", Object.keys(onlineUsers));
+
+      // notify others
+      socket.broadcast.emit("userStatus", {
+        userId,
+        status: "online",
+      });
+    } catch (error) {
+      console.log(error, 'error in join socket');
     }
-
-    //  save new session
-    onlineUsers[userId] = socket.id;
-
-    // send online list to this user
-    io.to(socket.id).emit("onlineList", Object.keys(onlineUsers));
-
-    // notify others
-    socket.broadcast.emit("userStatus", {
-      userId,
-      status: "online",
-    });
   });
 
   //if register-user account in onlineUsers then logout from other device means open in new device only
   // this trigger in /Componants/SocketListener.js
   //-----
   socket.on("force-logout-user", (userId) => {
-    const targetSocket = onlineUsers[userId];
-    if (targetSocket) {
-      io.to(targetSocket).emit("forceLogout");
+    try {
+      const targetSocket = onlineUsers[userId];
+      if (targetSocket) {
+        io.to(targetSocket).emit("forceLogout");
+      }
+    } catch (error) {
+      console.log(error, 'error in force-logout-user socket');
     }
   });
 
@@ -230,20 +238,28 @@ io.on("connection", (socket) => {
 
   //for unreaded message badge 
   socket.on('markSeen', async ({ myId, otherId }) => {
-    await Message.updateMany({ from: otherId, to: myId, isSeen: false },
-      { $set: { isSeen: true } }
-    )
-    //if user can see message then send notification to sender 
-    const senderSocket = onlineUsers[otherId];
-    if (senderSocket) {
-      io.to(senderSocket).emit('messageSeen', { by: myId });
+    try {
+      await Message.updateMany({ from: otherId, to: myId, isSeen: false },
+        { $set: { isSeen: true } }
+      )
+      //if user can see message then send notification to sender 
+      const senderSocket = onlineUsers[otherId];
+      if (senderSocket) {
+        io.to(senderSocket).emit('messageSeen', { by: myId });
+      }
+    } catch (error) {
+      console.log(error, 'error in markSeen socket');
     }
   })
 
   // for deleting messages
   socket.on("deleteMessage", async ({messageId}) => {
-    await Message.findByIdAndDelete(messageId);
-    io.emit("messageDeleted", messageId);
+    try {
+      await Message.findByIdAndDelete(messageId);
+      io.emit("messageDeleted", messageId);
+    } catch (error) {
+      console.log(error, 'error in deleteMessage socket');
+    }
   });
 
   // sending follow req
@@ -392,31 +408,47 @@ io.on("connection", (socket) => {
   })
 
   socket.on('call-user',({to,offer})=>{
-    io.to(onlineUsers[to]).emit('incoming-call',{
-      from:socket.id,
-      offer
-    })
+    try {
+      io.to(onlineUsers[to]).emit('incoming-call',{
+        from:socket.id,
+        offer
+      })
+    } catch (error) {
+      console.log(error, 'error in call-user socket');
+    }
   })
 
   socket.on('answer-call',({to,answer})=>{
-    io.to(onlineUsers[to]).emit('call-accepted',{answer});
+    try {
+      io.to(onlineUsers[to]).emit('call-accepted',{answer});
+    } catch (error) {
+      console.log(error, 'error in answer-call socket');
+    }
   });
 
   socket.on('ice-candidate',({to,candidate})=>{
-    io.to(to).emit('ice.candidate',candidate);
+    try {
+      io.to(to).emit('ice.candidate',candidate);
+    } catch (error) {
+      console.log(error, 'error in ice-candidate socket');
+    }
   });
 
   // disconnectingg
   socket.on("disconnect", () => {
-    for (let uid in onlineUsers) {
-      if (onlineUsers[uid] === socket.id) {
-        delete onlineUsers[uid];
+    try {
+      for (let uid in onlineUsers) {
+        if (onlineUsers[uid] === socket.id) {
+          delete onlineUsers[uid];
 
-        io.emit('userStatus', {
-          userId: uid,
-          status: 'offline'
-        });
+          io.emit('userStatus', {
+            userId: uid,
+            status: 'offline'
+          });
+        }
       }
+    } catch (error) {
+      console.log(error, 'error in disconnect socket');
     }
   });
 });
