@@ -3,12 +3,6 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setAuthUser } from '@/redux/authSlice';
 
-/**
- * SessionHydrator - Mounts invisibly in the root layout.
- * On every page load/refresh, it reads the persisted user from
- * localStorage and restores the Redux auth state if it's empty.
- * This ensures role-based UI (like Admin Panel) survives page refreshes.
- */
 export default function SessionHydrator() {
     const dispatch = useDispatch();
     const { user } = useSelector(state => state.auth);
@@ -29,5 +23,5 @@ export default function SessionHydrator() {
         }
     }, [user, dispatch]);
 
-    return null; // Renders nothing
+    return null; 
 }

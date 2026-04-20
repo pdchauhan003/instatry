@@ -35,7 +35,7 @@ export async function POST(req) {
     user.refreshToken = refreshToken;
 
     await user.save();
-    // Non-blocking call to socket server
+    // call to socket server
     fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/force-logout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,7 +48,7 @@ export async function POST(req) {
       sessionId,
     });
 
-    //Create response
+    // Create response
     // eslint-disable-next-line no-unused-vars
     const { password: _, ...userData } = user.toObject();
     const response = NextResponse.json({
@@ -87,54 +87,3 @@ export async function POST(req) {
   }
 }
 
-
-
-// import { NextResponse } from "next/server";
-// import {User} from '@/lib/database.js';
-// import crypto from 'crypto';
-// import { cookies } from "next/headers";
-// import bcrypt from 'bcryptjs';
-// import { generateToken,generateRefreshToken } from '@/lib/jwt';
-// import { connectDB } from '@/lib/Connection';
-
-// export async function POST(req){
-//     await connectDB()
-//     const {email,password}=await req.json();
-//     const checkUser=await User.findOne({email});
-//     // console.log('person detail is :',checkUser);
-//     const cookieStore = await cookies();
-//     if(!checkUser){
-//         return Response.json({message:'User is not registered plz register...'})
-//     }
-//     const passwordMatch=await bcrypt.compare(password,checkUser.password)
-//     if(!passwordMatch){
-//         return Response.json({message:'Password is wrong...',forgot:true})
-//     }
-
-//     const newSessionId=crypto.randomBytes(32).toString('hex');
-//     checkUser.sessionId=newSessionId;
-
-//     await checkUser.save();
-
-//     try {
-//         await fetch("http://localhost:1212/force-logout", {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({ userId: checkUser._id.toString() })
-//         });
-//         } 
-//     catch (e) {
-//         console.log("Socket server not reachable");
-//     }
-    
-//     const token=generateToken({user:checkUser,sessionId:newSessionId});
-//     cookieStore.set({
-//       name: 'token',
-//       value: token,
-//       httpOnly: true,
-//       path: '/',
-//       maxAge: 60 * 60 * 24, // 1 day
-//       sameSite: 'strict'
-//     });
-//     return Response.json({role:checkUser.role,id:checkUser._id,user:checkUser,success:true})
-// }

@@ -9,13 +9,13 @@ export default function TermsPage() {
   const { id } = useParams();
   const handleSubmit = async () => {
     try {
-      // 1. Accept Terms
+      // accept terms
       await fetch("/api/auth/shoping/terms/accept", {
         method: "POST",
         body: JSON.stringify({ id })
       });
 
-      // 2. Create Razorpay Order
+      // create razorpay order
       const orderRes = await fetch("/api/auth/shoping/create-order", {
         method: "POST",
         body: JSON.stringify({ id }),
@@ -26,7 +26,7 @@ export default function TermsPage() {
         throw new Error("Failed to create Razorpay order");
       }
 
-      // 3. Open Razorpay Checkout
+      // open razorpay checkout
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
@@ -35,7 +35,7 @@ export default function TermsPage() {
         description: "Pay ₹1 to verify your account",
         order_id: order.id,
         handler: async function (response) {
-          // 4. Verify Payment
+          // verify payment
           const verifyRes = await fetch("/api/auth/shoping/verify-payment", {
             method: "POST",
             body: JSON.stringify({ ...response, userId: id }),

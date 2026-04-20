@@ -21,7 +21,7 @@ function Navbar(){
                 const res = await fetch(`/api/auth/home/${id}/profile`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id }), // Use ID for hydration
+                    body: JSON.stringify({ id }), // Use ID for checking
                 });
                 const data = await res.json();
                 if (data.success) {

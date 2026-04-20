@@ -13,15 +13,7 @@ function SearchPage() {
   const [pname, setPname] = useState(""); // set logged in username
   const fetchData = async () => {
     try {
-      // const res = await fetch(`/api/auth/home/${id}/search`, {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ username }),
-      // });
-      // const data = await res.json();
-
       const data = await searchApi(id, username);
-
       console.log('search data is ', data)
       setUsers(data.users || []); // if user search then store username in array[]
       setPname(data.user.username); // loggen in user name

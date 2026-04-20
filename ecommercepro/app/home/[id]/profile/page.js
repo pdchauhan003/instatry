@@ -106,8 +106,6 @@ function PersonalProfilePage() {
         <div className="px-4">
           <h2 className="font-semibold">{ourData?.name}</h2>
           <p className="text-sm">
-            {/* MERN Stack Developer  <br />
-            Building cool web apps  */}
             {ourData?.userInfo?.bio?.bio}
           </p>
         </div>

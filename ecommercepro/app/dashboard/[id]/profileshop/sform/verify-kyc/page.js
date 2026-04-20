@@ -41,7 +41,7 @@ export default function VerifyKYC() {
           Seller Verification Status
         </h1>
 
-        {/* NOT PAID / INITIAL STATE */}
+        {/* initial state */}
         {status === "none" && (
           <>
             <p className="text-blue-600 font-semibold">
@@ -53,7 +53,7 @@ export default function VerifyKYC() {
           </>
         )}
 
-        {/* WAITING FOR APPROVAL */}
+        {/* waiting for approval */}
         {(status === "Pending" || status === "pending") && (
           <>
             <div className="flex flex-col items-center">
@@ -71,7 +71,7 @@ export default function VerifyKYC() {
           </>
         )}
 
-        {/* REJECTED */}
+        {/* rejected */}
         {status === "rejected" && (
           <>
             <div className="flex flex-col items-center">
@@ -92,7 +92,7 @@ export default function VerifyKYC() {
           </>
         )}
 
-        {/* APPROVED (Redirect happens in useEffect) */}
+        {/* approved  */}
         {status === "approved" && (
           <p className="text-green-600 font-bold">✅ Approved! Redirecting...</p>
         )}

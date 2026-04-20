@@ -1,5 +1,3 @@
-// FollowerFeed.js
-
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";

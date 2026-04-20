@@ -15,7 +15,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    // 🔹 Create Razorpay order
+    // Create Razorpay order
     const order = await razorpay.orders.create({
       amount: 100, // ₹1 (in paise)
       currency: "INR",
@@ -27,7 +27,7 @@ export async function POST(req) {
       },
     });
 
-    // 🔹 Save payment (initial state)
+    //  Save payment
     await Payment.create({
       userId,
       orderId: order.id,

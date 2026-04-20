@@ -17,11 +17,11 @@ export async function POST(req) {
       update = {
         verificationStatus: "approved",
         isVerifiedSeller: true,
-        role: "seller", // Upgrade role to seller
+        role: "seller", // upgrade role to seller
       };
     } else if (action === "reject") {
       update = {
-        verificationStatus: "none", // Reset status
+        verificationStatus: "none", // reset status
         isVerifiedSeller: false,
       };
     } else {

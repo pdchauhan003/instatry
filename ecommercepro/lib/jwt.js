@@ -11,7 +11,3 @@ export function generateRefreshToken(data){
     const userId = data.id?.toString() || data.id;
     return jwt.sign({userId,sessionId:data.sessionId},process.env.REFRESH_SECRET,{expiresIn:'7d'})
 }
-
-// export function verifyToken(token){
-//     return jwt.verify(token, process.env.JWT_SECRET);
-// }

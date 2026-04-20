@@ -24,7 +24,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
   const [loading, setLoading] = useState(false);
   const [fetchedPostId, setFetchedPostId] = useState(null);
 
-  // 🔥 FETCH COMMENTS
+  // fetch comments
   const fetchComments = useCallback(async () => {
     if (!postId) return;
     if (fetchedPostId === postId) return;
@@ -56,12 +56,12 @@ export default function CommentDrawer({ open, setOpen, postId }) {
     if (open) fetchComments();
   }, [open, fetchComments]);
 
-  // 🔥 AUTO SCROLL
+  // auto scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [comments]);
 
-  // 🔥 ADD COMMENT
+  // add comment
   const handleClick = async () => {
     if (!comment.trim()) return;
 
@@ -94,7 +94,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
     }
   };
 
-  // 🔥 PROFILE NAV
+  // profile nav
   const handleProfile = (username) => {
     if (username === UName) {
       router.push(`/home/${id}/profile/`);
@@ -103,7 +103,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
     }
   };
 
-  // 🔥 DRAG LOGIC
+  // drag logic
   const handleTouchStart = (e) => {
     startY.current = e.touches[0].clientY;
   };
@@ -127,7 +127,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
         side="bottom"
         className="h-[75vh] max-h-[75vh] overflow-hidden rounded-t-2xl p-0 bg-black text-white flex flex-col touch-pan-y"
       >
-        {/* 🔥 HEADER (DRAG ONLY HERE) */}
+        {/* header  */}
         <div
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -140,7 +140,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
           </SheetHeader>
         </div>
 
-        {/* 🔥 ONLY SCROLLABLE AREA */}
+        {/* only scrollable area */}
         <div
           ref={scrollRef}
           className="flex-1 overflow-y-auto p-4 space-y-3 overscroll-contain scrollbar-hide"
@@ -156,7 +156,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
                 className="flex gap-3 cursor-pointer"
                 onClick={() => handleProfile(i.author.username)}
               >
-                {/* Avatar */}
+                {/* avatar */}
                 <div className="w-10 h-10 rounded-full overflow-hidden relative bg-gray-700">
                   {i.author.image && (
                     <Image
@@ -168,7 +168,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
                   )}
                 </div>
 
-                {/* Text */}
+                {/* text */}
                 <div>
                   <p className="font-semibold text-sm">
                     {i.author.username}
@@ -182,7 +182,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
           <div ref={bottomRef}></div>
         </div>
 
-        {/* 🔥 FIXED INPUT */}
+        {/* fixed input */}
         <div className="border-t border-gray-800 p-3 flex gap-2">
           <input
             value={comment}

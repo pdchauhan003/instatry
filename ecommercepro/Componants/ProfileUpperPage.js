@@ -72,53 +72,6 @@ export const profilePageContent = ({
 
         {/* Action Buttons */}
         <div className="px-4 mt-3">
-          {/* if it is friend then show this part */}
-          {/* {
-            friend ? (
-              <div className="flex w-full overflow-hidden gap-1">
-                <button
-                  onClick={handleFriendRemove}
-                  className="w-full border rounded-md py-1.5 font-medium bg-gray-500"
-                >
-                  Following
-                </button>
-                <button
-                  onClick={handleMessage}
-                  className="w-full border rounded-md py-1.5 font-medium bg-gray-500"
-                >
-                  Message
-                </button>
-              </div>
-            ) 
-            : // if it is not a friend then show its part
-              status == "requested" ? (
-                <button
-                  disabled={!following}
-                  // onClick={clickFollow}
-                  // onClick={handleAAdd}
-                  className={`w-full rounded-md py-1.5 font-medium ${
-                    following
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  requested
-                </button>
-              ) : (
-                <button
-                  disabled={!following}
-                  // onClick={clickFollow}
-                  onClick={handleAAdd}
-                  className={`w-full rounded-md py-1.5 font-medium ${
-                    following
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  Follow
-                </button>
-              )
-          } */}
           {
           friend ? (
             <div className="flex w-full overflow-hidden gap-1">

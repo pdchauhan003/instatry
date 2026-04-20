@@ -13,14 +13,14 @@ export default function CallPage() {
 
   useEffect(() => {
 
-    // 🔹 Create Peer Connection
+    //Create Peer Connection
     peer.current = new RTCPeerConnection({
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" } // free STUN
       ]
     });
 
-    // 🔹 Get User Media
+    //Get User Media
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
@@ -31,12 +31,12 @@ export default function CallPage() {
         });
       });
 
-    // 🔹 Receive Remote Stream
+    //Receive Remote Stream
     peer.current.ontrack = (event) => {
       remoteVideo.current.srcObject = event.streams[0];
     };
 
-    // 🔹 Send ICE Candidates
+    //Send ICE Candidates
     peer.current.onicecandidate = (event) => {
       if (event.candidate) {
         socket.emit("ice-candidate", {
@@ -46,7 +46,7 @@ export default function CallPage() {
       }
     };
 
-    // 🔹 Receive ICE Candidates
+    // Receive ICE Candidates
     socket.on("ice-candidate", async (candidate) => {
       try {
         await peer.current.addIceCandidate(
@@ -57,7 +57,7 @@ export default function CallPage() {
       }
     });
 
-    // 🔹 Incoming Call
+    //  Incoming Call
     socket.on("incoming-call", async ({ from, offer }) => {
       await peer.current.setRemoteDescription(
         new RTCSessionDescription(offer)
@@ -72,7 +72,7 @@ export default function CallPage() {
       });
     });
 
-    // 🔹 Call Accepted
+    //  Call Accepted
     socket.on("call-accepted", async ({ answer }) => {
       await peer.current.setRemoteDescription(
         new RTCSessionDescription(answer)
@@ -85,7 +85,7 @@ export default function CallPage() {
     };
   }, [id]);
 
-  // 📞 Start Call
+  // Start Call
   const startCall = async () => {
     const offer = await peer.current.createOffer();
     await peer.current.setLocalDescription(offer);

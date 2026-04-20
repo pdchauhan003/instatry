@@ -30,7 +30,7 @@ function Dashboard() {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-8 pb-24">
-      {/* Title */}
+      {/* title */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
           Discover <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-teal-400">Products</span>
@@ -47,7 +47,7 @@ function Dashboard() {
               key={i.id}
               className="group bg-white rounded-2xl md:rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col border border-slate-100"
             >
-              {/* Image Container */}
+              {/* image container */}
               <div className="relative w-full h-36 md:h-56 overflow-hidden bg-slate-50">
                 <Image
                   src={i.thumbnail}
@@ -69,7 +69,7 @@ function Dashboard() {
                 </div>
               </div>
 
-              {/* Content Context */}
+              {/* content context */}
               <div className="p-3 md:p-5 flex flex-col flex-grow">
                 <h3 className="font-bold text-sm md:text-lg text-slate-800 line-clamp-1 mb-1">
                   {i.title}
@@ -83,7 +83,7 @@ function Dashboard() {
                   ${i.price}
                 </p>
 
-                {/* Button Base */}
+                {/* button base */}
                 <div className="mt-auto">
                   {isInCart ? (
                     <button

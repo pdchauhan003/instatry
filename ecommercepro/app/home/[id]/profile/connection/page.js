@@ -14,7 +14,7 @@ export default function ConnectionsPage() {
   const initialTab = searchParams.get("tab") === "following" ? 1 : 0;
   const [tab, setTab] = useState(initialTab);
 
-  // 👇 swipe handler
+  // swipe handler
   const handleDragEnd = (event, info) => {
     if (info.offset.x < -50) {
       setTab(1); // swipe left
@@ -26,7 +26,7 @@ export default function ConnectionsPage() {
   return (
     <div className="max-w-xl mx-auto min-h-screen bg-black text-white">
       
-      {/* HEADER */}
+      {/* header */}
       <div className="flex items-center p-4 border-b border-gray-700">
         <button onClick={() => router.back()} className="mr-4">⬅</button>
         <h1 className="text-lg font-semibold">
@@ -34,7 +34,7 @@ export default function ConnectionsPage() {
         </h1>
       </div>
 
-      {/* TABS */}
+      {/* tabs */}
       <div className="flex border-b border-gray-700">
         <button
           onClick={() => setTab(0)}
@@ -51,7 +51,7 @@ export default function ConnectionsPage() {
         </button>
       </div>
 
-      {/* SWIPE CONTAINER */}
+      {/* swipe container */}
       <motion.div
         className="flex w-full"
         drag="x"

@@ -48,26 +48,19 @@ function AddPost() {
         </button>
         <h2 className="font-semibold">New Post</h2>
         <div className="flex gap-5">
-          <button
-            onClick={() => handleAdd('post')}
-            // onClick={handleAdd()}
-            className="text-sm font-medium text-blue-500"
-          >
+          <button onClick={() => handleAdd('post')} className="text-sm font-medium text-blue-500">
             Post
           </button>
-          <button
-            onClick={() => handleAdd('story')}
-            className="text-sm font-medium text-blue-500"
-          >
+          <button onClick={() => handleAdd('story')} className="text-sm font-medium text-blue-500">
             Story
           </button>
         </div>
       </div>
 
-      {/* Content */}
+      {/* content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
-        {/* Image Upload */}
+        {/* image upload */}
         {!preview ? (
           <label
             htmlFor="image-upload"
@@ -99,7 +92,7 @@ function AddPost() {
           </div>
         )}
 
-        {/* Caption part3 */}
+        {/* caption part */}
         {preview && (
           <textarea
             value={caption}

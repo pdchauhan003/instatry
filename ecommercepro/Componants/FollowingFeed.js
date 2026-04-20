@@ -1,5 +1,3 @@
-// FollowingFeed.js
-
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useQuery,useQueryClient,useMutation } from "@tanstack/react-query";
@@ -25,14 +23,7 @@ function FollowingFeed({ id }) {
     staleTime:1000*60*5,
     enabled:!!id, //only run when id exits
   })
-
   const queryClient=useQueryClient();
-  // const unfollowMutation=useMutation({
-  //   mutationFn:(friendId)=>handleUnfollow(id,friendId),
-  //   onSuccess:()=>{
-  //     queryClient.invalidateQueries.mutate(['followings',id]);
-  //   }
-  // })
 
   const unfollowMutation = useMutation({
     mutationFn: ({ friendId }) => handleUnfollow(id, friendId),
@@ -46,10 +37,10 @@ function FollowingFeed({ id }) {
     },
     onError: (err, variables, context) => {
       queryClient.setQueryData(['followings', id], context.previousFollowers);
-      toast.error("Failed to unfollow ❌");
+      toast.error("Failed to unfollow ");
     },
     onSuccess: () => {
-      toast.success("Unfollowed successfully ✅");
+      toast.success("Unfollowed successfully ");
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['followers', id] });

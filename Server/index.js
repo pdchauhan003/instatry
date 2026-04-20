@@ -309,7 +309,13 @@ io.on("connection", (socket) => {
       }
 
       await Message.findByIdAndDelete(messageId);
-      io.emit("messageDeleted", messageId);
+
+      // Only notify the sender and the recipient of the deletion
+      const senderSocket = onlineUsers[msg.from.toString()];
+      const receiverSocket = onlineUsers[msg.to.toString()];
+
+      if (senderSocket) io.to(senderSocket).emit("messageDeleted", messageId);
+      if (receiverSocket) io.to(receiverSocket).emit("messageDeleted", messageId);
     } catch (error) {
       console.log(error, 'error in deleteMessage socket');
     }

@@ -21,7 +21,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    // 🔐 Step 1: Verify Signature (VERY IMPORTANT)
+    // Verify Signature 
     const generated_signature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
@@ -51,7 +51,7 @@ export async function POST(req) {
       );
     }
 
-    // 🔥 Step 3: AUTO REQUEST TO ADMIN
+    // auto request to admin
     await User.findByIdAndUpdate(userId, {
       verificationStatus: "Pending",
     });
@@ -69,4 +69,4 @@ export async function POST(req) {
       { status: 500 }
     );
   }
-}
+}

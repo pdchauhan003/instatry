@@ -9,7 +9,7 @@ export default function ResponsiveNavbar() {
 
   return (
     <>
-      {/* Sidebar (Desktop) */}
+      {/* sidebar  */}
       <div className="hidden md:flex flex-col fixed top-0 left-0 h-full w-64 bg-gray-900 text-white p-5">
         <h1 className="text-xl font-bold mb-8">My App</h1>
 
@@ -26,7 +26,7 @@ export default function ResponsiveNavbar() {
         </nav>
       </div>
 
-      {/* Bottom Navbar (Mobile) */}
+      {/* bottom navbar  */}
       <div className="md:hidden fixed bottom-0 left-0 w-full bg-gray-900 text-white flex justify-around py-3 border-t border-gray-700">
         {navItems.map((item, index) => (
           <button

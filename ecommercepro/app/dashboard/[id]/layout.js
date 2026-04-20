@@ -10,15 +10,15 @@ const Navbar = dynamic(() => import('../../../Componants/navbar'), {
 function LayoutDashboard({ children }) {
   return (
     <div className="h-screen overflow-hidden bg-gray-100 flex flex-col relative">
-      {/* Floating Home Button */}
+      {/* floating home button */}
       <HomeBadge />
       <CartBadge/>
-      {/* Navbar Container - Fixed in flex flow */}
+      {/* navbar container - fixed in flex flow */}
       <div className="z-50 shrink-0 shadow-sm border-b border-gray-200">
         <Navbar />
       </div>
       
-      {/* Scrollable Main Area */}
+      {/* scrollable main area */}
       <main className="flex-1 overflow-y-auto w-full relative">
         {children}
       </main>

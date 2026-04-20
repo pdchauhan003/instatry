@@ -19,7 +19,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Always return JSON
+    // always return JSON
     return NextResponse.json({
       status: user.verificationStatus || "none",
     });
