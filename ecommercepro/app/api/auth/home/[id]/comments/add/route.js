@@ -1,6 +1,7 @@
 import { Comment } from "@/lib/database";
-
+import { connectDB } from "@/services/mongodb";
 export async function POST(req,context){
+    await connectDB();
     const params=await context.params;
     const id=params.id;
     const {postid,comment}=await req.json();

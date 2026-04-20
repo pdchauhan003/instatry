@@ -17,12 +17,8 @@ export async function PUT(req, context) {
   }
   await post.save();
 
-  const updatedPost = await Post.findById(postid)
-    .populate("author", "username");
+  const updatedPost = await Post.findById(postid).populate("author", "username");
 
-  //   const upPost=await Post.findByIdAndUpdate(postid,{
-  //     like:{}
-  //   })
   return NextResponse.json({
     success: true,
     post: updatedPost,

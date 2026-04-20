@@ -69,7 +69,7 @@ export default function RootLayoutt({ children }) {
         <button onClick={() => handleNav(`/home/${id}/profile`)} className="text-left hover:text-gray-400">Profile</button>
         {user?.role === "admin" && (
           <button onClick={() => handleNav(`/admin/verify`)} className="text-left text-emerald-400 font-bold hover:text-emerald-300 flex items-center gap-2">
-            <ShieldCheck size={20} />
+            {/* <ShieldCheck size={20} /> */}
             Admin Panel
           </button>
         )}

@@ -57,7 +57,7 @@ const io = new Server(server, {
     origin: (origin, callback) => {
       if (
         !origin ||
-        origin.includes("localhost") ||
+        origin.includes("localhost") ||  //set origins of locsal server of socket.io
         origin.endsWith(".vercel.app")
       ) {
         callback(null, true);
@@ -71,7 +71,7 @@ const io = new Server(server, {
 const onlineUsers = {};  // all connected sockets
 
 app.get("/", (req, res) => {
-  res.send("Server is running 🚀");
+  res.send("Server is running ");
 });
 
 // this is used to fetch last 30 messages  not older only plast 30
