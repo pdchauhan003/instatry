@@ -59,7 +59,7 @@ export async function POST(req) {
     return NextResponse.json({
       success: true,
       message: "Payment verified, waiting for admin approval",
-    });
+    }, { status: 200 });
 
   } catch (error) {
     console.error(error);

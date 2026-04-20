@@ -15,7 +15,7 @@ export async function POST(req) {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return NextResponse.json({ success: false, message: "User not found" });
+      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
     }
 
     const match = await bcrypt.compare(password, user.password);
@@ -25,7 +25,7 @@ export async function POST(req) {
         success: false,
         message: "Wrong password",
         forgot: true,
-      });
+      }, { status: 401 });
     }
 
     const sessionId = crypto.randomBytes(32).toString("hex");
@@ -82,7 +82,7 @@ export async function POST(req) {
     return NextResponse.json({
       success: false,
       message: "Server error",
-    });
+    }, { status: 500 });
   }
 }
 

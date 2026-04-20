@@ -28,7 +28,7 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, message: "Seller removed successfully" });
+    return NextResponse.json({ success: true, message: "Seller removed successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error removing seller:", error);
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });

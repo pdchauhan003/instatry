@@ -38,7 +38,7 @@ export async function POST(req) {
       success: true,
       message: `User ${action}ed successfully`,
       user: updatedUser,
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error approving/rejecting seller:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

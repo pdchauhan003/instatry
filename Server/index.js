@@ -125,7 +125,7 @@ io.use((socket, next) => {
         console.error(`Status: [Auth Middleware] Token verification failed [${err.name}]: ${err.message}`);
         // If it's a signature mismatch, it's definitely a secret mismatch between frontend/backend
         if (err.message.includes("invalid signature")) {
-           console.warn("Status: [Auth Middleware] Hint: Check if ACCESS_SECRET on Render matches Vercel exactly!");
+          console.warn("Status: [Auth Middleware] Hint: Check if ACCESS_SECRET on Render matches Vercel exactly!");
         }
         return next(new Error(`Authentication error: Invalid token (${err.name})`));
       }
@@ -540,7 +540,7 @@ io.on("connection", (socket) => {
       const targetTo = to?.toString();
       if (!targetTo) return;
 
-      io.to(targetTo).emit('ice.candidate', candidate);
+      io.to(targetTo).emit('ice-candidate', candidate);
     } catch (error) {
       console.error("Status: [Trace] ice-candidate error:", error);
     }

@@ -10,13 +10,13 @@ export async function POST(req) {
     // const cookieStore=await cookies();
     const refreshToken = await req.cookies.get('refreshToken')?.value;
     if (!refreshToken) {
-        return NextResponse.json({ message: 'No refresh token' });
+        return NextResponse.json({ message: 'No refresh token' }, { status: 401 });
     }
     try {
         const decode = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
         const user = await User.findById(decode.userId);
         if (!user || user.refreshToken !== refreshToken) {
-            return Response.json({ message: 'invalid refresh token' });
+            return NextResponse.json({ message: 'invalid refresh token' }, { status: 403 });
         }
         const newAccessToken = generateAccessToken({
             id: user._id,
@@ -24,7 +24,7 @@ export async function POST(req) {
             sessionId: user.sessionId
         });
 
-        const response = NextResponse.json({ success: true, userId: user._id, });
+        const response = NextResponse.json({ success: true, userId: user._id, }, { status: 200 });
 
         response.cookies.set("accessToken", newAccessToken, {
             httpOnly: true,
@@ -38,6 +38,6 @@ export async function POST(req) {
 
     }
     catch (error) {
-        return Response.json({ message: 'Expired refresh token' }, { status: 401 })
+        return NextResponse.json({ message: 'Expired refresh token' }, { status: 401 });
     }
 }

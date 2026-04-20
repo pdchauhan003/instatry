@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { User } from '@/lib/database';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/Connection';
@@ -20,7 +21,7 @@ export async function POST(req) {
     if (!name || !email || !password || !number || !username) {
       console.log("Validation Failedd");
       // if (!image) alert('image in not found');
-      return Response.json({ message: 'Please fill all fields' });
+      return NextResponse.json({ message: 'Please fill all fields' }, { status: 400 });
     }
     // const findEmail = await User.findOne({ email });
     // const findUsername = await User.findOne({ username });
@@ -30,15 +31,15 @@ export async function POST(req) {
     ]);
     console.log("USER FOUND:", findEmail);
     if (findUsername) {
-      return Response.json(
-        { message: 'Usernmae already exists' }
-        // { status: 409 }
+      return NextResponse.json(
+        { message: 'Usernmae already exists' },
+        { status: 409 }
       );
     }
     if (findEmail) {
-      return Response.json(
-        { message: 'Email already exists' }
-        // { status: 409 }
+      return NextResponse.json(
+        { message: 'Email already exists' },
+        { status: 409 }
       );
     }
 
@@ -60,12 +61,13 @@ export async function POST(req) {
     });
     await user.save();
     console.log("USER SAVED SUCCESSFULLY");
-    return Response.json(
-      { success: true }
+    return NextResponse.json(
+      { success: true },
+      { status: 201 }
     );
   } catch (error) {
     console.error("REGISTER ERROR FULL:", error);
-    return Response.json(
+    return NextResponse.json(
       { message: `Server error: ${error.message || 'Unknown error'}` },
       { status: 500 }
     );

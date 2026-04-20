@@ -1,6 +1,7 @@
-import {User} from '@/lib/database'
+import { NextResponse } from 'next/server';
+import { User } from '@/lib/database';
 import { connectDB } from '@/lib/Connection';
-import bcrypt from 'bcryptjs'
+import bcrypt from 'bcryptjs';
 export async function POST(req){
     try {
         await connectDB();
@@ -8,12 +9,12 @@ export async function POST(req){
         console.log(email)
         const hashedPass=await bcrypt.hash(password,10);
         const user=await User.findOneAndUpdate({email},{password:hashedPass,otp:''},{new:true});
-        if(!user){
-            return Response.json({message:'User is not registered'})
+        if (!user) {
+            return NextResponse.json({ message: 'User is not registered' }, { status: 404 });
         }
-        return Response.json({success:true});
+        return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.log("Error in change-password:", error);
-        return Response.json({ success: false, message: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
     }
 }

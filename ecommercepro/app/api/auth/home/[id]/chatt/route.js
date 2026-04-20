@@ -1,30 +1,15 @@
+import { NextResponse } from "next/server";
 import { getMessageUserData } from "@/controller/user.controller";
 import { Message } from "@/lib/database";
-// import redis from "@/lib/redis";
 
 export async function POST(req, context) {
   try {
     const params = await context.params;
     const id = params.id;
 
-
     //fetch username and profile picture of messages users
-    const messageUserData=await getMessageUserData(id);
-    console.log('message userdata is',messageUserData)
-
-    // const cachFullKey=`cachFull:${id}`;
-
-    //check chech first
-    // const cached=await redis.get(cachFullKey);
-    // if(cached){
-    //   console.log('redis already cachedd');
-    //   return Response.json(JSON.parse(cached));
-    // }
-
-    //if not cach then fetching this logics
-
-    // const allfriends = await allFriends(id);
-    // const uniqueFriends = allfriends.friends;
+    const messageUserData = await getMessageUserData(id);
+    console.log('message userdata is', messageUserData);
 
     // Get all message data in ONE query
     const messagesData = await Message.aggregate([
@@ -74,7 +59,7 @@ export async function POST(req, context) {
       });
     });
 
-    //  Merge with friends
+    // Merge with friends
     const result = messageUserData.map(f => {
       const data = messageMap.get(f._id.toString());
 
@@ -90,18 +75,14 @@ export async function POST(req, context) {
     // Sort latest first
     result.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
 
-    const finalData={
+    const finalData = {
       success: true,
       friends: result
     }
 
-    // Store in redis
-    // await redis.set(cachFullKey, JSON.stringify(finalData), "EX", 30);
-
-    //after set in redis return data 
-    return Response.json(finalData);
+    return NextResponse.json(finalData, { status: 200 });
   } catch (error) {
     console.error("Error in chatt API:", error);
-    return Response.json({ success: false, message: "Internal server error", error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Internal server error", error: error.message }, { status: 500 });
   }
-}
+}

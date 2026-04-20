@@ -1,26 +1,24 @@
-import { Post, User, Follow } from "@/lib/database";
+import { NextResponse } from "next/server";
+import { User } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
 import { IndividualPosts } from "@/controller/post&story.controller";
 import { findFriendOrNot, findPendingReq } from "@/controller/follow.controller";
-import { checkFollowers } from "@/controller/follow.controller";
-import { checkFollowings } from "@/controller/follow.controller";
-import { getUserBioOnly } from "@/controller/user.controller";
-// import { getFollowersCount, getFollowersFromDB, getFollowingsCount, getFollowingsFromDB } from "@/handler/FindFollowerFollowing";
-import { getFollowersCount, getFollowersFromDB, getFollowingsCount, getFollowingsFromDB } from "@/controller/follow.controller";
+import { getFollowersCount, getFollowersFromDB, getFollowingsCount, getFollowingsFromDB, getUserBioOnly } from "@/controller/follow.controller";
 
 export async function POST(req, context) {
   try {
     await connectDB();
 
-    const { id } = await context.params;
+    const params = await context.params;
+    const id = params.id;
     const { username } = await req.json();
 
     const user = await User.findOne({ username }).lean();
     if (!user) {
-      return Response.json({ success: false, message: "User not found" }, { status: 404 });
+      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
     }
 
-    const [isFriend, isPending, posts, followers, followings, followerCount, followingCount, bio] = await Promise.all([
+    const [isFriend, isPending, posts, followers, followings, followerCount, followingCount, bioData] = await Promise.all([
       findFriendOrNot(id, user._id),
       findPendingReq(id, user._id),
       IndividualPosts(user._id),
@@ -34,7 +32,7 @@ export async function POST(req, context) {
     const friends = isFriend && !isPending;
     const requested = !!isPending;
 
-    return Response.json({
+    return NextResponse.json({
       success: true,
       friend: friends,
       user,
@@ -43,15 +41,15 @@ export async function POST(req, context) {
       requested,
       followers,
       followings,
-      bio,
+      bio: bioData,
       followerCount,
       followingCount,
-    });
+    }, { status: 200 });
 
   } catch (error) {
     console.log("PROFILE ROUTE ERROR:", error);
 
-    return Response.json(
+    return NextResponse.json(
       { success: false, message: "Server error" },
       { status: 500 }
     );
