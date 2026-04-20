@@ -73,7 +73,7 @@ app.use(cors({
     } else {
       // In production, you might want to be more specific, 
       // but to fix the immediate issue we allow all origins if they are from Vercel/Render
-      callback(null, true); 
+      callback(null, true);
     }
   },
   credentials: true
@@ -118,7 +118,7 @@ io.use((socket, next) => {
         console.log("Status: [Auth Middleware] Token verification failed:", err.message);
         return next(new Error("Authentication error: Invalid token"));
       }
-      
+
       // Ensure userId is a string for consistent room names and Redis keys
       socket.userId = decoded.id?.toString() || decoded.userId?.toString();
       console.log(`Status: [Auth Middleware] Socket ${socket.id} authenticated for user ${socket.userId}`);
@@ -231,9 +231,12 @@ app.get("/online-users", async (req, res) => {
 // any other user logged in same account then trigger
 app.post("/force-logout", (req, res) => {
   const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: "No userId provided" });
+
+  const targetId = userId.toString();
   // Broadcasting to the userId room reaches all server instances
-  io.to(userId).emit("forceLogout");
-  console.log("Force logout sent to", userId);
+  io.to(targetId).emit("forceLogout");
+  console.log(`Status: [Trace] Force logout sent to ${targetId}`);
   res.json({ success: true });
 });
 
@@ -246,7 +249,7 @@ io.on("connection", (socket) => {
         console.warn("Status: [Socket Join] Attempted join without userId");
         return;
       }
-      
+
       // Every user joins their own room (for distributed broadcasting)
       socket.join(userId);
 
@@ -298,7 +301,8 @@ io.on("connection", (socket) => {
         return;
       }
       // Broadcast to the user's room across all servers
-      io.to(userId).emit("forceLogout");
+      io.to(userId.toString()).emit("forceLogout");
+      console.log(`Status: [Trace] Force-logout-user emitted for ${userId}`);
     } catch (error) {
       console.log(error, 'error in force-logout-user socket');
     }
@@ -307,87 +311,117 @@ io.on("connection", (socket) => {
   // for chatting 
   socket.on("sendMessage", async ({ to, message }) => {
     try {
-      const from = socket.userId;
+      const from = socket.userId?.toString();
+      const targetTo = to?.toString();
+
+      if (!targetTo || !from) {
+        console.warn("Status: [Trace] sendMessage failed - missing to or from ID");
+        return;
+      }
+
+      console.log(`Status: [Trace] Sending message from ${from} to ${targetTo}`);
+
       const savedMessage = await Message.create({
         from,
-        to,
+        to: targetTo,
         message,
         isSeen: false
       });
+
       // Distribute to all sockets of the 'to' user
-      io.to(to).emit("receiveMessage", savedMessage);
+      io.to(targetTo).emit("receiveMessage", savedMessage);
       // Also send back to the sender (all their devices)
       io.to(from).emit("receiveMessage", savedMessage);
+
+      console.log(`Status: [Trace] Message saved and emitted to both rooms`);
     } catch (err) {
-      console.log(err);
+      console.error("Status: [Trace] sendMessage error:", err);
     }
   });
 
   //for unreaded message badge 
   socket.on('markSeen', async ({ otherId }) => {
     try {
-      const myId = socket.userId;
-      await Message.updateMany({ from: otherId, to: myId, isSeen: false },
+      const myId = socket.userId?.toString();
+      const targetOther = otherId?.toString();
+
+      if (!myId || !targetOther) return;
+
+      await Message.updateMany({ from: targetOther, to: myId, isSeen: false },
         { $set: { isSeen: true } }
       )
       // notify the sender globally
-      io.to(otherId).emit('messageSeen', { by: myId });
+      io.to(targetOther).emit('messageSeen', { by: myId });
+      console.log(`Status: [Trace] markSeen from ${myId} to ${targetOther}`);
     } catch (error) {
-      console.log(error, 'error in markSeen socket');
+      console.error("Status: [Trace] markSeen error:", error);
     }
   })
 
   // for deleting messages
-  socket.on("deleteMessage", async ({messageId}) => {
+  socket.on("deleteMessage", async ({ messageId }) => {
     try {
       const msg = await Message.findById(messageId);
       if (!msg) return;
-      if (msg.from.toString() !== socket.userId.toString()) {
-        console.log("Unauthorized delete attempt by", socket.userId);
+
+      const fromId = msg.from?.toString();
+      const toId = msg.to?.toString();
+
+      if (fromId !== socket.userId?.toString()) {
+        console.warn(`Status: [Trace] Unauthorized delete attempt by ${socket.userId}`);
         return;
       }
 
       await Message.findByIdAndDelete(messageId);
 
       // Notify both participants globally
-      io.to(msg.from.toString()).emit("messageDeleted", messageId);
-      io.to(msg.to.toString()).emit("messageDeleted", messageId);
+      if (fromId) io.to(fromId).emit("messageDeleted", messageId);
+      if (toId) io.to(toId).emit("messageDeleted", messageId);
+
+      console.log(`Status: [Trace] deleteMessage ${messageId} from ${fromId} to ${toId}`);
     } catch (error) {
-      console.log(error, 'error in deleteMessage socket');
+      console.error("Status: [Trace] deleteMessage error:", error);
     }
   });
 
   // sending follow req
   socket.on('sendFollowRequest', async ({ to, status }) => {
     try {
-      const from = socket.userId;
+      const from = socket.userId?.toString();
+      const targetTo = to?.toString();
+
+      if (!from || !targetTo) return;
+
+      console.log(`Status: [Trace] Follow request from ${from} to ${targetTo}`);
+
       const createStatusModel = await FollowStatus.create({
         from: from,
-        to: to,
+        to: targetTo,
         status: status
       })
 
       const populatedReq = await FollowStatus.findById(createStatusModel._id).populate("from", "username image");
 
-      if (createStatusModel) {
-        console.log('status model is created');
-      }
-      
-      io.to(to).emit('newFollowReq', populatedReq);
+      io.to(targetTo).emit('newFollowReq', populatedReq);
+      console.log(`Status: [Trace] Follow request saved and emitted to ${targetTo}`);
     }
     catch (error) {
-      console.log(error, 'error in sending req.. for server side')
+      console.error("Status: [Trace] sendFollowRequest error:", error);
     }
   })
 
   //accept follow req
   socket.on('acceptFollowRequest', async ({ from }) => {
     try {
-      const to = socket.userId;
-      const checkPendingReq = await FollowStatus.findOne({ from, to });
+      const to = socket.userId?.toString();
+      const targetFrom = from?.toString();
+
+      if (!to || !targetFrom) return;
+
+      const checkPendingReq = await FollowStatus.findOne({ from: targetFrom, to: to });
 
       const createFollowCollection = await Follow.create({
-        follower: from,
+        follower: targetFrom,
         following: to,
       })
 
@@ -395,89 +429,109 @@ io.on("connection", (socket) => {
         await FollowStatus.updateOne({ _id: checkPendingReq._id }, { status: 'accepted' });
       }
 
-      const checkFriend = await Follow.findOne({ follower: to, following: from });
+      const checkFriend = await Follow.findOne({ follower: to, following: targetFrom });
 
       if (!checkFriend) {
         await FollowStatus.create({
           from: to,
-          to: from,
+          to: targetFrom,
           status: 'pending'
         })
       }
 
       // Notify participants globally
-      io.to(from).emit("reqAccepted", { from, to });
-      io.to(to).emit("reqAccepted", { from, to });
-      io.to(to).emit("friendOrNot", { from, to, isFriend: !!checkFriend });
+      io.to(targetFrom).emit("reqAccepted", { from: targetFrom, to: to });
+      io.to(to).emit("reqAccepted", { from: targetFrom, to: to });
+      io.to(to).emit("friendOrNot", { from: targetFrom, to: to, isFriend: !!checkFriend });
 
+      console.log(`Status: [Trace] acceptFollowRequest from ${targetFrom} to ${to}`);
     }
     catch (error) {
-      console.log(error, 'error in accepting follow req from server side....')
+      console.error("Status: [Trace] acceptFollowRequest error:", error);
     }
   })
 
   //if user can get follow back then it trigger
   socket.on('followback', async ({ to }) => {
     try {
-      const from = socket.userId;
+      const from = socket.userId?.toString();
+      const targetTo = to?.toString();
+      if (!from || !targetTo) return;
 
-      await Follow.create({ follower: from, following: to });
+      await Follow.create({ follower: from, following: targetTo });
 
       //update followstatus
-      await FollowStatus.updateOne({ from, to }, { status: 'accepted' });
+      await FollowStatus.updateOne({ from, to: targetTo }, { status: 'accepted' });
 
       // Notify participants globally
-      io.to(from).emit("reqAccepted", { from, to });
-      io.to(to).emit("reqAccepted", { from, to });
+      io.to(from).emit("reqAccepted", { from, to: targetTo });
+      io.to(targetTo).emit("reqAccepted", { from, to: targetTo });
+
+      console.log(`Status: [Trace] followback from ${from} to ${targetTo}`);
     }
     catch (error) {
-      console.log(error, 'error in follow back socket')
+      console.error("Status: [Trace] followback error:", error);
     }
   })
 
   // decline request
   socket.on('declineReq', async ({ from }) => {
     try {
-      const to = socket.userId;
-      const findFollowStatus = await FollowStatus.findOne({ from, to });
+      const to = socket.userId?.toString();
+      const targetFrom = from?.toString();
+      if (!to || !targetFrom) return;
+
+      const findFollowStatus = await FollowStatus.findOne({ from: targetFrom, to: to });
       if (!findFollowStatus) return;
 
       await FollowStatus.deleteOne({ _id: findFollowStatus._id });
-      
+
       // Notify original sender globally
-      io.to(from).emit('declineReq', { from, to });
+      io.to(targetFrom).emit('declineReq', { from: targetFrom, to: to });
+      console.log(`Status: [Trace] declineReq from ${to} for ${targetFrom}`);
     }
     catch (error) {
-      console.log('error in decline request from server side...')
+      console.error("Status: [Trace] declineReq error:", error);
     }
   })
 
-  socket.on('call-user',({to,offer})=>{
+  socket.on('call-user', ({ to, offer }) => {
     try {
-      const from = socket.userId;
-      io.to(to).emit('incoming-call',{
+      const from = socket.userId?.toString();
+      const targetTo = to?.toString();
+      if (!from || !targetTo) return;
+
+      io.to(targetTo).emit('incoming-call', {
         from: from,
         offer
       })
+      console.log(`Status: [Trace] call-user from ${from} to ${targetTo}`);
     } catch (error) {
-      console.log(error, 'error in call-user socket');
+      console.error("Status: [Trace] call-user error:", error);
     }
   })
 
-  socket.on('answer-call',({to,answer})=>{
+  socket.on('answer-call', ({ to, answer }) => {
     try {
-      const from = socket.userId;
-      io.to(to).emit('call-accepted', { by: from, answer });
+      const from = socket.userId?.toString();
+      const targetTo = to?.toString();
+      if (!from || !targetTo) return;
+
+      io.to(targetTo).emit('call-accepted', { by: from, answer });
+      console.log(`Status: [Trace] answer-call from ${from} to ${targetTo}`);
     } catch (error) {
-      console.log(error, 'error in answer-call socket');
+      console.error("Status: [Trace] answer-call error:", error);
     }
   });
 
-  socket.on('ice-candidate',({to,candidate})=>{
+  socket.on('ice-candidate', ({ to, candidate }) => {
     try {
-      io.to(to).emit('ice.candidate',candidate);
+      const targetTo = to?.toString();
+      if (!targetTo) return;
+
+      io.to(targetTo).emit('ice.candidate', candidate);
     } catch (error) {
-      console.log(error, 'error in ice-candidate socket');
+      console.error("Status: [Trace] ice-candidate error:", error);
     }
   });
 
