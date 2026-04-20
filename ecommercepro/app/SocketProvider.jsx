@@ -21,11 +21,17 @@ export default function SocketProvider({ children }) {
     if (!id) return;
 
     const handleConnect = () => {
-      console.log("Socket connected, emitting join");
+      console.log("Status: [Socket] connected, emitting join");
       socket.emit("join");
     };
 
     if (!socket.connected) {
+      // Inject token for deployment cross-domain support
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        console.log("Status: [Socket] Injecting auth token from storage");
+        socket.auth = { ...socket.auth, token };
+      }
       socket.connect();
     } else {
       // already connected, just join

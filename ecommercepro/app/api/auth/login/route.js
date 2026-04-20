@@ -56,6 +56,7 @@ export async function POST(req) {
       role: user.role,
       id: user._id,
       user: userData,
+      accessToken: accessToken, // Export token for socket auth backup
     });
 
     //Set cookies

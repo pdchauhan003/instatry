@@ -28,7 +28,14 @@ function LoginPage() {
     if(data.success){
       dispatch(setAuthUser(data.user));
       // Persist user to localStorage so Redux can be rehydrated on refresh
-      try { localStorage.setItem('auth_user', JSON.stringify(data.user)); } catch(e) {}
+      try { 
+        localStorage.setItem('auth_user', JSON.stringify(data.user)); 
+        if (data.accessToken) {
+          localStorage.setItem('auth_token', data.accessToken);
+        }
+      } catch(e) {
+        console.error("Storage error:", e);
+      }
       console.log('data .id is ',data.id)
       if (data.role && data.id) {
         console.log(`User logged in as ${data.role}. Redirecting to /home/${data.id}`);
