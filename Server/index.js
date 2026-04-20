@@ -11,20 +11,34 @@ const redisUrl = process.env.REDIS_URL;
 
 let pubClient, subClient, redisClient;
 
-if (redisUrl) {
+const setupRedis = (ioInstance) => {
+  if (!redisUrl) return;
+
   pubClient = createClient({ url: redisUrl });
   subClient = pubClient.duplicate();
   redisClient = pubClient.duplicate();
+
+  const handleRedisError = (clientName, err) => {
+    console.error(`Status: [Redis ${clientName} Error]:`, err.message);
+  };
+
+  pubClient.on('error', (err) => handleRedisError('Pub', err));
+  subClient.on('error', (err) => handleRedisError('Sub', err));
+  redisClient.on('error', (err) => handleRedisError('State', err));
+
+  pubClient.on('connect', () => console.log('Status: [Redis Pub] Connecting...'));
+  pubClient.on('ready', () => console.log('Status: [Redis Pub] Ready'));
 
   Promise.all([
     pubClient.connect(),
     subClient.connect(),
     redisClient.connect()
   ]).then(() => {
-    console.log("Redis Connected");
-    io.adapter(createAdapter(pubClient, subClient));
-  }).catch(err => console.log("Redis Error:", err));
-}
+    console.log("Status: [Redis] All clients connected and ready");
+    ioInstance.adapter(createAdapter(pubClient, subClient));
+    console.log("Status: [Redis] Socket.io Adapter initialized");
+  }).catch(err => console.error("Status: [Redis Connection Fatal Error]:", err));
+};
 
 const Message = require("./models/Message");
 const FollowStatus = require('./models/FollowStatus');
@@ -85,6 +99,9 @@ const io = new Server(server, {
   }
 });
 
+// Initialize Redis after io is created
+setupRedis(io);
+
 // authentication middleware
 io.use((socket, next) => {
   try {
@@ -92,16 +109,19 @@ io.use((socket, next) => {
     const token = cookies.accessToken || socket.handshake.auth?.token;
 
     if (!token) {
-      console.log("No token provided");
+      console.log("Status: [Auth Middleware] No token provided in cookies or auth object");
       return next(new Error("Authentication error: No token provided"));
     }
 
     jwt.verify(token, process.env.ACCESS_SECRET, (err, decoded) => {
       if (err) {
-        console.log("Token verification failed:", err.message);
+        console.log("Status: [Auth Middleware] Token verification failed:", err.message);
         return next(new Error("Authentication error: Invalid token"));
       }
-      socket.userId = decoded.userId;
+      
+      // Ensure userId is a string for consistent room names and Redis keys
+      socket.userId = decoded.id?.toString() || decoded.userId?.toString();
+      console.log(`Status: [Auth Middleware] Socket ${socket.id} authenticated for user ${socket.userId}`);
       next();
     });
   } catch (err) {
@@ -221,19 +241,23 @@ io.on("connection", (socket) => {
   // join socket 
   socket.on("join", async () => {
     try {
-      const userId = socket.userId;
+      const userId = socket.userId?.toString();
+      if (!userId) {
+        console.warn("Status: [Socket Join] Attempted join without userId");
+        return;
+      }
       
       // Every user joins their own room (for distributed broadcasting)
       socket.join(userId);
 
-      // Cancel any pending disconnect for this user
+      // Cancel any pending disconnect for this user (e.g. from a page refresh)
       if (pendingDisconnects[userId]) {
         clearTimeout(pendingDisconnects[userId]);
         delete pendingDisconnects[userId];
-        console.log(`Cancelled pending disconnect for ${userId}`);
+        console.log(`Status: [Socket Join] Cancelled pending disconnect for ${userId}`);
       }
 
-      console.log(userId + " joined");
+      console.log(`Status: [Socket Join] ${userId} joined room`);
 
       // Sessions management: Force logout other sessions
       // In a distributed setup, we emit to the room except the current socket
@@ -460,18 +484,20 @@ io.on("connection", (socket) => {
   // disconnectingg
   socket.on("disconnect", async () => {
     try {
-      const userId = socket.userId;
-      if (!userId) return;
+      const userId = socket.userId?.toString();
+      if (!userId) {
+        console.log(`Status: [Socket Disconnect] Socket ${socket.id} disconnected (no userId)`);
+        return;
+      }
+
+      console.log(`Status: [Socket Disconnect] ${userId} disconnected, starting grace period...`);
 
       // Set a timeout to mark user as offline
       // This prevents flickering status during page refreshes (re-joins)
       pendingDisconnects[userId] = setTimeout(async () => {
-        // Double check if the user has any other active connections across the cluster
-        // socket.io-adapter doesn't easily expose this, but we can check Redis online set
-        // or just rely on the fact that if they re-joined, pendingDisconnects[userId] was cleared.
-        
         if (redisClient) {
           await redisClient.sRem(ONLINE_USERS_KEY, userId);
+          console.log(`Status: [Socket Disconnect] ${userId} removed from Redis online_users`);
         }
         delete pendingDisconnects[userId];
 
@@ -479,12 +505,10 @@ io.on("connection", (socket) => {
           userId: userId,
           status: 'offline'
         });
-        console.log(`${userId} is now truly offline`);
+        console.log(`Status: [Socket Disconnect] ${userId} is now globally offline`);
       }, 5000); // 5 second grace period
-      
-      console.log(`${userId} disconnected, pending check...`);
     } catch (error) {
-      console.log(error, 'error in disconnect socket');
+      console.error('Status: [Socket Disconnect Error]:', error);
     }
   });
 });
