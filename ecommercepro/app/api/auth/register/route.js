@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import { User } from '@/lib/database';
+import { User, PendingUser } from '@/lib/database';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/Connection';
-import { uploadCloudinary } from '@/handler/UploadCloudinary';
+const nodemailer = require('nodemailer');
+
 export async function POST(req) {
-  await connectDB()
+  await connectDB();
   try {
     const data = await req.formData();
     const name = data.get("name");
@@ -15,20 +16,18 @@ export async function POST(req) {
     const image = data.get("image");
 
     if (!name || !email || !password || !number || !username) {
-      console.log("Validation Failedd");
-      // if (!image) alert('image in not found');
       return NextResponse.json({ message: 'Please fill all fields' }, { status: 400 });
     }
-    // const findEmail = await User.findOne({ email });
-    // const findUsername = await User.findOne({ username });
+
+    // Check if email or username already exists in real Users
     const [findEmail, findUsername] = await Promise.all([
       User.findOne({ email }),
       User.findOne({ username }),
     ]);
-    console.log("USER FOUND:", findEmail);
+
     if (findUsername) {
       return NextResponse.json(
-        { message: 'Usernmae already exists' },
+        { message: 'Username already exists' },
         { status: 409 }
       );
     }
@@ -39,30 +38,64 @@ export async function POST(req) {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10); //excryption of the password....
-    console.log("Password Hashed");
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    let uploadResult = null;
+    // Convert image to base64 for temporary storage (if provided)
+    let imageBase64 = '';
+    let imageMimeType = '';
     if (image && typeof image !== 'string' && image.size > 0) {
-      uploadResult = await uploadCloudinary(image)
+      const bytes = await image.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      imageBase64 = buffer.toString('base64');
+      imageMimeType = image.type || 'image/jpeg';
     }
 
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-      number,
-      username,
-      image: uploadResult?.secure_url || '',
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
+
+    // Upsert into PendingUser (replace if same email tries again)
+    await PendingUser.findOneAndUpdate(
+      { email },
+      {
+        name,
+        username,
+        email,
+        number,
+        password: hashedPassword,
+        imageBase64,
+        imageMimeType,
+        otp,
+        otpExpiry,
+        otpRequestCount: 1,
+        createdAt: new Date(), // reset TTL
+      },
+      { upsert: true, new: true }
+    );
+
+    // Send OTP email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
     });
-    await user.save();
-    console.log("USER SAVED SUCCESSFULLY");
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your OTP Code",
+      text: `Your OTP is ${otp}. It will expire in 5 minutes.`,
+    });
+
     return NextResponse.json(
-      { success: true },
-      { status: 201 }
+      { success: true, message: 'OTP sent to your email. Please verify to complete registration.' },
+      { status: 200 }
     );
   } catch (error) {
-    console.error("REGISTER ERROR FULL:", error);
+    console.error("REGISTER ERROR:", error);
     return NextResponse.json(
       { message: `Server error: ${error.message || 'Unknown error'}` },
       { status: 500 }

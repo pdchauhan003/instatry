@@ -7,3 +7,5 @@ export { default as FollowStatus } from "@/models/FollowStatus";
 export { default as Saved } from "@/models/Saved";
 export { default as Comment } from "@/models/Comment";
 export { default as Participant } from "@/models/Participant";
+export { default as PendingUser } from "@/models/PendingUser";
+

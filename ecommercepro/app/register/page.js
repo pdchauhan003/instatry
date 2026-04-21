@@ -32,29 +32,9 @@ function RegisterPage() {
       });
       const data = await res.json();
       if (data.success) {
-        alert("User Registered.........", data.message);
-        try {
-          const resp = await fetch(
-            "/api/auth/send-otp",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ email }),
-            },
-          );
-          const data = await resp.json();
-          if (data.success) {
-            router.push(`/varification/afterregister?email=${email}`);
-          } else {
-            console.log("error to send otp after register");
-            alert("error to send otp after register");
-          }
-        } catch (error) {
-          console.log("error in sending otp...");
-          alert("error in sending otp...");
-        }
+        router.push(`/varification/afterregister?email=${email}`);
       } else {
-        alert(data.message || "Error in server during registration");
+        alert(data.message || "Error during registration");
       }
     } catch (error) {
       console.log("server error...", error);
