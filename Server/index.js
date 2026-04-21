@@ -2,22 +2,23 @@ const express = require("express");
 const http = require("http");
 const mongoose = require("mongoose");
 const { Server } = require("socket.io");
-require('dotenv').config();
 const jwt = require("jsonwebtoken");
 const cookie = require("cookie");
 const { createClient } = require('redis');
 const { createAdapter } = require("@socket.io/redis-adapter");
 const redisUrl = process.env.REDIS_URL;
+require('dotenv').config();
 
-let pubClient, subClient, redisClient;
+let pubClient, subClient, redisClient;  // for redis client
 
 // Startup check for JWT secrets
 if (!process.env.ACCESS_SECRET) {
-  console.error("CRITICAL: ACCESS_SECRET is not defined in environment variables!");
+  console.error("access secret is not defined in environment variables!");
 } else {
   console.log("Status: [Startup] ACCESS_SECRET is loaded");
 }
 
+//redis setup for connection
 const setupRedis = (ioInstance) => {
   if (!redisUrl) return;
 
@@ -26,25 +27,25 @@ const setupRedis = (ioInstance) => {
   redisClient = pubClient.duplicate();
 
   const handleRedisError = (clientName, err) => {
-    console.error(`Status: [Redis ${clientName} Error]:`, err.message);
+    console.error(`redis ${clientName} error:`, err.message); //run time error in redis throw
   };
 
   pubClient.on('error', (err) => handleRedisError('Pub', err));
   subClient.on('error', (err) => handleRedisError('Sub', err));
   redisClient.on('error', (err) => handleRedisError('State', err));
 
-  pubClient.on('connect', () => console.log('Status: [Redis Pub] Connecting...'));
-  pubClient.on('ready', () => console.log('Status: [Redis Pub] Ready'));
+  pubClient.on('connect', () => console.log('redis Connecting...'));
+  pubClient.on('ready', () => console.log('redis Ready'));
 
   Promise.all([
     pubClient.connect(),
     subClient.connect(),
     redisClient.connect()
   ]).then(() => {
-    console.log("Status: [Redis] All clients connected and ready");
+    console.log("redis All clients connected and ready");
     ioInstance.adapter(createAdapter(pubClient, subClient));
-    console.log("Status: [Redis] Socket.io Adapter initialized");
-  }).catch(err => console.error("Status: [Redis Connection Fatal Error]:", err));
+    console.log("redis Socketio Adapter initialized");
+  }).catch(err => console.error("redis Connection Error", err));
 };
 
 const Message = require("./models/Message");
@@ -58,6 +59,7 @@ mongoose.connect(`${process.env.MONGODB_URI}`)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log("DB Error:", err));
 
+// for local host mongo compass
 // mongoose.connect("mongodb://127.0.0.1:27017/EcommercePro")
 //   .then(() => console.log("MongoDB Connected"))
 //   .catch((error)=>console.log('mongo connection error',error))
@@ -86,19 +88,10 @@ app.use(cors({
   credentials: true
 }));
 
-
-// socket io server 
-// const io = new Server(server, {
-//   cors: {
-//     origin: "*",
-//     methods: ["GET", "POST"],
-//   },
-// });
-
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
-      // Allow all origins for socket connection to avoid deployment issues, 
+      // Allow all origins for socket connection to avoid issues, 
       // security is handled by the JWT middleware anyway.
       callback(null, true);
     },
@@ -109,30 +102,30 @@ const io = new Server(server, {
 // Initialize Redis after io is created
 setupRedis(io);
 
-// authentication middleware
+// authentication middleware for socket
 io.use((socket, next) => {
   try {
     const cookies = cookie.parse(socket.handshake.headers.cookie || "");
     const token = cookies.accessToken || socket.handshake.auth?.token;
 
     if (!token) {
-      console.log("Status: [Auth Middleware] No token provided in cookies or auth object");
-      return next(new Error("Authentication error: No token provided"));
+      console.log("Auth Middleware Not a token provided in cookies or auth object");
+      return next(new Error("Authentication error not token provided"));
     }
 
     jwt.verify(token, process.env.ACCESS_SECRET, (err, decoded) => {
       if (err) {
-        console.error(`Status: [Auth Middleware] Token verification failed [${err.name}]: ${err.message}`);
+        console.error(`auth Middleware Token verification failed name of error ${err.name}: ${err.message}`);
         // If it's a signature mismatch, it's definitely a secret mismatch between frontend/backend
         if (err.message.includes("invalid signature")) {
-          console.warn("Status: [Auth Middleware] Hint: Check if ACCESS_SECRET on Render matches Vercel exactly!");
+          console.warn("auth Middleware if ACCESS_SECRET on Render matches Vercel...");
         }
         return next(new Error(`Authentication error: Invalid token (${err.name})`));
       }
 
       // Ensure userId is a string for consistent room names and Redis keys
       socket.userId = decoded.id?.toString() || decoded.userId?.toString();
-      console.log(`Status: [Auth Middleware] Socket ${socket.id} authenticated for user ${socket.userId}`);
+      console.log(`auth Middlewar Socket ${socket.id} authenticated for user ${socket.userId}`);
       next();
     });
   } catch (err) {
@@ -141,7 +134,7 @@ io.use((socket, next) => {
   }
 });
 
-// const onlineUsers = {};  // REMOVED: using Redis instead
+// const onlineUsers = {};  // removed using Redis instead
 const pendingDisconnects = {}; // userId -> Timeout
 const ONLINE_USERS_KEY = "online_users";
 
@@ -172,10 +165,10 @@ app.get("/messages/:user1/:user2", async (req, res) => {
 });
 
 
-// this is used to fetch older messages fetching 30-30 messages only....
+// this is used to fetch older messages fetching 20-20 messages only....
 app.get('/message/:user1/:user2/before/:cursor', async (req, res) => {
   const { user1, user2, cursor } = req.params;
-  // const limit=30
+  // const limit=20
   try {
     const u1 = new mongoose.Types.ObjectId(user1);
     const u2 = new mongoose.Types.ObjectId(user2);
@@ -247,7 +240,7 @@ app.post("/force-logout", (req, res) => {
   const targetId = userId.toString();
   // Broadcasting to the userId room reaches all server instances
   io.to(targetId).emit("forceLogout");
-  console.log(`Status: [Trace] Force logout sent to ${targetId}`);
+  console.log(`trace Force logout sent to ${targetId}`);
   res.json({ success: true });
 });
 
@@ -274,12 +267,9 @@ io.on("connection", (socket) => {
       console.log(`Status: [Socket Join] ${userId} joined room`);
 
       // Sessions management: Force logout other sessions
-      // In a distributed setup, we emit to the room except the current socket
       socket.to(userId).emit("sessionEnded", {
         message: "Login from another device"
       });
-      // Note: Truly disconnecting remote sockets requires more complex logic, 
-      // but emitting sessionEnded is the standard first step.
 
       // Save to Redis online users set
       if (redisClient) {
@@ -304,16 +294,15 @@ io.on("connection", (socket) => {
 
   //if register-user account in onlineUsers then logout from other device means open in new device only
   // this trigger in /Componants/SocketListener.js
-  //-----
   socket.on("force-logout-user", (userId) => {
     try {
       if (socket.userId.toString() !== userId.toString()) {
-        console.log("Unauthorized force-logout attempt by", socket.userId);
+        console.log("Unauthorized force-logout attempt byyy", socket.userId);
         return;
       }
       // Broadcast to the user's room across all servers
       io.to(userId.toString()).emit("forceLogout");
-      console.log(`Status: [Trace] Force-logout-user emitted for ${userId}`);
+      console.log(`trac Forcelogout user emitted for ${userId}`);
     } catch (error) {
       console.log(error, 'error in force-logout-user socket');
     }
@@ -326,11 +315,11 @@ io.on("connection", (socket) => {
       const targetTo = to?.toString();
 
       if (!targetTo || !from) {
-        console.warn("Status: [Trace] sendMessage failed - missing to or from ID");
+        console.warn("trace sendMessage failed missing to or from ID");
         return;
       }
 
-      console.log(`Status: [Trace] Sending message from ${from} to ${targetTo}`);
+      console.log(`trace Sending message from ${from} to ${targetTo}`);
 
       const savedMessage = await Message.create({
         from,
@@ -341,12 +330,12 @@ io.on("connection", (socket) => {
 
       // Distribute to all sockets of the 'to' user
       io.to(targetTo).emit("receiveMessage", savedMessage);
-      // Also send back to the sender (all their devices)
+      // Also send back to the sender
       io.to(from).emit("receiveMessage", savedMessage);
 
-      console.log(`Status: [Trace] Message saved and emitted to both rooms`);
+      console.log(`trace Message saved and emitted to both rooms`);
     } catch (err) {
-      console.error("Status: [Trace] sendMessage error:", err);
+      console.error("trace sendMessage error:", err);
     }
   });
 
@@ -363,9 +352,9 @@ io.on("connection", (socket) => {
       )
       // notify the sender globally
       io.to(targetOther).emit('messageSeen', { by: myId });
-      console.log(`Status: [Trace] markSeen from ${myId} to ${targetOther}`);
+      console.log(`trace markSeen from ${myId} to ${targetOther}`);
     } catch (error) {
-      console.error("Status: [Trace] markSeen error:", error);
+      console.error("trace markSeen error:", error);
     }
   })
 
@@ -379,7 +368,7 @@ io.on("connection", (socket) => {
       const toId = msg.to?.toString();
 
       if (fromId !== socket.userId?.toString()) {
-        console.warn(`Status: [Trace] Unauthorized delete attempt by ${socket.userId}`);
+        console.warn(`trace Unauthorized delete attempt by ${socket.userId}`);
         return;
       }
 
@@ -389,9 +378,9 @@ io.on("connection", (socket) => {
       if (fromId) io.to(fromId).emit("messageDeleted", messageId);
       if (toId) io.to(toId).emit("messageDeleted", messageId);
 
-      console.log(`Status: [Trace] deleteMessage ${messageId} from ${fromId} to ${toId}`);
+      console.log(`trace deleteMessage ${messageId} from ${fromId} to ${toId}`);
     } catch (error) {
-      console.error("Status: [Trace] deleteMessage error:", error);
+      console.error("trace deleteMessage error:", error);
     }
   });
 
@@ -402,22 +391,18 @@ io.on("connection", (socket) => {
       const targetTo = to?.toString();
 
       if (!from || !targetTo) return;
-
-      console.log(`Status: [Trace] Follow request from ${from} to ${targetTo}`);
-
+      console.log(`trace Follow request from ${from} to ${targetTo}`);
       const createStatusModel = await FollowStatus.create({
         from: from,
         to: targetTo,
         status: status
       })
-
       const populatedReq = await FollowStatus.findById(createStatusModel._id).populate("from", "username image");
-
       io.to(targetTo).emit('newFollowReq', populatedReq);
-      console.log(`Status: [Trace] Follow request saved and emitted to ${targetTo}`);
+      console.log(`trace Follow request saved and emitted to ${targetTo}`);
     }
     catch (error) {
-      console.error("Status: [Trace] sendFollowRequest error:", error);
+      console.error("trac sendFollowRequest error:", error);
     }
   })
 
@@ -450,15 +435,15 @@ io.on("connection", (socket) => {
         })
       }
 
-      // Notify participants globally
+      // Notify participants
       io.to(targetFrom).emit("reqAccepted", { from: targetFrom, to: to });
       io.to(to).emit("reqAccepted", { from: targetFrom, to: to });
       io.to(to).emit("friendOrNot", { from: targetFrom, to: to, isFriend: !!checkFriend });
 
-      console.log(`Status: [Trace] acceptFollowRequest from ${targetFrom} to ${to}`);
+      console.log(`acceptFollowRequest from ${targetFrom} to ${to}`);
     }
     catch (error) {
-      console.error("Status: [Trace] acceptFollowRequest error:", error);
+      console.error("acceptFollowRequest error:", error);
     }
   })
 
@@ -474,14 +459,14 @@ io.on("connection", (socket) => {
       //update followstatus
       await FollowStatus.updateOne({ from, to: targetTo }, { status: 'accepted' });
 
-      // Notify participants globally
+      // Notify participants
       io.to(from).emit("reqAccepted", { from, to: targetTo });
       io.to(targetTo).emit("reqAccepted", { from, to: targetTo });
 
-      console.log(`Status: [Trace] followback from ${from} to ${targetTo}`);
+      console.log(`Status followback from ${from} to ${targetTo}`);
     }
     catch (error) {
-      console.error("Status: [Trace] followback error:", error);
+      console.error("followback error:", error);
     }
   })
 
@@ -499,7 +484,7 @@ io.on("connection", (socket) => {
 
       // Notify original sender globally
       io.to(targetFrom).emit('declineReq', { from: targetFrom, to: to });
-      console.log(`Status: [Trace] declineReq from ${to} for ${targetFrom}`);
+      console.log(`trace declineReq from ${to} for ${targetFrom}`);
     }
     catch (error) {
       console.error("Status: [Trace] declineReq error:", error);
@@ -516,9 +501,9 @@ io.on("connection", (socket) => {
         from: from,
         offer
       })
-      console.log(`Status: [Trace] call-user from ${from} to ${targetTo}`);
+      console.log(`trace call-user from ${from} to ${targetTo}`);
     } catch (error) {
-      console.error("Status: [Trace] call-user error:", error);
+      console.error("call-user error:", error);
     }
   })
 
@@ -529,9 +514,9 @@ io.on("connection", (socket) => {
       if (!from || !targetTo) return;
 
       io.to(targetTo).emit('call-accepted', { by: from, answer });
-      console.log(`Status: [Trace] answer-call from ${from} to ${targetTo}`);
+      console.log(`answer-call from ${from} to ${targetTo}`);
     } catch (error) {
-      console.error("Status: [Trace] answer-call error:", error);
+      console.error(" answer-call error:", error);
     }
   });
 
@@ -542,7 +527,7 @@ io.on("connection", (socket) => {
 
       io.to(targetTo).emit('ice-candidate', candidate);
     } catch (error) {
-      console.error("Status: [Trace] ice-candidate error:", error);
+      console.error("ice-candidate error:", error);
     }
   });
 
@@ -551,18 +536,18 @@ io.on("connection", (socket) => {
     try {
       const userId = socket.userId?.toString();
       if (!userId) {
-        console.log(`Status: [Socket Disconnect] Socket ${socket.id} disconnected (no userId)`);
+        console.log(`Socket Disconnect Socket ${socket.id} disconnected (no userId)`);
         return;
       }
 
-      console.log(`Status: [Socket Disconnect] ${userId} disconnected, starting grace period...`);
+      console.log(`socket Disconnect ${userId} disconnected, starting grace period...`);
 
       // Set a timeout to mark user as offline
       // This prevents flickering status during page refreshes (re-joins)
       pendingDisconnects[userId] = setTimeout(async () => {
         if (redisClient) {
           await redisClient.sRem(ONLINE_USERS_KEY, userId);
-          console.log(`Status: [Socket Disconnect] ${userId} removed from Redis online_users`);
+          console.log(`Socket Disconnect ${userId} removed from Redis online_users`);
         }
         delete pendingDisconnects[userId];
 
@@ -570,10 +555,10 @@ io.on("connection", (socket) => {
           userId: userId,
           status: 'offline'
         });
-        console.log(`Status: [Socket Disconnect] ${userId} is now globally offline`);
+        console.log(`socket Disconnect ${userId} is now globally offline`);
       }, 5000); // 5 second grace period
     } catch (error) {
-      console.error('Status: [Socket Disconnect Error]:', error);
+      console.error('Socket Disconnect Error:', error);
     }
   });
 });
