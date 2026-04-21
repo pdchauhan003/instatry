@@ -1,7 +1,5 @@
-// // middleware.js
 import { NextResponse } from "next/server";
-// import { jwtVerify } from "jose";
-import jwt from 'jsonwebtoken'
+import { jwtVerify } from "jose";
 
 export async function middleware(req) {
   const token = req.cookies.get("accessToken")?.value;
@@ -20,14 +18,11 @@ export async function middleware(req) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
   try {
-    // const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-
-    // for another login account 
-    // const { payload } = await jwtVerify(token, secret);
-
-    const decode=jwt.verify(token,process.env.ACCESS_SECRET)
-    const userId = decode.userId;
-    const sessionId = decode.sessionId;
+    const secret = new TextEncoder().encode(process.env.ACCESS_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+    
+    const userId = payload.userId;
+    const sessionId = payload.sessionId;
 
     const res = await fetch(`${req.nextUrl.origin}/api/auth/verify-session`, {
       method: "POST",
@@ -37,17 +32,13 @@ export async function middleware(req) {
 
     const data = await res.json();
     if (!data.valid) {
-      console.log('session is not verified')
+      console.log('session is not verified');
       return NextResponse.redirect(new URL("/login", req.url));
+    } else {
+      console.log('session is verified');
     }
-    else{
-      console.log('session is verified')
-    }
-    return NextResponse.next()
+    return NextResponse.next();
   } catch (error) {
-    // console.log("JWT Verify Error:", error.message);
-    // return NextResponse.redirect(new URL("/login", req.url));
-
     const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh`, {
       method: "POST",
       headers: {
@@ -56,7 +47,13 @@ export async function middleware(req) {
     });
 
     if (refreshRes.ok) {
-      return NextResponse.next(); 
+      const response = NextResponse.next();
+      // Forward the new cookies from the refresh response to the client
+      const setCookies = refreshRes.headers.getSetCookie();
+      for (const cookie of setCookies) {
+        response.headers.append("Set-Cookie", cookie);
+      }
+      return response; 
     }
 
     //refresh failed → logout
