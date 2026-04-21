@@ -69,32 +69,28 @@ const server = http.createServer(app);  //http server
 
 const cors = require("cors");  // for communication of diferent post req
 
-// app.use(cors({ origin: "*" }));   // * for all page 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://instatry-eight.vercel.app",
+];
+
+function checkOrigin(origin, callback) {
+  // Allow requests with no origin (server-to-server, mobile apps, curl)
+  if (!origin) return callback(null, true);
+  if (allowedOrigins.includes(origin)) {
+    return callback(null, true);
+  }
+  return callback(new Error("Not allowed by CORS"));
+}
+
 app.use(cors({
-  origin: function (origin, callback) {
-    if (
-      !origin ||
-      origin.includes("localhost") ||
-      origin.endsWith(".vercel.app") ||
-      origin.includes("render.com")
-    ) {
-      callback(null, true);
-    } else {
-      // In production, you might want to be more specific, 
-      // but to fix the immediate issue we allow all origins if they are from Vercel/Render
-      callback(null, true);
-    }
-  },
+  origin: checkOrigin,
   credentials: true
 }));
 
 const io = new Server(server, {
   cors: {
-    origin: (origin, callback) => {
-      // Allow all origins for socket connection to avoid issues, 
-      // security is handled by the JWT middleware anyway.
-      callback(null, true);
-    },
+    origin: checkOrigin,
     credentials: true
   }
 });
