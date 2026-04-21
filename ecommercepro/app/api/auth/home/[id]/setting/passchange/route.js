@@ -2,12 +2,21 @@ import { NextResponse } from "next/server";
 import { User } from '@/lib/database';
 import { connectDB } from '@/lib/Connection';
 import bcrypt from 'bcryptjs';
+import { getAuthUserId } from "@/lib/getAuthUser";
 
 export async function POST(req, context) {
     try {
+        const authUserId = await getAuthUserId();
+        if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+
         await connectDB();
         const params = await context.params;
         const id = params.id;
+
+        if (id !== authUserId) {
+            return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+        }
+
         const { oldpassword, password } = await req.json();
         const user = await User.findById(id);
 

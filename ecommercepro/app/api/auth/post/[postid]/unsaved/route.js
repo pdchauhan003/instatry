@@ -1,10 +1,16 @@
 import { unsavePost } from "@/controller/post&story.controller";
 import { NextResponse } from "next/server";
+import { getAuthUserId } from "@/lib/getAuthUser";
+
 export async function DELETE(req,context){
     try {
+        const authUserId = await getAuthUserId();
+        if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+
         const params=await context.params;
         const postid = params.postid;
-        const {userId} =await req.json();
+        const userId = authUserId;
+
         console.log('userID',userId)
         const savedPostt=await unsavePost(postid,userId)
         if(savedPostt){

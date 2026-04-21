@@ -6,7 +6,7 @@ export async function GET(req) {
   // access token
   if (accessToken) {
     try {
-      const decode = jwt.verify(accessToken, process.env.JWT_SECRET);
+      const decode = jwt.verify(accessToken, process.env.ACCESS_SECRET);
 
       return Response.json({
         success: true,

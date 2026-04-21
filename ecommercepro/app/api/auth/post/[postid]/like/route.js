@@ -1,13 +1,18 @@
 import { Post } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
 import { NextResponse } from "next/server";
+import { getAuthUserId } from "@/lib/getAuthUser";
 
 export async function PUT(req, context) {
   try {
+    const authUserId = await getAuthUserId();
+    if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    
     await connectDB();
     const params = await context.params;
     const postid = params.postid;
-    const { userId } = await req.json();
+    const userId = authUserId; // Use secured token ID
+
     const post = await Post.findById(postid);
     if (!post) {
       return NextResponse.json({ success: false, message: "Post not found" }, { status: 404 });

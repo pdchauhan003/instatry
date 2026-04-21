@@ -4,14 +4,22 @@ import mongoose from "mongoose";
 import { getFollowingsCount, getFollowersCount, getFollowersFromDB, getFollowingsFromDB } from "@/controller/follow.controller";
 import { checkFollowings } from "@/controller/follow.controller";
 import { getUserBio } from "@/controller/user.controller";
+import { getAuthUserId } from "@/lib/getAuthUser";
 
 export async function GET(req, context) {
   try {
+    const authUserId = await getAuthUserId();
+    if (!authUserId) return Response.json({ message: "Unauthorized" }, { status: 401 });
+
     await connectDB();
     const params = await context.params;
     const id = params.id;
     // Validate ID
     console.log('user id is::',id)
+    
+    if (id !== authUserId) {
+        return Response.json({ message: "Forbidden" }, { status: 403 });
+    }
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return Response.json({ message: "Invalid user id" }, { status: 400 });
     }

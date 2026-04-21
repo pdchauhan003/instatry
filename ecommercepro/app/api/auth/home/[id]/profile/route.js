@@ -5,13 +5,21 @@ import { IndividualPosts } from "@/controller/post&story.controller";
 import { findFriendOrNot, findPendingReq } from "@/controller/follow.controller";
 import { getFollowersCount, getFollowersFromDB, getFollowingsCount, getFollowingsFromDB } from "@/controller/follow.controller";
 import { getUserBioOnly } from "@/controller/user.controller";
+import { getAuthUserId } from "@/lib/getAuthUser";
 
 export async function POST(req, context) {
   try {
+    const authUserId = await getAuthUserId();
+    if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+
     await connectDB();
 
     const params = await context.params;
     const id = params.id;
+
+    if (id !== authUserId) {
+      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    }
     const { username } = await req.json();
 
     const user = await User.findOne({ username }).lean();

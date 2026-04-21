@@ -1,11 +1,19 @@
 import { User, Follow, Post } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
+import { getAuthUserId } from "@/lib/getAuthUser";
 
 export async function GET(req, context) {
   try {
+    const authUserId = await getAuthUserId();
+    if (!authUserId) return Response.json({ message: "Unauthorized", success: false }, { status: 401 });
+
     await connectDB();
     const params = await context.params;
     const id = params.id;
+
+    if (id !== authUserId) {
+        return Response.json({ message: "Forbidden", success: false }, { status: 403 });
+    }
 
     // check for our data only 
     const user = await User.findById(id).select("username image").lean();

@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 import { getMessageUserData } from "@/controller/user.controller";
 import { Message } from "@/lib/database";
+import { getAuthUserId } from "@/lib/getAuthUser";
 
 export async function POST(req, context) {
   try {
+    const authUserId = await getAuthUserId();
+    if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+
     const params = await context.params;
     const id = params.id;
+
+    if (id !== authUserId) {
+        return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    }
 
     //fetch username and profile picture of messages users
     const messageUserData = await getMessageUserData(id);

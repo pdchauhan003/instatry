@@ -2,13 +2,21 @@ import { Post,Comment } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
 import { getAllPostComments } from "@/controller/comments.controller";
 import { getUserNameUsingId } from "@/controller/user.controller";
+import { getAuthUserId } from "@/lib/getAuthUser";
 
 export async function POST(req,context){
     try {
+        const authUserId = await getAuthUserId();
+        if (!authUserId) return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
+
         await connectDB();
 
         const params=await context.params;
         const id=params.id;
+
+        if (id !== authUserId) {
+            return Response.json({ success: false, message: "Forbidden" }, { status: 403 });
+        }
         const {postid}=await req.json();
         const uname=await getUserNameUsingId(id);   //logged in username
 

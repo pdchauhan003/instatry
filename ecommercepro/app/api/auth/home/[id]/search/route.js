@@ -1,11 +1,21 @@
 import { User } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
+import { getAuthUserId } from "@/lib/getAuthUser";
+
 export async function POST(req, context) {
   try {
+    const authUserId = await getAuthUserId();
+    if (!authUserId) return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
+
     await connectDB();
     const { username } = await req.json();
     const params = await context.params;
     const id = params.id;
+
+    if (id !== authUserId) {
+        return Response.json({ success: false, message: "Forbidden" }, { status: 403 });
+    }
+
     if (!username || username.trim() === "") {
       return Response.json({ users: [] });
     }
