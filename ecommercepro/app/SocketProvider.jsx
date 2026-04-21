@@ -51,7 +51,6 @@ export default function SocketProvider({ children }) {
     const handleReceiveMessage = (msg) => {
       // Check if message is for the logged in user
       if (msg.to === id) {
-        // If the user is ALREADY in the chat room with the sender, 
         // we don't increment the global "unread" counter.
         // This prevents the stale badge issue when returning to the chat list.
         const activeChatPath = `/home/${id}/chatt/personalChatt/${msg.from}`;

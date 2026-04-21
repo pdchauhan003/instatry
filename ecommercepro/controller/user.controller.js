@@ -63,13 +63,6 @@ export const getUserImageAndUsername = async (userId) => {
     }
 };
 
-// export const clearUserCache = async (userId) => {
-//     await redis.del(`user:${userId}`);
-//     await redis.del(`user:${userId}:minimal`);
-//     console.log(`Cleared cache for user: ${userId}`);
-// };
-
-
 export const getUserBio = async (userId) => {
     try {
         await connectDB();

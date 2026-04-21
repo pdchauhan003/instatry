@@ -1,7 +1,5 @@
 import { Post, User, Story } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
-// import cloudinary from "@/lib/cloudinary";
-// import { getImage } from "@/controller/image.stringconverter";
 import { uploadCloudinary } from "@/handler/UploadCloudinary";
 
 export async function POST(req, context) {

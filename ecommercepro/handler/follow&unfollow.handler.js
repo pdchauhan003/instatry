@@ -12,7 +12,3 @@ export const handleFollow=async({id,friendId,setStatus})=>{
       alert(error,'error in sending follow req...')
     }
 }
-
-// export const handleUnFollow=async()=>{
-
-// }

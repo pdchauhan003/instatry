@@ -6,10 +6,6 @@ import { uploadCloudinary } from '@/handler/UploadCloudinary';
 export async function POST(req) {
   await connectDB()
   try {
-    // const body = await req.json();
-    // console.log("REQUEST BODY:", body);
-    // const { name, email, password, number, username, image } = body;
-
     const data = await req.formData();
     const name = data.get("name");
     const email = data.get("email");

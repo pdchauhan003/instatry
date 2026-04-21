@@ -1,31 +1,31 @@
-"use client";
-import { useEffect } from "react";
-import { io } from "socket.io-client";
+// "use client";
+// import { useEffect } from "react";
+// import { io } from "socket.io-client";
 
-export default function SocketListener({ userId }) {
-  useEffect(() => {
-    const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`, {
-      withCredentials: true,
-      transports: ["websocket", "polling"],
-      autoConnect: false,
-    });
+// export default function SocketListener({ userId }) {
+//   useEffect(() => {
+//     const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`, {
+//       withCredentials: true,
+//       transports: ["websocket", "polling"],
+//       autoConnect: false,
+//     });
 
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      console.log("Status: [SocketListener] Injecting auth token from storage");
-      socket.auth = { token };
-      socket.connect();
-    } else {
-      console.warn("Status: [SocketListener] No token found, deferring connection");
-    }
+//     const token = localStorage.getItem('auth_token');
+//     if (token) {
+//       console.log("Status: [SocketListener] Injecting auth token from storage");
+//       socket.auth = { token };
+//       socket.connect();
+//     } else {
+//       console.warn("Status: [SocketListener] No token found, deferring connection");
+//     }
 
-    socket.on("forceLogout", () => {
-      alert("You logged in from another device");
-      window.location.href = "/login";
-    });
+//     socket.on("forceLogout", () => {
+//       alert("You logged in from another device");
+//       window.location.href = "/login";
+//     });
 
-    return () => socket.disconnect();
-  }, [userId]);
+//     return () => socket.disconnect();
+//   }, [userId]);
 
-  return null;
-}
+//   return null;
+// }

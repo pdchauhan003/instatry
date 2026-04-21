@@ -138,18 +138,6 @@ function ProfilePage() {
     }
   },[friend])
 
-  // useEffect(()=>{
-  //   socket.on('friendOrNot',(data)=>{
-  //     if(data){
-  //       setFriend(true);
-  //       setStatus('following')
-  //     }
-  //     else{
-  //       setStatus('followback')
-  //     }
-  //   })
-  //   return ()=> socket.off('friendOrNot');
-  // },[])
 
   const handleFollowBack=()=>{
     socket.emit('followback',{to:friendId})
@@ -160,12 +148,6 @@ function ProfilePage() {
   // remove
   const handleFriendRemove = async () => {
     try {
-      // const res = await fetch(`/api/auth/home/${id}/profile/remove`, {
-      //   method: "PUT",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ friendId }),
-      // });
-
       const data = await handleUnfollow(id, friendId);
       console.log("unfollow data is", data);
       if (data.success) {
