@@ -68,36 +68,3 @@ export const config = {
   matcher: ["/dashboard/:path*", "/home/:path*"],
 };
 
-
-
-// import { NextResponse } from "next/server";
-// import { jwtVerify } from "jose";
-
-// export async function middleware(req) {
-//   const accessToken = req.cookies.get("token")?.value;
-
-//   if (!accessToken) {
-//     return NextResponse.redirect(new URL("/login", req.url));
-//   }
-
-//   try {
-//     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-//     const { payload } = await jwtVerify(accessToken, secret);
-//     req.user = payload;
-//     return NextResponse.next();
-
-//   } catch {
-//     const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh`, {
-//       method: "POST",
-//       headers: {
-//         cookie: req.headers.get("cookie") || ""
-//       }
-//     });
-
-//     if (refreshRes.ok) {
-//       return NextResponse.next();
-//     }
-
-//     return NextResponse.redirect(new URL("/login", req.url));
-//   }
-// }
