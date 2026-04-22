@@ -37,6 +37,20 @@ export async function middleware(req) {
     } else {
       console.log('session is verified');
     }
+
+    // SECURITY: Ensure the URL's user ID matches the logged-in user's ID
+    // This prevents accessing a previous account's pages via browser back button
+    const pathSegments = pathname.split("/");
+    // URLs like /home/[id]/... or /dashboard/[id]/...
+    if (pathSegments.length >= 3) {
+      const urlUserId = pathSegments[2];
+      if (urlUserId && urlUserId !== userId) {
+        console.log(`Security: URL user (${urlUserId}) ≠ token user (${userId}). Redirecting.`);
+        pathSegments[2] = userId;
+        return NextResponse.redirect(new URL(pathSegments.join("/"), req.url));
+      }
+    }
+
     return NextResponse.next();
   } catch (error) {
     const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh`, {
