@@ -20,6 +20,8 @@ export default function ChatPage() {
   const [loadingOld, setLoadingOld] = useState(false);
   const [activeMessage, setActiveMessage] = useState(null);
   const [userInfo, setUserInfo] = useState({ username: "", image: "" });
+  const [showTopMenu, setShowTopMenu] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const bottomRef = useRef(null);
   const shouldScrollRef = useRef(true);
@@ -96,10 +98,18 @@ export default function ChatPage() {
     const handleDeleted = (messageId) => {
       setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
     };
+    const handleChatCleared = (data) => {
+      if (data.success) {
+        setMessages([]);
+        setShowClearConfirm(false);
+        setShowTopMenu(false);
+      }
+    };
 
     socket.on("receiveMessage", handleReceive);
     socket.on("messageSeen", handleSeen);
     socket.on("messageDeleted", handleDeleted);
+    socket.on("chatCleared", handleChatCleared);
 
     // mark messages seen
     socket.emit("markSeen", { otherId: chatid });
@@ -115,6 +125,7 @@ export default function ChatPage() {
       socket.off("receiveMessage", handleReceive);
       socket.off("messageSeen", handleSeen);
       socket.off("messageDeleted", handleDeleted);
+      socket.off("chatCleared", handleChatCleared);
     };
   }, [chatid, currentUserId, queryClient]);
 
@@ -163,6 +174,7 @@ export default function ChatPage() {
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".message-bubble")) setActiveMessage(null);
+      if (!e.target.closest(".top-menu-container")) setShowTopMenu(false);
     };
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
@@ -206,9 +218,38 @@ export default function ChatPage() {
           <button onClick={handleCall} className="p-2 hover:bg-gray-800 rounded-full transition-colors">
             <Video size={20} className="text-gray-300" />
           </button>
-          <button className="p-2 hover:bg-gray-800 rounded-full transition-colors">
-            <MoreHorizontal size={20} className="text-gray-300" />
-          </button>
+          
+          <div className="relative top-menu-container">
+            <button 
+              onClick={() => setShowTopMenu(!showTopMenu)}
+              className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+            >
+              <MoreHorizontal size={20} className="text-gray-300" />
+            </button>
+            
+            {showTopMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-[60] overflow-hidden">
+                <button
+                  onClick={() => {
+                    setShowClearConfirm(true);
+                    setShowTopMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors text-white"
+                >
+                  Clear chat
+                </button>
+                <button
+                  onClick={() => {
+                    handleProfile();
+                    setShowTopMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors text-white"
+                >
+                  View Profile
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -336,6 +377,35 @@ export default function ChatPage() {
           </button>
         </div>
       </div>
+      </div>
+      
+      {/* Clear Chat Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm transition-all duration-300">
+          <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl max-w-sm w-full shadow-2xl transform scale-100 animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold mb-2">Clear chat?</h3>
+            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+              Are you sure you want to clear this chat? This action will hide all messages from your view.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  socket.emit("clearChat", { otherId: chatid });
+                }}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 rounded-xl text-sm font-bold transition-all active:scale-95 shadow-lg shadow-red-900/20"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

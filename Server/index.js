@@ -392,6 +392,30 @@ io.on("connection", (socket) => {
     }
   });
 
+  // for clearing entire chat history for one user
+  socket.on("clearChat", async ({ otherId }) => {
+    try {
+      const myId = socket.userId?.toString();
+      if (!myId || !otherId) return;
+
+      const result = await Message.updateMany(
+        {
+          $or: [
+            { from: myId, to: otherId },
+            { from: otherId, to: myId }
+          ]
+        },
+        { $addToSet: { deletedBy: myId } }
+      );
+
+      console.log(`trace clearChat for ${myId} with ${otherId}: updated ${result.modifiedCount} messages`);
+      socket.emit("chatCleared", { success: true });
+    } catch (error) {
+      console.error("trace clearChat error:", error);
+      socket.emit("chatCleared", { success: false, error: error.message });
+    }
+  });
+
   // sending follow req
   socket.on('sendFollowRequest', async ({ to, status }) => {
     try {
