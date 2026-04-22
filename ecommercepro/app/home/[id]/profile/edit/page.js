@@ -99,7 +99,6 @@ function EditPage() {
           )}
           <br />
           <div 
-            onClick={() => fileInputRef.current?.click()}
             className="relative inline-block mt-2 overflow-hidden cursor-pointer active:opacity-50"
           >
             <span className="px-4 py-1 text-sm text-blue-500 font-medium">
@@ -108,7 +107,7 @@ function EditPage() {
             <input
               ref={fileInputRef}
               type="file"
-              className="hidden"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               name="image"
               accept="image/jpeg,image/png,image/webp,image/*"
               onChange={(e) => {

@@ -166,30 +166,26 @@ function RegisterPage() {
               </label>
 
               {/* Clickable Upload Box */}
-              <label
-                htmlFor="fileUpload"
-                className="block border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-purple-500 active:bg-gray-50"
-              >
+              <div className="relative block border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-purple-500 active:bg-gray-50 overflow-hidden">
                 <p className="text-sm text-gray-600 font-medium">
                   {image ? image.name : "Tap to upload photo"}
                 </p>
                 <p className="text-xs text-gray-400">
                   Gallery / Camera supported
                 </p>
-              </label>
-
-              {/* REAL INPUT */}
-              <input
-                id="fileUpload"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) setImage(file);
-                }}
-                className="hidden"
-              />
+                {/* REAL INPUT */}
+                <input
+                  id="fileUpload"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setImage(file);
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+              </div>
 
               {/* Preview */}
               {image && (

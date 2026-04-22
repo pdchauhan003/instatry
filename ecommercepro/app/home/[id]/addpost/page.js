@@ -63,14 +63,13 @@ function AddPost() {
         {/* image upload */}
         {!preview ? (
           <div 
-            onClick={() => fileInputRef.current?.click()}
             className="relative flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 hover:bg-gray-900 transition overflow-hidden cursor-pointer"
           >
             <p className="text-gray-400">Click to select image</p>
             <input
               ref={fileInputRef}
               type="file"
-              className="hidden"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               name='image'
               accept="image/jpeg,image/png,image/webp,image/*"
               onChange={(e) => {
