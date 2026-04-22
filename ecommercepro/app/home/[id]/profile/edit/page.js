@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { useReducer, useEffect, useRef } from "react";
+import { useReducer, useEffect, useRef, useState } from "react";
 
 const userDatas = {
   image: '',
@@ -22,6 +22,7 @@ function EditPage() {
   const { id } = useParams();
   const [state, dispatch] = useReducer(reducer, userDatas)
   const fileInputRef = useRef(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const fetchData = async () => {
     const res = await fetch(`/api/auth/home/${id}/edit`, {
@@ -87,8 +88,14 @@ function EditPage() {
     <>
       <div className="text-center justify-center">
         <form className="py-5 px-10" onSubmit={handleSubmit}>
-          {userData?.userNameAndImage?.image && (
-            <Image src={userData?.userNameAndImage?.image} className="mx-auto rounded-full h-30 w-30" width={200} height={200} alt="images" />
+          {(previewUrl || userData?.userNameAndImage?.image) && (
+            <Image 
+              src={previewUrl || userData?.userNameAndImage?.image} 
+              className="mx-auto rounded-full h-30 w-30 object-cover" 
+              width={200} 
+              height={200} 
+              alt="profile" 
+            />
           )}
           <br />
           <input
@@ -97,9 +104,14 @@ function EditPage() {
             accept="image/*"
             className="hidden"
             ref={fileInputRef}
-            onChange={(e) =>
-              dispatch({ value: e.target.files?.[0], type: e.target.name })
-            }
+            name="image"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setPreviewUrl(URL.createObjectURL(file));
+                dispatch({ value: file, type: e.target.name });
+              }
+            }}
           />
           <label
             htmlFor="image-upload"
