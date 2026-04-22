@@ -1,18 +1,26 @@
 import { getSavedPosts } from "@/controller/post&story.controller";
-import Image from "next/image";
 import PostCard from "@/Componants/PostCard";
-// import { useParams } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
+
 export default async function SavedPage(context) {
-  const params=await context.params;
-  const id=params.id;
+  const params = await context.params;
+  const id = params.id;
   const savedPosts = await getSavedPosts(id);
   const savedIds = new Set(savedPosts.map(p => p.post._id.toString()))
+
   return (
     <div className="min-h-screen flex justify-center bg-black text-white">
-      <div className="w-full max-w-xl border-x border-gray-800">
-        {/* Navbar */}
-        <div className="px-4 py-3 border-b border-gray-800">
-          <h1 className="text-lg font-semibold">Saved Posts</h1>
+      <div className="w-full max-w-xl border-x border-gray-900 flex flex-col">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-md border-b border-gray-800 px-4 py-4 flex items-center gap-4">
+          <Link 
+            href={`/home/${id}/setting`}
+            className="p-1 hover:bg-gray-800 rounded-full transition-colors"
+          >
+            <ChevronLeft size={24} />
+          </Link>
+          <h1 className="text-lg font-bold">Saved posts</h1>
         </div>
         {/* Posts */}
         <div className="px-2">
