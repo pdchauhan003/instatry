@@ -62,21 +62,28 @@ function AddPost() {
 
         {/* image upload */}
         {!preview ? (
-          <div className="relative flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 hover:bg-gray-900 transition overflow-hidden">
+          <label className="relative flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 hover:bg-gray-900 transition overflow-hidden cursor-pointer">
             <p className="text-gray-400">Click to select image</p>
             <input
               type="file"
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                opacity: 0.0001,
+                width: '100%',
+                height: '100%',
+                cursor: 'pointer',
+                zIndex: 100,
+              }}
               name='image'
-              id="image-upload"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/*"
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
                   handleImage(e.target.files[0]);
                 }
               }}
             />
-          </div>
+          </label>
         ) : (
           <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden">
             <Image

@@ -98,16 +98,23 @@ function EditPage() {
             />
           )}
           <br />
-          <div className="relative inline-block mt-2 overflow-hidden">
+          <label className="relative inline-block mt-2 overflow-hidden cursor-pointer active:opacity-50">
             <span className="px-4 py-1 text-sm text-blue-500 font-medium">
               Change profile picture
             </span>
             <input
               type="file"
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                opacity: 0.0001,
+                width: '100%',
+                height: '100%',
+                cursor: 'pointer',
+                zIndex: 100,
+              }}
               name="image"
-              id="image-upload"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/*"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
@@ -116,7 +123,7 @@ function EditPage() {
                 }
               }}
             />
-          </div>
+          </label>
           <input type="text" value={state.name} className="border-2 border-white my-2 w-full rounded-sm p-3" placeholder="Name" name="name" onChange={(e) => dispatch({ value: e.target.value, type: e.target.name })} />
           <br />
           <input type="text" value={state.username} className="border-2 border-white my-2 w-full rounded-sm p-3" placeholder="username" name="username" onChange={(e) => dispatch({ value: e.target.value, type: e.target.name })} />

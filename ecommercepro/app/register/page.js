@@ -139,7 +139,7 @@ function RegisterPage() {
                 Profile Picture
               </label>
 
-              <div className="relative block border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center overflow-hidden">
+              <label className="relative block border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center overflow-hidden cursor-pointer active:bg-gray-50">
                 <p className="text-sm text-gray-600 font-medium">
                   {image ? image.name : "Tap to upload photo"}
                 </p>
@@ -148,12 +148,19 @@ function RegisterPage() {
                 </p>
                 <input
                   type="file"
-                  id="profile-picture-input"
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  accept="image/*"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    opacity: 0.0001,
+                    width: '100%',
+                    height: '100%',
+                    cursor: 'pointer',
+                    zIndex: 100,
+                  }}
+                  accept="image/jpeg,image/png,image/webp,image/*"
                   onChange={(e) => setImage(e.target.files?.[0])}
                 />
-              </div>
+              </label>
             </div>
           </form>
 
