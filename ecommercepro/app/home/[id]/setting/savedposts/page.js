@@ -7,7 +7,8 @@ export default async function SavedPage(context) {
   const params = await context.params;
   const id = params.id;
   const savedPosts = await getSavedPosts(id);
-  const savedIds = new Set(savedPosts.map(p => p.post._id.toString()))
+  console.log('saved posts is',savedPosts)
+  const savedIds = new Set(savedPosts.map(item => item.post?._id?.toString()).filter(Boolean));
 
   return (
     <div className="min-h-screen flex justify-center bg-black text-white">
@@ -29,15 +30,18 @@ export default async function SavedPage(context) {
               No saved posts
             </p>
           )}
-          {savedPosts.map((item) => (
-            <PostCard
-              key={item.post._id}
-              post={item.post}
-              userId={id}
-              pid={item.post._id}
-              isSaved={savedIds.has(item.post._id.toString())}
-            />
-          ))}
+          {savedPosts.map((item) => {
+            if (!item.post) return null;
+            return (
+              <PostCard
+                key={item.post._id}
+                post={item.post}
+                userId={id}
+                pid={item.post._id}
+                isSaved={savedIds.has(item.post._id.toString())}
+              />
+            );
+          })}
         </div>
       </div>
     </div>

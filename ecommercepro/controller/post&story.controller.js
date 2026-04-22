@@ -208,7 +208,8 @@ export const getSavedPosts = async (userId) => {
       }
     }).lean();
 
-    return JSON.parse(JSON.stringify(savedPosts));
+    const filteredSavedPosts = savedPosts.filter(s => s.post !== null);
+    return JSON.parse(JSON.stringify(filteredSavedPosts));
   } catch (error) {
     console.error("Error in getSavedPosts controller:", error);
     throw error;

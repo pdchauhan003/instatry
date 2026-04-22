@@ -56,6 +56,7 @@ useEffect(() => {
           UName={UName}
           id={userId}
           savedIds={savedIds}
+          isSaved={savedIds instanceof Set ? savedIds.has(post._id.toString()) : Array.isArray(savedIds) && savedIds.includes(post._id.toString())}
         />
       ))}
 

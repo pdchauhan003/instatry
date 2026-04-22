@@ -23,13 +23,25 @@ export default function PostCard({
   UName,
   id,
   savedPosts,
+  isSaved,
+  savedIds,
 }) {
-  const [likes, setLikes] = useState(post.likes.length);
-  const [liked, setLiked] = useState(post.likes.includes(userId));
+  if (!post) return null;
+
+  const [likes, setLikes] = useState(post.likes?.length || 0);
+  const [liked, setLiked] = useState(post.likes?.includes(userId));
   const [showMenu, setShowMenu] = useState(false);
-  const [saved, setSaved] = useState(
-    savedPosts?.some((s) => s.post.toString() === post._id.toString())
-  );
+  const [saved, setSaved] = useState(() => {
+    // 1. Check direct boolean prop
+    if (typeof isSaved === "boolean") return isSaved;
+    
+    // 2. Check savedIds Set (from Feed)
+    if (savedIds instanceof Set) return savedIds.has(post._id?.toString());
+    if (Array.isArray(savedIds)) return savedIds.includes(post._id?.toString());
+
+    // 3. Check savedPosts array fallback
+    return savedPosts?.some((s) => s.post?.toString() === post._id?.toString());
+  });
   const [showShare, setShowShare] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
   const [openComments, setOpenComments] = useState(false);
