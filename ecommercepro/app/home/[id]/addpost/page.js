@@ -64,6 +64,7 @@ function AddPost() {
         {!preview ? (
           <label
             htmlFor="image-upload"
+            onClick={() => fileInputRef.current?.click()}
             className="flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 cursor-pointer hover:bg-gray-900 transition"
           >
             <p className="text-gray-400">Click to select image</p>

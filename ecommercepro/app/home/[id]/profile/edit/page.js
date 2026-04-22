@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { useReducer, useEffect } from "react";
+import { useReducer, useEffect, useRef } from "react";
 
 const userDatas = {
   image: '',
@@ -21,6 +21,7 @@ function EditPage() {
 
   const { id } = useParams();
   const [state, dispatch] = useReducer(reducer, userDatas)
+  const fileInputRef = useRef(null);
 
   const fetchData = async () => {
     const res = await fetch(`/api/auth/home/${id}/edit`, {
@@ -95,13 +96,14 @@ function EditPage() {
             id="image-upload"
             accept="image/*"
             className="hidden"
-            name="image"
+            ref={fileInputRef}
             onChange={(e) =>
               dispatch({ value: e.target.files?.[0], type: e.target.name })
             }
           />
           <label
             htmlFor="image-upload"
+            onClick={() => fileInputRef.current?.click()}
             className="inline-block px-4 py-1 mt-2 text-sm text-blue-500 font-medium cursor-pointer active:opacity-50"
           >
             Change profile picture

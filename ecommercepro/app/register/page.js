@@ -152,6 +152,7 @@ function RegisterPage() {
               {/* Clickable Box */}
               <label
                 htmlFor="profile-picture-input"
+                onClick={() => fileInputRef.current?.click()}
                 className="block border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer active:bg-gray-50"
               >
                 <p className="text-sm text-gray-600 font-medium">
