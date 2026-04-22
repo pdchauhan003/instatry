@@ -104,10 +104,20 @@ export const allFriends = async (userId, cursor = null) => {
         },
         { $unwind: "$author" },
 
+        // SERIALIZE EVERYTHING
         {
           $addFields: {
             _id: { $toString: "$_id" },
-            "author._id": { $toString: "$author._id" }
+            "author._id": { $toString: "$author._id" },
+
+            "story._id": { $toString: "$story._id" },
+            "story.author": { $toString: "$story.author" },
+            "story.createdAt": {
+              $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$story.createdAt" }
+            },
+            "story.updatedAt": {
+              $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$story.updatedAt" }
+            }
           }
         }
       ]),
