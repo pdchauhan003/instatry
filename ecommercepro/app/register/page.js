@@ -168,9 +168,9 @@ function RegisterPage() {
                 Profile Picture
               </label>
 
-              <div
-                onClick={() => fileInputRef.current.click()}
-                className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-purple-500 active:bg-gray-50"
+              <label
+                htmlFor="fileUpload"
+                className="block border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-purple-500 active:bg-gray-50"
               >
                 <p className="text-sm text-gray-600 font-medium">
                   {image ? image.name : "Tap to upload photo"}
@@ -178,14 +178,17 @@ function RegisterPage() {
                 <p className="text-xs text-gray-400">
                   Supports JPG, PNG, WEBP
                 </p>
-              </div>
+              </label>
 
               <input
-                ref={fileInputRef}
+                id="fileUpload"
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/*"
+                accept="image/*"
                 className="hidden"
-                onChange={(e) => setImage(e.target.files?.[0])}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setImage(file);
+                }}
               />
             </div>
           </form>
