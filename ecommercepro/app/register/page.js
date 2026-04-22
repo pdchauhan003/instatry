@@ -134,7 +134,7 @@ function RegisterPage() {
             </div>
 
             {/* profile picture */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 block">
                 Profile Picture
               </label>
@@ -161,6 +161,32 @@ function RegisterPage() {
                   onChange={(e) => setImage(e.target.files?.[0])}
                 />
               </label>
+            </div> */}
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 block">
+                Profile Picture
+              </label>
+
+              <div
+                onClick={() => fileInputRef.current.click()}
+                className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-purple-500 active:bg-gray-50"
+              >
+                <p className="text-sm text-gray-600 font-medium">
+                  {image ? image.name : "Tap to upload photo"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Supports JPG, PNG, WEBP
+                </p>
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/*"
+                className="hidden"
+                onChange={(e) => setImage(e.target.files?.[0])}
+              />
             </div>
           </form>
 
