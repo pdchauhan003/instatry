@@ -188,8 +188,7 @@ export default function ChatPage() {
     router.push(`/home/${id}/callroom/${chatid}`)
   }
   return (
-    <>
-      <div className="flex flex-col h-full bg-black text-white">
+    <div className="flex flex-col h-full bg-black text-white">
 
         {/* Header */}
         <div className="p-3 border-b border-gray-800 flex items-center gap-3 sticky top-0 bg-black/80 backdrop-blur-md z-50">
@@ -378,7 +377,6 @@ export default function ChatPage() {
             </button>
           </div>
         </div>
-      </div>
 
       {/* Clear Chat Confirmation Modal */}
       {showClearConfirm && (
@@ -407,6 +405,6 @@ export default function ChatPage() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
