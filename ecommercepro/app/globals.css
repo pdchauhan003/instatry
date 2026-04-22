@@ -242,6 +242,25 @@ html, body {
 
 }
 
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+@keyframes story {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.animate-story {
+  animation: story 5s linear forwards;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

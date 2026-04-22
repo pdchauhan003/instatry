@@ -215,7 +215,27 @@ export const getSavedPosts = async (userId) => {
   }
 };
 
-export const getLikes = async (postId) => {
-  await connectDB();
+export const deleteStory = async (storyId, userId) => {
+  try {
+    await connectDB();
+    const res = await Story.deleteOne({ _id: storyId, author: userId });
+    return !!res.deletedCount;
+  } catch (error) {
+    console.error("Error in deleteStory controller:", error);
+    throw error;
+  }
+}
 
+export const getLikes = async (postId) => {
+  try {
+    await connectDB();
+    const post = await Post.findById(postId)
+      .select("likes")
+      .populate("likes", "username image")
+      .lean();
+    return post ? post.likes : [];
+  } catch (error) {
+    console.error("Error in getLikes controller:", error);
+    throw error;
+  }
 }
