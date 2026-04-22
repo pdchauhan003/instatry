@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 function RegisterPage() {
   const fileInputRef = useRef(null);
@@ -134,7 +135,7 @@ function RegisterPage() {
             </div>
 
             {/* profile picture */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 block">
                 Profile Picture
               </label>
@@ -158,7 +159,50 @@ function RegisterPage() {
                   onChange={(e) => setImage(e.target.files?.[0])}
                 />
               </div>
+            </div> */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 block">
+                Profile Picture
+              </label>
+
+              {/* Clickable Upload Box */}
+              <label
+                htmlFor="fileUpload"
+                className="block border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-purple-500 active:bg-gray-50"
+              >
+                <p className="text-sm text-gray-600 font-medium">
+                  {image ? image.name : "Tap to upload photo"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Gallery / Camera supported
+                </p>
+              </label>
+
+              {/* REAL INPUT */}
+              <input
+                id="fileUpload"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setImage(file);
+                }}
+                className="hidden"
+              />
+
+              {/* Preview */}
+              {image && (
+                <Image
+                  src={URL.createObjectURL(image)}
+                  alt="preview"
+                  width={200}
+                  hwight={200}
+                  className="mt-2 w-24 h-24 object-cover rounded-full border"
+                />
+              )}
             </div>
+
           </form>
 
           {/* Register Button */}
