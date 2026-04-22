@@ -62,19 +62,15 @@ function AddPost() {
 
         {/* image upload */}
         {!preview ? (
-          <label className="relative flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 hover:bg-gray-900 transition overflow-hidden cursor-pointer">
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="relative flex flex-col items-center justify-center border border-gray-700 rounded-xl h-60 hover:bg-gray-900 transition overflow-hidden cursor-pointer"
+          >
             <p className="text-gray-400">Click to select image</p>
             <input
+              ref={fileInputRef}
               type="file"
-              style={{
-                position: 'absolute',
-                inset: 0,
-                opacity: 0.0001,
-                width: '100%',
-                height: '100%',
-                cursor: 'pointer',
-                zIndex: 100,
-              }}
+              className="hidden"
               name='image'
               accept="image/jpeg,image/png,image/webp,image/*"
               onChange={(e) => {
@@ -83,7 +79,7 @@ function AddPost() {
                 }
               }}
             />
-          </label>
+          </div>
         ) : (
           <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden">
             <Image
