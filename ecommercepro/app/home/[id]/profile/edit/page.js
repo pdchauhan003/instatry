@@ -98,27 +98,25 @@ function EditPage() {
             />
           )}
           <br />
-          <input
-            type="file"
-            id="image-upload"
-            accept="image/*"
-            style={{ display: 'block', opacity: 0, width: 0, height: 0, position: 'absolute', zIndex: -1 }}
-            ref={fileInputRef}
-            name="image"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                setPreviewUrl(URL.createObjectURL(file));
-                dispatch({ value: file, type: e.target.name });
-              }
-            }}
-          />
-          <label
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-block px-4 py-1 mt-2 text-sm text-blue-500 font-medium cursor-pointer active:opacity-50"
-          >
-            Change profile picture
-          </label>
+          <div className="relative inline-block mt-2 overflow-hidden">
+            <span className="px-4 py-1 text-sm text-blue-500 font-medium">
+              Change profile picture
+            </span>
+            <input
+              type="file"
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              name="image"
+              id="image-upload"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setPreviewUrl(URL.createObjectURL(file));
+                  dispatch({ value: file, type: e.target.name });
+                }
+              }}
+            />
+          </div>
           <input type="text" value={state.name} className="border-2 border-white my-2 w-full rounded-sm p-3" placeholder="Name" name="name" onChange={(e) => dispatch({ value: e.target.value, type: e.target.name })} />
           <br />
           <input type="text" value={state.username} className="border-2 border-white my-2 w-full rounded-sm p-3" placeholder="username" name="username" onChange={(e) => dispatch({ value: e.target.value, type: e.target.name })} />

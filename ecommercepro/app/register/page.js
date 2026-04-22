@@ -139,28 +139,21 @@ function RegisterPage() {
                 Profile Picture
               </label>
 
-              {/* Hidden Input */}
-              <input
-                type="file"
-                id="profile-picture-input"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={(e) => setImage(e.target.files?.[0])}
-                style={{ display: 'block', opacity: 0, width: 0, height: 0, position: 'absolute', zIndex: -1 }}
-              />
-
-              {/* Clickable Box */}
-              <label
-                onClick={() => fileInputRef.current?.click()}
-                className="block border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer active:bg-gray-50"
-              >
+              <div className="relative block border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center overflow-hidden">
                 <p className="text-sm text-gray-600 font-medium">
                   {image ? image.name : "Tap to upload photo"}
                 </p>
                 <p className="text-xs text-gray-400">
                   Supports JPG, PNG, WEBP
                 </p>
-              </label>
+                <input
+                  type="file"
+                  id="profile-picture-input"
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  accept="image/*"
+                  onChange={(e) => setImage(e.target.files?.[0])}
+                />
+              </div>
             </div>
           </form>
 

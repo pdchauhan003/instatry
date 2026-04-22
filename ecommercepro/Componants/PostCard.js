@@ -35,7 +35,7 @@ export default function PostCard({
   const [saved, setSaved] = useState(() => {
     // 1. Check direct boolean prop
     if (typeof isSaved === "boolean") return isSaved;
-    
+
     // 2. Check savedIds Set (from Feed)
     if (savedIds instanceof Set) return savedIds.has(post._id?.toString());
     if (Array.isArray(savedIds)) return savedIds.includes(post._id?.toString());
