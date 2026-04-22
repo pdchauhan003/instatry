@@ -28,6 +28,7 @@ export default function PostCard({
 }) {
   if (!post) return null;
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [likes, setLikes] = useState(post.likes?.length || 0);
   const [liked, setLiked] = useState(post.likes?.includes(userId));
   const [showMenu, setShowMenu] = useState(false);

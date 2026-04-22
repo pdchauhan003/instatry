@@ -146,12 +146,11 @@ function RegisterPage() {
                 ref={fileInputRef}
                 accept="image/*"
                 onChange={(e) => setImage(e.target.files?.[0])}
-                className="hidden"
+                style={{ display: 'block', opacity: 0, width: 0, height: 0, position: 'absolute', zIndex: -1 }}
               />
 
               {/* Clickable Box */}
               <label
-                htmlFor="profile-picture-input"
                 onClick={() => fileInputRef.current?.click()}
                 className="block border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-purple-500 transition-colors text-center cursor-pointer active:bg-gray-50"
               >

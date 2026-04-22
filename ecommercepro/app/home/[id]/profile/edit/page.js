@@ -102,7 +102,7 @@ function EditPage() {
             type="file"
             id="image-upload"
             accept="image/*"
-            className="hidden"
+            style={{ display: 'block', opacity: 0, width: 0, height: 0, position: 'absolute', zIndex: -1 }}
             ref={fileInputRef}
             name="image"
             onChange={(e) => {
@@ -114,7 +114,6 @@ function EditPage() {
             }}
           />
           <label
-            htmlFor="image-upload"
             onClick={() => fileInputRef.current?.click()}
             className="inline-block px-4 py-1 mt-2 text-sm text-blue-500 font-medium cursor-pointer active:opacity-50"
           >
