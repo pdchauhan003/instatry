@@ -5,6 +5,7 @@ const messageSchema = new mongoose.Schema({
     to: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     message: { type: String, required: true },
     isSeen: { type: Boolean, default: false },
+    deletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

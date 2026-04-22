@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getMessageUserData } from "@/controller/user.controller";
 import { Message } from "@/lib/database";
 import { getAuthUserId } from "@/lib/getAuthUser";
+import mongoose from "mongoose";
 
 export async function POST(req, context) {
   try {
@@ -23,7 +24,11 @@ export async function POST(req, context) {
     const messagesData = await Message.aggregate([
       {
         $match: {
-          $or: [{ to: id }, { from: id }]
+          $or: [
+            { to: new mongoose.Types.ObjectId(id) },
+            { from: new mongoose.Types.ObjectId(id) }
+          ],
+          deletedBy: { $ne: new mongoose.Types.ObjectId(id) }
         }
       },
       {

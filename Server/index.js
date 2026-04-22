@@ -152,6 +152,7 @@ app.get("/messages/:user1/:user2", async (req, res) => {
         { from: u1, to: u2 },
         { from: u2, to: u1 },
       ],
+      deletedBy: { $ne: u1 }
     }).sort({ createdAt: -1 }).limit(20);
 
     res.json(messages.reverse());  // reverse so chat show correct order
@@ -171,7 +172,8 @@ app.get('/message/:user1/:user2/before/:cursor', async (req, res) => {
 
     const messages = await Message.find({
       $or: [{ from: u1, to: u2 }, { from: u2, to: u1 }],
-      createdAt: { $lt: new Date(cursor) }
+      createdAt: { $lt: new Date(cursor) },
+      deletedBy: { $ne: u1 }
     }).sort({ createdAt: -1 }).limit(20);
     res.json(messages.reverse())
   }
@@ -355,26 +357,36 @@ io.on("connection", (socket) => {
   })
 
   // for deleting messages
-  socket.on("deleteMessage", async ({ messageId }) => {
+  socket.on("deleteMessage", async ({ messageId, type }) => {
     try {
       const msg = await Message.findById(messageId);
       if (!msg) return;
 
       const fromId = msg.from?.toString();
       const toId = msg.to?.toString();
+      const currentUserId = socket.userId?.toString();
 
-      if (fromId !== socket.userId?.toString()) {
-        console.warn(`trace Unauthorized delete attempt by ${socket.userId}`);
-        return;
+      if (type === "everyone") {
+        if (fromId !== currentUserId) {
+          console.warn(`trace Unauthorized delete for everyone attempt by ${currentUserId}`);
+          return;
+        }
+        await Message.findByIdAndDelete(messageId);
+        
+        // Notify both participants globally
+        if (fromId) io.to(fromId).emit("messageDeleted", messageId);
+        if (toId) io.to(toId).emit("messageDeleted", messageId);
+      } else {
+        // "Delete for me"
+        await Message.findByIdAndUpdate(messageId, {
+          $addToSet: { deletedBy: currentUserId }
+        });
+        
+        // Notify only the deleting user
+        socket.emit("messageDeleted", messageId);
       }
 
-      await Message.findByIdAndDelete(messageId);
-
-      // Notify both participants globally
-      if (fromId) io.to(fromId).emit("messageDeleted", messageId);
-      if (toId) io.to(toId).emit("messageDeleted", messageId);
-
-      console.log(`trace deleteMessage ${messageId} from ${fromId} to ${toId}`);
+      console.log(`trace deleteMessage ${type} ${messageId} from ${fromId} by ${currentUserId}`);
     } catch (error) {
       console.error("trace deleteMessage error:", error);
     }

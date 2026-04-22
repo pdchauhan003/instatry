@@ -281,17 +281,31 @@ export default function ChatPage() {
                       Reply
                     </button>
 
+                    <button
+                      onClick={() => {
+                        socket.emit("deleteMessage", {
+                          messageId: msg._id,
+                          type: "me"
+                        });
+                        setActiveMessage(null);
+                      }}
+                      className="block px-4 py-2 text-sm hover:bg-gray-800 w-full text-left text-white"
+                    >
+                      Delete for me
+                    </button>
+
                     {isMe && (
                       <button
                         onClick={() => {
                           socket.emit("deleteMessage", {
                             messageId: msg._id,
+                            type: "everyone"
                           });
                           setActiveMessage(null);
                         }}
                         className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-800 w-full text-left"
                       >
-                        Delete
+                        Delete for EveryOne
                       </button>
                     )}
                   </div>
