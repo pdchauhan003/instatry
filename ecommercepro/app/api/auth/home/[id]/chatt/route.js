@@ -20,7 +20,7 @@ export async function POST(req, context) {
     const messageUserData = await getMessageUserData(id);
     console.log('message userdata is', messageUserData);
 
-    // Get all message data in ONE query
+    // Get all message data
     const messagesData = await Message.aggregate([
       {
         $match: {
@@ -62,7 +62,7 @@ export async function POST(req, context) {
       }
     ]);
 
-    // Convert aggregation result to map for O(1) lookup
+    // Convert aggregation result to map for lookup
     const messageMap = new Map();
 
     messagesData.forEach(m => {
@@ -98,4 +98,4 @@ export async function POST(req, context) {
     console.error("Error in chatt API:", error);
     return NextResponse.json({ success: false, message: "Internal server error", error: error.message }, { status: 500 });
   }
-}
+}

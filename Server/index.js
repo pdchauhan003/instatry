@@ -95,7 +95,7 @@ const io = new Server(server, {
   }
 });
 
-// Initialize Redis after io is created
+// Initialize Redis 
 setupRedis(io);
 
 // authentication middleware for socket
@@ -368,7 +368,7 @@ io.on("connection", (socket) => {
 
       if (type === "everyone") {
         if (fromId !== currentUserId) {
-          console.warn(`trace Unauthorized delete for everyone attempt by ${currentUserId}`);
+          console.warn(`Unauthorized delete for everyone attempt by ${currentUserId}`);
           return;
         }
         await Message.findByIdAndDelete(messageId);
@@ -386,9 +386,9 @@ io.on("connection", (socket) => {
         socket.emit("messageDeleted", messageId);
       }
 
-      console.log(`trace deleteMessage ${type} ${messageId} from ${fromId} by ${currentUserId}`);
+      console.log(`deleteMessage ${type} ${messageId} from ${fromId} by ${currentUserId} socket.id`);
     } catch (error) {
-      console.error("trace deleteMessage error:", error);
+      console.error("deleteMessage error:", error);
     }
   });
 
@@ -408,7 +408,7 @@ io.on("connection", (socket) => {
         { $addToSet: { deletedBy: myId } }
       );
 
-      console.log(`trace clearChat for ${myId} with ${otherId}: updated ${result.modifiedCount} messages`);
+      console.log(`clearChat for ${myId} with ${otherId}: updated ${result.modifiedCount} messages`);
       socket.emit("chatCleared", { success: true });
     } catch (error) {
       console.error("trace clearChat error:", error);
