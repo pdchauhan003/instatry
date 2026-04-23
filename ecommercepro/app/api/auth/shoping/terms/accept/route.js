@@ -1,7 +1,7 @@
 
 import { connectDB } from "@/services/mongodb";
-import Terms from "@/models/Terms";
-import User from "@/models/User";
+import { Terms } from "@/lib/database";
+import { User } from "@/lib/database";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
@@ -32,4 +32,5 @@ export async function POST(req) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
 

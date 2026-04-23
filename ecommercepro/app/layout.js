@@ -2,6 +2,7 @@ import "./globals.css";
 import Providers from './providers'
 import { Toaster } from "react-hot-toast";
 import Script from "next/script";
+import SocketProvider from "@/app/SocketProvider";
 
 function RootLayout({children}){
   return(
@@ -14,7 +15,11 @@ function RootLayout({children}){
           />
         </head>
         <body className="">
-          <Providers>{children}</Providers>
+          <Providers>
+            <SocketProvider>
+              {children}
+            </SocketProvider>
+          </Providers>
           <Toaster/>
         </body>
       </html>

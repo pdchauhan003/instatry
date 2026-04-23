@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getRazorpayInstance } from "@/lib/razorpay";
 import { connectDB } from "@/services/mongodb";
-import Payment from "@/models/Payment";
+import { Payment } from "@/lib/database";
 export const dynamic = "force-dynamic";
 
 export async function POST(req) {
@@ -45,3 +45,4 @@ export async function POST(req) {
     );
   }
 }
+

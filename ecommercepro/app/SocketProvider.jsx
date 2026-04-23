@@ -11,8 +11,6 @@ export default function SocketProvider({ children }) {
   const queryClient = useQueryClient();
   const pathnameRef = useRef(pathname);
 
-  // Keep the ref updated with the latest pathname
-  // This prevents "stale closures" in the socket listeners
   useEffect(() => {
     pathnameRef.current = pathname;
   }, [pathname]);
@@ -26,17 +24,12 @@ export default function SocketProvider({ children }) {
     };
 
     if (!socket.connected) {
-      // Inject token for deployment cross-domain support
       const token = localStorage.getItem('auth_token');
       if (token) {
-        console.log("Status: [Socket] Injecting auth token from storage");
         socket.auth = { ...socket.auth, token };
         socket.connect();
-      } else {
-        console.warn("Status: [Socket] No token found in storage, deferring connection until login");
       }
     } else {
-      // already connected, just join
       handleConnect();
     }
 
@@ -49,17 +42,10 @@ export default function SocketProvider({ children }) {
     });
 
     const handleReceiveMessage = (msg) => {
-      // Check if message is for the logged in user
       if (msg.to === id) {
-        // we don't increment the global "unread" counter.
-        // This prevents the stale badge issue when returning to the chat list.
         const activeChatPath = `/home/${id}/chatt/personalChatt/${msg.from}`;
-        if (pathnameRef.current === activeChatPath) {
-          console.log("User in active chat, skipping badge update");
-          return;
-        }
+        if (pathnameRef.current === activeChatPath) return;
 
-        console.log("Global message received, updating badge cache");
         queryClient.setQueryData(['friends', id], (oldContacts) => {
           if (!oldContacts) return oldContacts;
           return oldContacts.map(user =>
@@ -85,9 +71,10 @@ export default function SocketProvider({ children }) {
     return () => {
       socket.off("connect", handleConnect);
       socket.off("receiveMessage", handleReceiveMessage);
-      socket.disconnect();
+      // Removed socket.disconnect() to allow persistence across page navigations
+      // The socket will disconnect automatically on browser close or manual logout
     };
-  }, [id]);
+  }, [id, queryClient]); // Removed params from dependencies
 
   return children;
 }

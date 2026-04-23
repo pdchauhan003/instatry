@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { connectDB } from "@/services/mongodb";
-import Payment from "@/models/Payment";
-import User from "@/models/User";
+import { Payment } from "@/lib/database";
+import { User } from "@/lib/database";
 
 export async function POST(req) {
   try {
@@ -70,3 +70,4 @@ export async function POST(req) {
     );
   }
 }
+

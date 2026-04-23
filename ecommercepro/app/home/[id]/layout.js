@@ -1,6 +1,5 @@
 "use client";
 import { useParams, usePathname, useRouter} from "next/navigation";
-import SocketProvider from "@/app/SocketProvider";
 import { Home, Search, MessageCircle, ShoppingBag, User, Settings, ShieldCheck } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { setAuthUser } from "@/redux/authSlice";
@@ -77,9 +76,7 @@ export default function RootLayoutt({ children }) {
 
       {/* Scroll Container */}
       <main className="flex-1 md:ml-64 h-full overflow-y-auto pb-20 md:pb-0 no-scrollbar">
-        <SocketProvider>
-          {children}
-        </SocketProvider>
+        {children}
       </main>
 
       {/* mobile Bottom Navbar */}

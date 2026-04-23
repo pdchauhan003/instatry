@@ -1,5 +1,5 @@
 import { connectDB } from "@/services/mongodb";
-import User from "@/models/User";
+import { User } from "@/lib/database";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
@@ -15,3 +15,4 @@ export async function GET(req) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+

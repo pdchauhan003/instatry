@@ -1,8 +1,10 @@
-const mg=require('mongoose');
-const followSchema = new mg.Schema({
-    follower: {type: mg.Schema.Types.ObjectId,ref: "User"},
-    following: {type: mg.Schema.Types.ObjectId,ref: "User"}
+const mongoose = require('mongoose');
+
+const followSchema = new mongoose.Schema({
+    follower: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    following: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 }, { timestamps: true });
-followSchema.index({follower:1})
-followSchema.index({following:1})
-module.exports=mg.model('Follow',followSchema);
+
+followSchema.index({ follower: 1, following: 1 });
+
+module.exports = mongoose.models.Follow || mongoose.model("Follow", followSchema);

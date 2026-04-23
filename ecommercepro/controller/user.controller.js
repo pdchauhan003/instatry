@@ -1,8 +1,6 @@
 import { connectDB } from "@/services/mongodb";
-import User from "@/models/User";
+import { User, Bio, Message } from "@/lib/database";
 import redis from "@/services/redis";
-import Bio from "@/models/Bio";
-import Message from "@/models/Message";
 import mongoose from 'mongoose'
 
 
