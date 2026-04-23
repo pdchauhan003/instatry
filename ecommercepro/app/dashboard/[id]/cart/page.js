@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import { toast } from "react-hot-toast";
 
 function CartList() {
   const addedItems = useSelector((state) => state.cart.items);
@@ -29,8 +30,8 @@ function CartList() {
     dispatch(clearItems());
     localStorage.clear();
     cartItems.length > 0
-      ? alert("order placed")
-      : alert("pehle items add karke aa...");
+      ? toast.success("order placed")
+      : toast.error("pehle items add karke aa...");
     router.push(`/dashboard/${id}`);
   };
 

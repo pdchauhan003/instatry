@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useDispatch } from "react-redux";
 import { setAuthUser } from "@/redux/authSlice";
 import { signIn } from "next-auth/react";
+import { toast } from "react-hot-toast";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -39,19 +40,20 @@ function LoginPage() {
       console.log('data .id is ',data.id)
       if (data.role && data.id) {
         console.log(`User logged in as ${data.role}. Redirecting to /home/${data.id}`);
+        toast.success('user login success')
         router.replace(`/home/${data.id}`);
         router.refresh();
       } else {
-        alert(data.message || "Login failed: Missing role or ID");
+        toast.error(data.message || "Login failed: Missing role or ID");
       }
     }
     if(data.forgot){
-        alert(data.message)
+        toast.error(data.message)
         setShowForgot(true);
       }
     } catch (error) {
       console.error("Login Error:", error);
-      alert("Login failed. Please check your connection.");
+      toast.error("Login failed. Please check your connection.");
     } finally {
       setLoading(false);
     }

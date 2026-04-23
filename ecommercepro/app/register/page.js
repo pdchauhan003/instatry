@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { toast } from "react-hot-toast";
 function RegisterPage() {
   const fileInputRef = useRef(null);
   const [email, setEmail] = useState("");
@@ -35,11 +36,11 @@ function RegisterPage() {
       if (data.success) {
         router.push(`/verification/afterregister?email=${email}`);
       } else {
-        alert(data.message || "Error during registration");
+        toast.error(data.message || "Error during registration");
       }
     } catch (error) {
       console.log("server error...", error);
-      alert("Network error or server crash. Please check your connection.");
+      toast.error("Network error or server crash. Please check your connection.");
     } finally {
       setLoading(false);
     }

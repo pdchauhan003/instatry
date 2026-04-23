@@ -2,6 +2,7 @@
 import { useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
+import { toast } from "react-hot-toast";
 
 function AddPost() {
   const router = useRouter();
@@ -21,7 +22,7 @@ function AddPost() {
   };
 
   const handleAdd = async (type) => {
-    if (!image) return alert("Please select image");
+    if (!image) return toast.error("Please select image");
 
     const formData = new FormData();
     formData.append("image", image);
@@ -35,7 +36,7 @@ function AddPost() {
 
     const data = await res.json();
     if (data.success) router.replace(`/home/${id}`);
-    else alert(data.message);
+    else toast.error(data.message);
   };
 
   return (

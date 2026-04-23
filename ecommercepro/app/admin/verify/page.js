@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 
 export default function AdminVerifySellers() {
   const [activeTab, setActiveTab] = useState("pending"); // "pending" | "sellers"
@@ -68,13 +69,13 @@ export default function AdminVerifySellers() {
       });
       const data = await res.json();
       if (data.success) {
-        alert(`User ${action}ed!`);
+        toast.success(`User ${action}ed!`);
         fetchPendingSellers();
       } else {
-        alert(data.error || `Failed to ${action} user`);
+        toast.error(data.error || `Failed to ${action} user`);
       }
     } catch {
-      alert("Error taking action.");
+      toast.error("Error taking action.");
     }
   };
 
@@ -89,13 +90,13 @@ export default function AdminVerifySellers() {
       });
       const data = await res.json();
       if (data.success) {
-        alert(`@${username} has been removed as a seller.`);
+        toast.success(`@${username} has been removed as a seller.`);
         fetchSellers();
       } else {
-        alert(data.error || "Failed to remove seller");
+        toast.error(data.error || "Failed to remove seller");
       }
     } catch {
-      alert("Error removing seller.");
+      toast.error("Error removing seller.");
     }
   };
 

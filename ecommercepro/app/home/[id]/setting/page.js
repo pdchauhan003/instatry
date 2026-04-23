@@ -1,5 +1,6 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 import { 
   ChevronLeft, 
   Lock, 
@@ -24,10 +25,12 @@ function SettingPage() {
       if (!res.ok) throw new Error("Logout failed");
       const data = await res.json();
       if (data?.success) {
+        toast.success('logout success')
         router.replace("/login");
         router.refresh();
       }
     } catch (error) {
+      toast.error('logout failed')
       console.error("Logout error:", error);
     }
   };

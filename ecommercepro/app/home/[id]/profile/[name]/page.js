@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import socket from "@/lib/socket";
 import Image from "next/image";
+import { toast } from "react-hot-toast";
 import { profilePageContent } from "@/components/ProfileUpperPage";
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogClose,} from "@/components/ui/dialog"; // ShadCN dialog
 import dynamic from "next/dynamic";
@@ -77,7 +78,7 @@ function ProfilePage() {
       setStatus("requested");
     } catch (error) {
       console.error(error);
-      alert(error,'error in sending follow req...')
+      toast.error('error in sending follow req...')
     }
     // await handleFollow({id,friendId,setStatus})
   };
@@ -153,13 +154,13 @@ function ProfilePage() {
       if (data.success) {
         setFriend(data.friend);
         setStatus("follow");
-        alert(data.message);
+        toast.success(data.message);
       } else {
-        alert(data.message);
+        toast.error(data.message);
       }
     } catch (err) {
       console.log(err);
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     }
   };
 

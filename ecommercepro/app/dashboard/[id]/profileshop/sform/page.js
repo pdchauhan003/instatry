@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 export default function TermsPage() {
   const [accepted, setAccepted] = useState(false);
@@ -45,12 +46,12 @@ export default function TermsPage() {
           if (data.success) {
             router.push(`/dashboard/${id}/profileshop/sform/verify-kyc`);
           } else {
-            alert("Payment verification failed. Please contact support.");
+            toast.error("Payment verification failed. Please contact support.");
           }
         },
         modal: {
           ondismiss: function () {
-            alert("Payment cancelled. You must pay ₹1 to become a seller.");
+            toast.error("Payment cancelled. You must pay ₹1 to become a seller.");
           }
         },
         theme: {
@@ -63,7 +64,7 @@ export default function TermsPage() {
 
     } catch (error) {
       console.error("Verification flow error:", error);
-      alert("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     }
   };
 

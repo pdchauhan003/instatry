@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 import { MoreVertical, Bookmark, Heart } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { addPost, removePost } from "@/redux/savedSlice";
@@ -95,7 +96,7 @@ export default function PostCard({
         router.refresh();
       } else {
         console.log(data.message);
-        alert(data.message);
+        toast.error(data.message);
       }
     } catch (error) {
       console.log("Error deleting post");

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 import { X, ChevronLeft, ChevronRight, Trash2, AlertCircle } from "lucide-react";
 
 export default function StoryViewer({ stories, currentIdx, userId }) {
@@ -49,11 +50,11 @@ export default function StoryViewer({ stories, currentIdx, userId }) {
         // Navigate to next story or home
         goToNext();
       } else {
-        alert(data.message || "Failed to delete story");
+        toast.error(data.message || "Failed to delete story");
       }
     } catch (error) {
       console.error("Delete story error:", error);
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);

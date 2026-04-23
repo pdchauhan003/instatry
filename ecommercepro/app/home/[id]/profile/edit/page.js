@@ -4,6 +4,7 @@ import { useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useReducer, useEffect, useRef, useState } from "react";
+import { toast } from "react-hot-toast";
 
 const userDatas = {
   image: '',
@@ -76,7 +77,7 @@ function EditPage() {
     const data = await res.json();
     if (data.success) {
       console.log('updated success');
-      alert('updated success')
+      toast.success('updated success')
     }
     else {
       console.log('else exists')

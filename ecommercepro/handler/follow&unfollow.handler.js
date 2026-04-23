@@ -1,4 +1,5 @@
 import socket from "@/lib/socket";
+import { toast } from "react-hot-toast";
 
 export const handleFollow=async({id,friendId,setStatus})=>{
     try {
@@ -9,6 +10,6 @@ export const handleFollow=async({id,friendId,setStatus})=>{
       setStatus("requested");
     } catch (error) {
       console.error(error);
-      alert(error,'error in sending follow req...')
+      toast.error('error in sending follow req...')
     }
 }

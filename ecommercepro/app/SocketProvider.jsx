@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useParams, usePathname } from "next/navigation";
 import socket from "@/lib/socket";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 
 export default function SocketProvider({ children }) {
   const params = useParams();
@@ -36,7 +37,7 @@ export default function SocketProvider({ children }) {
     socket.on("connect", handleConnect);
 
     socket.on("sessionEnded", () => {
-      alert("You logged in from another device");
+      toast.error("You logged in from another device");
       window.location.href = "/login";
       socket.disconnect();
     });
@@ -64,7 +65,7 @@ export default function SocketProvider({ children }) {
     socket.on("receiveMessage", handleReceiveMessage);
 
     socket.on("forceLogout", () => {
-      alert("You logged in from another device");
+      toast.error("You logged in from another device");
       window.location.href = "/login";
     });
 
