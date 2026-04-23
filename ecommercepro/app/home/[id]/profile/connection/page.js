@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import FollowerFeed from "@/Componants/FollowerFeed";
-import FollowingFeed from "@/Componants/FollowingFeed";
+import FollowerFeed from "@/components/FollowerFeed";
+import FollowingFeed from "@/components/FollowingFeed";
 
 export default function ConnectionsPage() {
   const { id } = useParams();

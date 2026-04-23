@@ -33,7 +33,7 @@ function OtpContent() {
         setMessage('');
 
         try {
-            const res = await fetch('/api/auth/varification/afterregister/verify-otp', {
+            const res = await fetch('/api/auth/verification/afterregister/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, otp }),
@@ -42,7 +42,7 @@ function OtpContent() {
             const data = await res.json();
 
             if (data.success) {
-                router.push('/varification/congratulation');
+                router.push('/verification/congratulation');
             } else {
                 setError(data.message);
             }
@@ -62,7 +62,7 @@ function OtpContent() {
         setMessage('');
 
         try {
-            const res = await fetch('/api/auth/varification/afterregister/send-otp', {
+            const res = await fetch('/api/auth/verification/afterregister/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email }),

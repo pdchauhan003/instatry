@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic';
 import HomeBadge from './HomeBadge';
 import CartBadge from './CartBadge';
 
-const Navbar = dynamic(() => import('../../../Componants/navbar'), {
+const Navbar = dynamic(() => import('@/components/navbar'), {
   loading: () => <p>Loading....</p>
 })
 

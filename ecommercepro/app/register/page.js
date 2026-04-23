@@ -33,7 +33,7 @@ function RegisterPage() {
       });
       const data = await res.json();
       if (data.success) {
-        router.push(`/varification/afterregister?email=${email}`);
+        router.push(`/verification/afterregister?email=${email}`);
       } else {
         alert(data.message || "Error during registration");
       }

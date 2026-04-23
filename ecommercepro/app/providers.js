@@ -1,18 +1,19 @@
 'use client'
-import { QueryClient,QueryClientProvider } from "@tanstack/react-query"; // for tanstack query
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"; // for tanstack query
 import { useState } from "react";
-import {Provider} from 'react-redux';
+import { Provider } from 'react-redux';
 import { store } from '@/redux/store' // for redux store
-import SessionHydrator from '@/Componants/SessionHydrator';
-function Providers({children}){
-    const[client]=useState(new QueryClient());
+// import SessionHydrator from '@/components/SessionHydrator';
+import SessionHydrator from "@/components/SessionHydrator";
+function Providers({ children }) {
+    const [client] = useState(new QueryClient());
 
-    return(
+    return (
         <>
             <QueryClientProvider client={client}>
                 <Provider store={store}>
-                        <SessionHydrator />
-                        {children}    
+                    <SessionHydrator />
+                    {children}
                 </Provider>
             </QueryClientProvider>
         </>

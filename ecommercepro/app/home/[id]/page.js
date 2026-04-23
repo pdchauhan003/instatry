@@ -2,9 +2,9 @@ import { allFriends } from "@/controller/post&story.controller";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Plus, Heart } from "lucide-react";
-import StoryAvatar from "@/Componants/StoryPart";
+import StoryAvatar from "@/components/StoryPart";
 import { getUserNameUsingId } from "@/controller/user.controller";
-import InfiniteFeed from "@/Componants/InfiniteFeed";
+import InfiniteFeed from "@/components/InfiniteFeed";
 
 async function gethomeData(id, cursor) {
   return await allFriends(id, cursor);

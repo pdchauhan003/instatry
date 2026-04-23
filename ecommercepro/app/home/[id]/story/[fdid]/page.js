@@ -1,6 +1,6 @@
 import { allFriends } from "@/controller/post&story.controller";
 import { notFound } from "next/navigation";
-import StoryViewer from "@/Componants/StoryViewer";
+import StoryViewer from "@/components/StoryViewer";
 
 async function getStories(id) {
   const data = await allFriends(id);

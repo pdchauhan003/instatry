@@ -1,5 +1,5 @@
 import { getSavedPosts } from "@/controller/post&story.controller";
-import PostCard from "@/Componants/PostCard";
+import PostCard from "@/components/PostCard";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 

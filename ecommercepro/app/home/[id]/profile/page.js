@@ -1,8 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-const FollowerFeed = dynamic(() => import("@/Componants/FollowerFeed"), { ssr: false });
-const FollowingFeed = dynamic(() => import("@/Componants/FollowingFeed"), { ssr: false });
+const FollowerFeed = dynamic(() => import("@/components/FollowerFeed"), { ssr: false });
+const FollowingFeed = dynamic(() => import("@/components/FollowingFeed"), { ssr: false });
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";

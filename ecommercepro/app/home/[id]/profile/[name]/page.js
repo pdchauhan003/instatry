@@ -4,11 +4,11 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import socket from "@/lib/socket";
 import Image from "next/image";
-import { profilePageContent } from "@/Componants/ProfileUpperPage";
+import { profilePageContent } from "@/components/ProfileUpperPage";
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogClose,} from "@/components/ui/dialog"; // ShadCN dialog
 import dynamic from "next/dynamic";
-const FollowingFeed = dynamic(() => import("@/Componants/FollowingFeed"), { ssr: false });
-const FollowerFeed = dynamic(() => import("@/Componants/FollowerFeed"), { ssr: false });
+const FollowingFeed = dynamic(() => import("@/components/FollowingFeed"), { ssr: false });
+const FollowerFeed = dynamic(() => import("@/components/FollowerFeed"), { ssr: false });
 import { Button } from "@/components/ui/button";
 import { handleUnfollow } from "@/handler/UnFollowhandler";
 // import { handleFollow } from "@/handler/follow&unfollow.handler";
