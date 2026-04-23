@@ -1,9 +1,9 @@
 'use client'
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import im1 from '../../public/im1.webp'
-import im2 from '../../public/im2.webp'
-import im3 from '../../public/im3.webp'
+// import im1 from '../../public/im1.webp'
+// import im2 from '../../public/im2.webp'
+// import im3 from '../../public/im3.webp'
 import Image from "next/image";
 function BoardingPage(){
     const router=useRouter();
@@ -78,17 +78,17 @@ function BoardingPage(){
         {
         title: "Now reading books will be easier",
         desc: "Discover new worlds and start reading easily.",
-        image: im1
+        image: ""
         },
         {
         title: "Your Bookish Soulmate Awaits",
         desc: "Find books tailored to your taste.",
-        image: im2
+        image: ""
         },
         {
         title: "Start Your Adventure",
         desc: "Begin your reading journey today.",
-        image: im3
+        image: ""
         }
     ]
     const nextSlide=()=>{
@@ -119,14 +119,14 @@ function BoardingPage(){
           {slides.map((item, index) => (
             <div key={index} style={slide}>
 
-              <Image
+              {/* <Image
                 src={item.image}
                 alt={item.title}
                 width={300}
                 height={300}
                 style={image}
                 priority={index === 0}
-              />
+              /> */}
 
               <h2>{item.title}</h2>
               <p>{item.desc}</p>
