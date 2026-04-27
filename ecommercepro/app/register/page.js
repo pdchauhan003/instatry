@@ -189,7 +189,7 @@ function RegisterPage() {
               </div>
 
               {/* Preview */}
-              {image && (
+              {/* {image && (
                 <Image
                   src={URL.createObjectURL(image)}
                   alt="preview"
@@ -197,7 +197,7 @@ function RegisterPage() {
                   hwight={200}
                   className="mt-2 w-24 h-24 object-cover rounded-full border"
                 />
-              )}
+              )} */}
             </div>
 
           </form>

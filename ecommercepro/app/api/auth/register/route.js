@@ -19,6 +19,35 @@ export async function POST(req) {
       return NextResponse.json({ message: 'Please fill all fields' }, { status: 400 });
     }
 
+    //check password requirements
+    const minLength = 6;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const isValidLength = password.length >= minLength;
+
+    if (!isValidLength) {
+      return NextResponse.json({message:"Password must be at least 6 characters long"},{success:409});
+    }
+    if (!hasUpperCase) {
+      return NextResponse.json({message:"Password must contain at least one uppercase letter"},{success:409});
+    }
+    if (!hasLowerCase) {
+      return NextResponse.json({message:"Password must contain at least one lowercase letter"},{success:409});
+    }
+    if (!hasNumber) {
+      return NextResponse.json({message:"Password must contain at least one number"},{success:409});
+    }
+    if (!hasSymbol) {
+      return NextResponse.json({message:"Password must contain at least one special character"},{success:409});
+    }
+
+    //ckeck mobile number
+    if(number.length!==10){
+      return NextResponse.json({message:'mobile number is must be 10 digit'},{status:409});
+    }
+
     // Check if email or username already exists in real Users
     const [findEmail, findUsername] = await Promise.all([
       User.findOne({ email }),
