@@ -1,4 +1,5 @@
 const Message = require("../models/Message");
+const ClearedChat = require("../models/ClearedChat");
 const mongoose = require("mongoose");
 
 // HTTP Handlers
@@ -8,11 +9,15 @@ const getMessages = async (req, res) => {
     const u1 = new mongoose.Types.ObjectId(user1);
     const u2 = new mongoose.Types.ObjectId(user2);
 
+    const clearedChat = await ClearedChat.findOne({ userId: u1, otherId: u2 });
+    const minDate = clearedChat ? clearedChat.clearedAt : new Date(0);
+
     const messages = await Message.find({
       $or: [
         { from: u1, to: u2 },
         { from: u2, to: u1 },
       ],
+      createdAt: { $gt: minDate },
       deletedBy: { $ne: u1 }
     }).sort({ createdAt: -1 }).limit(20);
 
@@ -28,9 +33,17 @@ const getMessagesBefore = async (req, res) => {
     const u1 = new mongoose.Types.ObjectId(user1);
     const u2 = new mongoose.Types.ObjectId(user2);
 
+    const clearedChat = await ClearedChat.findOne({ userId: u1, otherId: u2 });
+    const minDate = clearedChat ? clearedChat.clearedAt : new Date(0);
+
+    const cursorDate = new Date(cursor);
+    if (cursorDate <= minDate) {
+      return res.json([]);
+    }
+
     const messages = await Message.find({
       $or: [{ from: u1, to: u2 }, { from: u2, to: u1 }],
-      createdAt: { $lt: new Date(cursor) },
+      createdAt: { $lt: cursorDate, $gt: minDate },
       deletedBy: { $ne: u1 }
     }).sort({ createdAt: -1 }).limit(20);
     res.json(messages.reverse());
@@ -115,15 +128,12 @@ const handleClearChat = (io, socket) => async ({ otherId }) => {
     const myId = socket.userId?.toString();
     if (!myId || !otherId) return;
 
-    await Message.updateMany(
-      {
-        $or: [
-          { from: myId, to: otherId },
-          { from: otherId, to: myId }
-        ]
-      },
-      { $addToSet: { deletedBy: myId } }
+    await ClearedChat.findOneAndUpdate(
+      { userId: myId, otherId: otherId },
+      { clearedAt: new Date() },
+      { upsert: true, new: true }
     );
+    
     socket.emit("chatCleared", { success: true });
   } catch (error) {
     console.error("clearChat error:", error);
