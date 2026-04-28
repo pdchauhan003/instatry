@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useDispatch } from "react-redux";
 import { setAuthUser } from "@/redux/authSlice";
@@ -12,8 +12,13 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [showForgot, setShowForgot] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
   const dispatch=useDispatch();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleClick = async (e) => {      // when click login button then trigger
     e.preventDefault();  
@@ -67,6 +72,11 @@ function LoginPage() {
     });
     router.push(`/otp?email=${email}`);
   };
+
+  if (!isMounted) {
+    return null; // Or a loading skeleton
+  }
+
   return (
     <>
       <div className="min-h-screen flex items-center justify-center">

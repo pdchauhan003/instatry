@@ -7,7 +7,7 @@ import SocketProvider from "@/app/SocketProvider";
 function RootLayout({children}){
   return(
     <>
-      <html>
+      <html lang="en">
         <head>
           <Script
             src="https://checkout.razorpay.com/v1/checkout.js"

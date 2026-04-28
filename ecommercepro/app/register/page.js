@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,7 +14,13 @@ function RegisterPage() {
   const [password, setPassword] = useState("");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -45,6 +51,10 @@ function RegisterPage() {
       setLoading(false);
     }
   };
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <>
       <div className="h-screen overflow-y-auto flex justify-center px-4 py-10">
