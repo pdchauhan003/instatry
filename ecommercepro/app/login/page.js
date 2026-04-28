@@ -82,7 +82,7 @@ function LoginPage() {
           </div>
 
           {/* Form */}
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleClick}>
             {/* Email */}
             <div>
               <label className="text-sm font-medium text-gray-700">Email</label>
@@ -108,7 +108,7 @@ function LoginPage() {
                 className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-          </form>
+          
 
           {/* Forgot Password */}
           {showForgot && (
@@ -121,8 +121,7 @@ function LoginPage() {
           )}
 
           {/* Login Button */}
-          <button
-            onClick={handleClick}
+          <button type="submit"
             disabled={loading}
             className={`w-full ${loading ? 'bg-purple-400' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 rounded-full mt-6 font-semibold transition flex justify-center items-center gap-2`}
           >
@@ -133,6 +132,8 @@ function LoginPage() {
               </>
             ) : "Login"}
           </button>
+          {/* </button> */}
+          </form>
 
           {/* Sign Up */}
           <p className="text-center text-sm text-gray-500 mt-5">

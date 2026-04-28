@@ -63,7 +63,7 @@ function RegisterPage() {
           </div>
 
           {/* Form */}
-          <form className="space-y-4 over">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {/* Name */}
             <div>
               <label className="text-sm font-medium text-gray-700">Name</label>
@@ -200,21 +200,20 @@ function RegisterPage() {
               )} */}
             </div>
 
+            {/* Register Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full ${loading ? 'bg-purple-400' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 rounded-full mt-6 font-semibold transition flex justify-center items-center gap-2`}
+            >
+              {loading ? (
+                <>
+                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  Registering...
+                </>
+              ) : "Register"}
+            </button>
           </form>
-
-          {/* Register Button */}
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className={`w-full ${loading ? 'bg-purple-400' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 rounded-full mt-6 font-semibold transition flex justify-center items-center gap-2`}
-          >
-            {loading ? (
-              <>
-                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                Registering...
-              </>
-            ) : "Register"}
-          </button>
 
           {/* Login Redirect */}
           <p className="text-center text-sm text-gray-500 mt-5">
