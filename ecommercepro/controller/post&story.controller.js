@@ -136,7 +136,7 @@ export const allFriends = async (userId, cursor = null) => {
       },
       posts,
       stories,
-      savedIds: savedPosts.map((s) => s.post.toString()),
+      savedIds: savedPosts.filter(s => s && s.post).map((s) => s.post.toString()),
       nextCursor
     };
   } catch (error) {
