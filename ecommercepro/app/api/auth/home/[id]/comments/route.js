@@ -17,18 +17,23 @@ export async function POST(req,context){
         if (id !== authUserId) {
             return Response.json({ success: false, message: "Forbidden" }, { status: 403 });
         }
-        const {postid}=await req.json();
+        const { postid, limit, cursor } = await req.json();
         const uname=await getUserNameUsingId(id);   //logged in username
 
-        const commentData=await getAllPostComments(postid);
-        if(!commentData){
-            console.log('error to fetch comments')
-            return Response.json({message:'not comment found'});
-        }
-        
-        console.log('commentdata ia',commentData);
-        
-        return Response.json({message:'Comments',commentData:commentData,username:uname})
+        // Always use pagination if limit is provided.
+        const result = await getAllPostComments(postid, { limit, cursor });
+
+        const commentData = Array.isArray(result) ? result : result.items;
+        const hasMore = Array.isArray(result) ? false : result.hasMore;
+        const nextCursor = Array.isArray(result) ? null : result.nextCursor;
+
+        return Response.json({
+          message: "Comments",
+          commentData,
+          username: uname,
+          hasMore,
+          nextCursor,
+        });
     } catch (error) {
         console.error("Error in POST /api/auth/home/[id]/comments:", error);
         return Response.json(

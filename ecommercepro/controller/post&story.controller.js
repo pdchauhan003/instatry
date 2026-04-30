@@ -202,13 +202,14 @@ export const getSavedPosts = async (userId) => {
     await connectDB();
     const savedPosts = await Saved.find({ user: userId }).populate({
       path: "post",
+      strictPopulate: false,
       populate: {
         path: "author",
         select: "username image"
       }
     }).lean();
 
-    const filteredSavedPosts = savedPosts.filter(s => s.post !== null);
+    const filteredSavedPosts = savedPosts.filter(s => s && s.post && s.post._id);
     return JSON.parse(JSON.stringify(filteredSavedPosts));
   } catch (error) {
     console.error("Error in getSavedPosts controller:", error);

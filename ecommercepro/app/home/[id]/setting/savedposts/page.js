@@ -31,14 +31,14 @@ export default async function SavedPage(context) {
             </p>
           )}
           {savedPosts.map((item) => {
-            if (!item.post) return null;
+            if (!item.post || !item.post._id) return null;
             return (
               <PostCard
                 key={item.post._id}
                 post={item.post}
                 userId={id}
                 pid={item.post._id}
-                isSaved={savedIds.has(item.post._id.toString())}
+                isSaved={savedIds.has(item.post?._id?.toString())}
               />
             );
           })}

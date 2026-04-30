@@ -34,7 +34,30 @@ export default function SocketProvider({ children }) {
       handleConnect();
     }
 
+    const handleConnectError = async (error) => {
+      console.error("Status: [Socket] Connection error:", error.message);
+      if (error.message.includes("TokenExpiredError")) {
+        console.log("Token expired, attempting refresh...");
+        try {
+          const res = await fetch("/api/auth/refresh", { method: "POST" });
+          const data = await res.json();
+          if (data.success && data.accessToken) {
+            localStorage.setItem("auth_token", data.accessToken);
+            socket.auth = { ...socket.auth, token: data.accessToken };
+            socket.connect();
+          } else {
+            console.error("Refresh failed, redirecting to login");
+            window.location.href = "/login";
+          }
+        } catch (err) {
+          console.error("Error during refresh:", err);
+          window.location.href = "/login";
+        }
+      }
+    };
+
     socket.on("connect", handleConnect);
+    socket.on("connect_error", handleConnectError);
 
     socket.on("sessionEnded", () => {
       toast.error("You logged in from another device");
@@ -71,6 +94,7 @@ export default function SocketProvider({ children }) {
 
     return () => {
       socket.off("connect", handleConnect);
+      socket.off("connect_error", handleConnectError);
       socket.off("receiveMessage", handleReceiveMessage);
       // Removed socket.disconnect() to allow persistence across page navigations
       // The socket will disconnect automatically on browser close or manual logout

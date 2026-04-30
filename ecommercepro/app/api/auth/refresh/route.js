@@ -24,7 +24,11 @@ export async function POST(req) {
             sessionId: user.sessionId
         });
 
-        const response = NextResponse.json({ success: true, userId: user._id, }, { status: 200 });
+        const response = NextResponse.json({ 
+            success: true, 
+            userId: user._id,
+            accessToken: newAccessToken
+        }, { status: 200 });
 
         response.cookies.set("accessToken", newAccessToken, {
             httpOnly: true,

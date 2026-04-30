@@ -1,6 +1,7 @@
 import { Comment } from "@/lib/database";
 import { connectDB } from "@/services/mongodb";
 import { getAuthUserId } from "@/lib/getAuthUser";
+import { getUserImageAndUsername } from "@/controller/user.controller";
 
 export async function POST(req,context){
     try {
@@ -20,10 +21,26 @@ export async function POST(req,context){
             post:postid,
             author:id
         })
+        const userss=await getUserImageAndUsername(id);
+        console.log('detail of the user after add',userss);
         if(!commentAdd){
             return Response.json({message:'error in add comment',success:false})
         }
-        return Response.json({message:'Added comment',success:true});
+        return Response.json({
+          message: "Added comment",
+          success: true,
+          comment: {
+            _id: commentAdd._id,
+            text: commentAdd.text,
+            createdAt: commentAdd.createdAt,
+            author: {
+              _id: id,
+              username: userss?.username,
+              image: userss?.image,
+            },
+          },
+          userDetail: userss,
+        });
     } catch (error) {
         console.error("Error in POST /api/auth/home/[id]/comments/add:", error);
         return Response.json(
