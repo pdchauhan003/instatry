@@ -128,7 +128,8 @@ export const getMessageUserData = async (Id) => {
                     $or: [
                         { from: myId },
                         { to: myId }
-                    ]
+                    ],
+                    groupId: { $exists: false }
                 }
             },
             {

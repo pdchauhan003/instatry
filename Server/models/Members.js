@@ -1,9 +1,14 @@
-import mg from 'mongoose';
+const mongoose = require('mongoose');
 
-const memberSchema=new mg.Schema({
-    groupId:{type:mg.Schema.Types.ObjectId,ref:'Group'},
-    userId:{type:mg.Schema.Types.ObjectId,ref:'User'},
-})
-memberSchema.index({userId:1});
+const memberSchema = new mongoose.Schema({
+    groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    lastSeen: { type: Date, default: Date.now }
+});
+memberSchema.index({ userId: 1 });
+memberSchema.index({ groupId: 1 });
 
-module.exports=mg.models.Member || mg.model('Member',memberSchema);
+const Member = mongoose.models.Member || mongoose.model('Member', memberSchema);
+
+module.exports = Member;
+module.exports.schema = memberSchema;

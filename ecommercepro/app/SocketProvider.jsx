@@ -96,22 +96,63 @@ export default function SocketProvider({ children }) {
         const activeChatPath = `/home/${id}/chatt/personalChatt/${msg.from}`;
         if (pathnameRef.current === activeChatPath) return;
 
-        queryClient.setQueryData(['friends', id], (oldContacts) => {
-          if (!oldContacts) return oldContacts;
-          return oldContacts.map(user =>
-            user._id === msg.from
-              ? {
-                ...user,
-                unreadCount: (user.unreadCount || 0) + 1,
-                lastMessageTime: new Date()
-              }
-              : user
-          ).sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime));
+        queryClient.setQueryData(['friends', id], (oldData) => {
+          if (!oldData) return oldData;
+
+          // If oldData is an array (old structure)
+          if (Array.isArray(oldData)) {
+            return oldData.map(user =>
+              user._id === msg.from
+                ? {
+                  ...user,
+                  unreadCount: (user.unreadCount || 0) + 1,
+                  lastMessageTime: new Date()
+                }
+                : user
+            ).sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime));
+          }
+
+          // If oldData is an object (new structure { friends, groups })
+          return {
+            ...oldData,
+            friends: (oldData.friends || []).map(user =>
+              user._id === msg.from
+                ? {
+                  ...user,
+                  unreadCount: (user.unreadCount || 0) + 1,
+                  lastMessageTime: new Date()
+                }
+                : user
+            ).sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime))
+          };
         });
       }
     };
 
+    const handleReceiveGroupMessage = (msg) => {
+      const activeGroupPath = `/home/${id}/chatt/groupChat/${msg.groupId}`;
+      if (pathnameRef.current === activeGroupPath) return;
+
+      queryClient.setQueryData(['friends', id], (oldData) => {
+        if (!oldData || !oldData.groups) return oldData;
+
+        return {
+          ...oldData,
+          groups: oldData.groups.map(group =>
+            group._id === msg.groupId
+              ? {
+                ...group,
+                unreadCount: (group.unreadCount || 0) + 1,
+                // lastMessageTime: new Date() // Group messages don't have lastMessageTime sorting in current sidebar but could be added
+              }
+              : group
+          )
+        };
+      });
+    };
+
     socket.on("receiveMessage", handleReceiveMessage);
+    socket.on("receiveGroupMessage", handleReceiveGroupMessage);
 
     socket.on("forceLogout", () => {
       toast.error("You logged in from another device");
@@ -122,6 +163,7 @@ export default function SocketProvider({ children }) {
       socket.off("connect", handleConnect);
       socket.off("connect_error", handleConnectError);
       socket.off("receiveMessage", handleReceiveMessage);
+      socket.off("receiveGroupMessage", handleReceiveGroupMessage);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [id, queryClient]); // Removed params from dependencies

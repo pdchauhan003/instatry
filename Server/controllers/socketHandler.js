@@ -1,6 +1,7 @@
 const chatController = require("./chatController");
 const userController = require("./userController");
 const callController = require("./callController");
+const Member = require("../models/Members");
 
 const handleSocketEvents = (io, socket, redisClient, ONLINE_USERS_KEY, pendingDisconnects) => {
   // Join event
@@ -24,6 +25,12 @@ const handleSocketEvents = (io, socket, redisClient, ONLINE_USERS_KEY, pendingDi
         io.to(userId).emit("onlineList", users);
       }
 
+      // Join group rooms
+      const groups = await Member.find({ userId }).select('groupId');
+      groups.forEach(g => {
+        socket.join(g.groupId.toString());
+      });
+
       socket.broadcast.emit("userStatus", { userId, status: "online" });
     } catch (error) {
       console.error("Socket join error:", error);
@@ -42,6 +49,7 @@ const handleSocketEvents = (io, socket, redisClient, ONLINE_USERS_KEY, pendingDi
 
   // Chat events
   socket.on("sendMessage", chatController.handleSendMessage(io, socket));
+  socket.on("sendGroupMessage", chatController.handleSendGroupMessage(io, socket));
   socket.on("markSeen", chatController.handleMarkSeen(io, socket));
   socket.on("deleteMessage", chatController.handleDeleteMessage(io, socket));
   socket.on("clearChat", chatController.handleClearChat(io, socket));

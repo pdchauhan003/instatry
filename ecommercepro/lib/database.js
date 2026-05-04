@@ -13,6 +13,8 @@ import PaymentData from "../../Server/models/Payment";
 import TermsData from "../../Server/models/Terms";
 import BioData from "../../Server/models/Bio";
 import LikesData from "../../Server/models/likes";
+import GroupData from "../../Server/models/Group";
+import MemberData from "../../Server/models/Members";
 
 // Helper to get schema from exported model/schema object
 const getSchema = (data) => data.schema || data;
@@ -31,4 +33,6 @@ export const Payment = mongoose.models.Payment || mongoose.model('Payment', getS
 export const Terms = mongoose.models.Terms || mongoose.model('Terms', getSchema(TermsData));
 export const Bio = mongoose.models.Bio || mongoose.model('Bio', getSchema(BioData));
 export const Likes = mongoose.models.Likes || mongoose.model('Likes', getSchema(LikesData));
+export const Group = mongoose.models.Group || mongoose.model('Group', getSchema(GroupData));
+export const Member = mongoose.models.Member || mongoose.model('Member', getSchema(MemberData));
 

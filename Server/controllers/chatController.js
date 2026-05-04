@@ -53,6 +53,45 @@ const getMessagesBefore = async (req, res) => {
   }
 };
 
+const getGroupMessages = async (req, res) => {
+  const { groupId } = req.params;
+  try {
+    const gId = new mongoose.Types.ObjectId(groupId);
+
+    const messages = await Message.find({
+      groupId: gId,
+    })
+    .populate('from', 'username image')
+    .sort({ createdAt: -1 })
+    .limit(20);
+
+    res.json(messages.reverse());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const getGroupMessagesBefore = async (req, res) => {
+  const { groupId, cursor } = req.params;
+  try {
+    const gId = new mongoose.Types.ObjectId(groupId);
+    const cursorDate = new Date(cursor);
+
+    const messages = await Message.find({
+      groupId: gId,
+      createdAt: { $lt: cursorDate },
+    })
+    .populate('from', 'username image')
+    .sort({ createdAt: -1 })
+    .limit(20);
+
+    res.json(messages.reverse());
+  } catch (error) {
+    console.error("Error in fetching old group messages:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Socket Handlers
 const handleSendMessage = (io, socket) => async ({ to, message }) => {
   try {
@@ -75,6 +114,32 @@ const handleSendMessage = (io, socket) => async ({ to, message }) => {
     io.to(from).emit("receiveMessage", savedMessage);
   } catch (err) {
     console.error("sendMessage error:", err);
+  }
+};
+
+const handleSendGroupMessage = (io, socket) => async ({ groupId, message }) => {
+  try {
+    const from = socket.userId?.toString();
+    const targetGroup = groupId?.toString();
+
+    if (!targetGroup || !from) {
+      console.warn("sendGroupMessage failed: missing groupId or from ID");
+      return;
+    }
+
+    const savedMessage = await Message.create({
+      from,
+      groupId: targetGroup,
+      message,
+      isSeen: false
+    });
+
+    const populatedMessage = await Message.findById(savedMessage._id).populate('from', 'username image');
+
+    // Broadcast to the group room
+    io.to(targetGroup).emit("receiveGroupMessage", populatedMessage);
+  } catch (err) {
+    console.error("sendGroupMessage error:", err);
   }
 };
 
@@ -112,6 +177,11 @@ const handleDeleteMessage = (io, socket) => async ({ messageId, type }) => {
       await Message.findByIdAndDelete(messageId);
       if (fromId) io.to(fromId).emit("messageDeleted", messageId);
       if (toId) io.to(toId).emit("messageDeleted", messageId);
+      
+      // If it's a group message, broadcast to the group room
+      if (msg.groupId) {
+        io.to(msg.groupId.toString()).emit("messageDeleted", messageId);
+      }
     } else {
       await Message.findByIdAndUpdate(messageId, {
         $addToSet: { deletedBy: currentUserId }
@@ -144,7 +214,10 @@ const handleClearChat = (io, socket) => async ({ otherId }) => {
 module.exports = {
   getMessages,
   getMessagesBefore,
+  getGroupMessages,
+  getGroupMessagesBefore,
   handleSendMessage,
+  handleSendGroupMessage,
   handleMarkSeen,
   handleDeleteMessage,
   handleClearChat

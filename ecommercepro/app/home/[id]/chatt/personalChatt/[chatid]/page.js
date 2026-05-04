@@ -115,11 +115,20 @@ export default function ChatPage() {
     socket.emit("markSeen", { otherId: chatid });
 
     // reset unread count
-    queryClient.setQueryData(["friends", currentUserId], (old = []) =>
-      old.map((user) =>
-        user._id === chatid ? { ...user, unreadCount: 0 } : user,
-      ),
-    );
+    queryClient.setQueryData(["friends", currentUserId], (old) => {
+      if (!old) return old;
+      if (Array.isArray(old)) {
+        return old.map((user) =>
+          user._id === chatid ? { ...user, unreadCount: 0 } : user,
+        );
+      }
+      return {
+        ...old,
+        friends: (old.friends || []).map((user) =>
+          user._id === chatid ? { ...user, unreadCount: 0 } : user,
+        )
+      };
+    });
 
     return () => {
       socket.off("receiveMessage", handleReceive);

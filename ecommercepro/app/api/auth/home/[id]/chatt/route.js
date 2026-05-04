@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMessageUserData } from "@/controller/user.controller";
-import { Message } from "@/lib/database";
+import { Message, Group, Member } from "@/lib/database";
 import { getAuthUserId } from "@/lib/getAuthUser";
 import mongoose from "mongoose";
 
@@ -31,7 +31,8 @@ export async function POST(req, context) {
             { to: userObjectId },
             { from: userObjectId }
           ],
-          deletedBy: { $ne: userObjectId }
+          deletedBy: { $ne: userObjectId },
+          groupId: { $exists: false }
         }
       },
       {
@@ -88,12 +89,36 @@ export async function POST(req, context) {
       };
     });
 
+    // Fetch Groups with unread counts
+    const userGroups = await Member.find({ userId: userObjectId })
+      .populate({
+        path: 'groupId',
+        select: 'name dp'
+      })
+      .lean();
+
+    const formattedGroups = await Promise.all(userGroups.map(async (ug) => {
+      const unreadCount = await Message.countDocuments({
+        groupId: ug.groupId._id,
+        createdAt: { $gt: ug.lastSeen || new Date(0) }
+      });
+
+      return {
+        _id: ug.groupId._id,
+        name: ug.groupId.name,
+        dp: ug.groupId.dp,
+        unreadCount,
+        isGroup: true
+      };
+    }));
+
     // Sort latest first
     result.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
 
     const finalData = {
       success: true,
-      friends: result
+      friends: result,
+      groups: formattedGroups
     }
 
     return NextResponse.json(finalData, { status: 200 });

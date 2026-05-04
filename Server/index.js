@@ -95,6 +95,8 @@ io.use((socket, next) => {
 app.get("/", (req, res) => res.send("Server is running"));
 app.get("/messages/:user1/:user2", chatController.getMessages);
 app.get("/message/:user1/:user2/before/:cursor", chatController.getMessagesBefore);
+app.get("/group-messages/:groupId", chatController.getGroupMessages);
+app.get("/group-message/:groupId/before/:cursor", chatController.getGroupMessagesBefore);
 app.get("/request/:user1/:user2", userController.getFollowRequest);
 app.get("/notification/:user1", userController.getNotifications);
 app.get("/online-users", (req, res) => userController.getOnlineUsers(redisClient, ONLINE_USERS_KEY)(req, res));

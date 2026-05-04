@@ -73,10 +73,14 @@ export default function CreateGroup() {
 
     const handleCreateGroup=async()=>{
         try{
-        const res=await fetch(`/api/auth/home/${id}/chatt/groupform/creategroup`,{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JOSN.stringify({selectedUsers})
+        const selectedUserIds = selectedUsers.map(u => u._id);
+        const res = await fetch(`/api/auth/home/${id}/chatt/groupform/creategroup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                selectedUser: selectedUserIds, 
+                groupName 
+            })
         })
         const data=await res.json();
         if(data.success){

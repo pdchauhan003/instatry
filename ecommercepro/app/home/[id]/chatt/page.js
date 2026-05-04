@@ -25,7 +25,10 @@ function AllChats() {
     });
 
     const data = await res.json();
-    return data.friends || [];
+    return {
+      friends: data.friends || [],
+      groups: data.groups || []
+    };
     // if (data.success) setContacts(data.friends || []);
   }
 
@@ -51,7 +54,7 @@ function AllChats() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchText]);
 
-  const { data: contacts = [], isLoading } = useQuery({
+  const { data: { friends = [], groups = [] } = {}, isLoading } = useQuery({
     queryKey: ['friends', id],
     queryFn: fetchContacts,
     staleTime: 1000 * 60 * 5
@@ -149,12 +152,49 @@ function AllChats() {
       {/* Scrollable Chat List */}
       <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2 pb-24 no-scrollbar">
 
-        {contacts.length === 0 ? (
+        {groups.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-bold text-gray-500 mb-2 px-2 uppercase tracking-wider">Groups</p>
+            {groups.map((group) => (
+              <div
+                key={group._id}
+                onClick={() =>
+                  router.push(`/home/${id}/chatt/groupChat/${group._id}`)
+                }
+                className="flex items-center justify-between p-3 rounded-xl bg-gray-900 hover:bg-gray-800 transition cursor-pointer mb-2 border border-purple-500/10"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl overflow-hidden relative bg-purple-900/30 flex items-center justify-center border border-purple-500/20">
+                    {group.dp ? (
+                      <Image src={group.dp} alt={group.name} fill className="object-cover" />
+                    ) : (
+                      <span className="text-purple-400 font-bold">{group.name.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-purple-100">{group.name}</p>
+                    <p className="text-[10px] text-gray-500">Group Chat</p>
+                  </div>
+                </div>
+
+                {/* Group Unread Badge */}
+                {group.unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-lg shadow-red-500/20">
+                    {group.unreadCount}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <p className="text-xs font-bold text-gray-500 mb-2 px-2 uppercase tracking-wider">Direct Messages</p>
+        {friends.length === 0 ? (
           <p className="text-center text-gray-400 mt-6">No chats yet</p>
         )
           :
           (
-            contacts?.map((user) => (
+            friends?.map((user) => (
               <div
                 key={user._id}
                 onClick={() =>
