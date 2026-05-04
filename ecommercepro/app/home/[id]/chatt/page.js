@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import socket from "@/lib/socket";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { searchApi } from "@/handler/SearchApi";
+import { Button } from "@/components/ui/button";
 
 function AllChats() {
   const { id } = useParams();
@@ -81,6 +82,10 @@ function AllChats() {
     return () => socket.off("userStatus");
   }, []);
 
+  const handleGroup=()=>{
+    router.push(`/home/${id}/chatt/groupform`)
+  }
+
 
   if (isLoading) return <p>Loading...</p>
 
@@ -88,8 +93,11 @@ function AllChats() {
     <div className="flex flex-col h-full bg-black text-white">
 
       {/* Header */}
-      <div className="p-4 border-b border-gray-800 text-center font-semibold text-lg">
-        Messages
+      <div className="flex justify-between border-b border-gray-800">
+        <div className="flex-1 p-4  text-center font-semibold text-lg">
+          Messages
+        </div>
+        <Button className='m-4' onClick={handleGroup}>Group chat</Button>
       </div>
 
       {/* searchbar */}

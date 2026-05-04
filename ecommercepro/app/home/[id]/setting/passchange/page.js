@@ -65,7 +65,7 @@ function PassChange() {
           
           <h2 className="text-xl font-bold mb-2">Security check</h2>
           <p className="text-gray-400 text-center text-sm mb-8 px-4">
-            Protect your account with a strong password. You'll be logged out of other devices after changing.
+            Protect your account with a strong password. Youll be logged out of other devices after changing.
           </p>
 
           <form onSubmit={handleChangePass} className="w-full space-y-4">

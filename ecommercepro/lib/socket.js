@@ -12,7 +12,10 @@ socket.on("connect", () => {
 });
 
 socket.on("connect_error", (error) => {
-    console.error('Status: [Socket] Connection error:', error.message);
+    // Suppress TokenExpiredError as it is handled by SocketProvider with a silent refresh
+    if (error.message !== "Authentication error: TokenExpiredError") {
+        console.error('Status: [Socket] Connection error:', error.message);
+    }
 });
 
 export default socket;

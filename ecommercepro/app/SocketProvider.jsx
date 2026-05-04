@@ -24,24 +24,36 @@ export default function SocketProvider({ children }) {
       socket.emit("join");
     };
 
-    if (!socket.connected) {
-      const token = localStorage.getItem('auth_token');
-      if (token) {
-        socket.auth = { ...socket.auth, token };
-        socket.connect();
+    const attemptConnection = () => {
+      if (!socket.connected) {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          socket.auth = { ...socket.auth, token };
+          socket.connect();
+        }
+      } else {
+        handleConnect();
       }
-    } else {
-      handleConnect();
-    }
+    };
 
     const handleConnectError = async (error) => {
-      console.error("Status: [Socket] Connection error:", error.message);
-      if (error.message.includes("TokenExpiredError")) {
-        console.log("Token expired, attempting refresh...");
+      const isTokenExpired = error.message.includes("TokenExpiredError");
+      
+      if (!isTokenExpired) {
+        console.error("Status: [Socket] Connection error:", error.message);
+      } else {
+        console.log("Status: [Socket] Token expired, initiating silent refresh...");
+      }
+      
+      // Handle both specific TokenExpiredError and general auth errors that might occur after timeout
+      if (isTokenExpired || error.message.includes("Authentication error")) {
+        console.log("Token likely expired or invalid, attempting refresh...");
         try {
           const res = await fetch("/api/auth/refresh", { method: "POST" });
           const data = await res.json();
+          
           if (data.success && data.accessToken) {
+            console.log("Status: [Socket] Token refreshed successfully");
             localStorage.setItem("auth_token", data.accessToken);
             socket.auth = { ...socket.auth, token: data.accessToken };
             socket.connect();
@@ -51,13 +63,27 @@ export default function SocketProvider({ children }) {
           }
         } catch (err) {
           console.error("Error during refresh:", err);
-          window.location.href = "/login";
+          // Don't redirect immediately on network error, might be a temporary glitch
         }
       }
     };
 
+    // Proactively handle tab refocus / return to app
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log("Status: [App] Tab focused, checking socket...");
+        if (!socket.connected) {
+          attemptConnection();
+        }
+      }
+    };
+
+    // Initial connection
+    attemptConnection();
+
     socket.on("connect", handleConnect);
     socket.on("connect_error", handleConnectError);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     socket.on("sessionEnded", () => {
       toast.error("You logged in from another device");
@@ -96,8 +122,7 @@ export default function SocketProvider({ children }) {
       socket.off("connect", handleConnect);
       socket.off("connect_error", handleConnectError);
       socket.off("receiveMessage", handleReceiveMessage);
-      // Removed socket.disconnect() to allow persistence across page navigations
-      // The socket will disconnect automatically on browser close or manual logout
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [id, queryClient]); // Removed params from dependencies
 

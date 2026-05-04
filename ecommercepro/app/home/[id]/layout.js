@@ -17,10 +17,9 @@ export default function RootLayoutt({ children }) {
       if (!id || user) return;
       const fetchUserData = async () => {
           try {
-              const res = await fetch(`/api/auth/home/${id}/profile`, {
-                  method: "POST",
+              const res = await fetch(`/api/auth/home/${id}`, {
+                  method: "GET",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ id }),
               });
               const data = await res.json();
               if (data.success) {

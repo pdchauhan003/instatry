@@ -20,15 +20,18 @@ export async function POST(req, context) {
     const messageUserData = await getMessageUserData(id);
     console.log('message userdata is', messageUserData);
 
-    // Get all message data
+    // Convert ID to ObjectId for consistent comparison in aggregation
+    const userObjectId = new mongoose.Types.ObjectId(id);
+
+    // Get all message data with correct unread count calculation
     const messagesData = await Message.aggregate([
       {
         $match: {
           $or: [
-            { to: new mongoose.Types.ObjectId(id) },
-            { from: new mongoose.Types.ObjectId(id) }
+            { to: userObjectId },
+            { from: userObjectId }
           ],
-          deletedBy: { $ne: new mongoose.Types.ObjectId(id) }
+          deletedBy: { $ne: userObjectId }
         }
       },
       {
@@ -38,7 +41,7 @@ export async function POST(req, context) {
         $group: {
           _id: {
             $cond: [
-              { $eq: ["$from", id] },
+              { $eq: ["$from", userObjectId] },
               "$to",
               "$from"
             ]
@@ -49,7 +52,7 @@ export async function POST(req, context) {
               $cond: [
                 {
                   $and: [
-                    { $eq: ["$to", id] },
+                    { $eq: ["$to", userObjectId] },
                     { $eq: ["$isSeen", false] }
                   ]
                 },
@@ -74,7 +77,7 @@ export async function POST(req, context) {
 
     // Merge with friends
     const result = messageUserData.map(f => {
-      const data = messageMap.get(f._id.toString());
+    const data = messageMap.get(f._id.toString());
 
       return {
         _id: f._id,
