@@ -31,8 +31,8 @@ export default function PostCard({
   if (!post) return null;
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [likes, setLikes] = useState(post.likes?.length || 0);
-  const [liked, setLiked] = useState(post.likes?.includes(userId));
+  const [likes, setLikes] = useState(post.likesCount || post.likes?.length || 0);
+  const [liked, setLiked] = useState(post.isLiked ?? post.likes?.includes(userId));
   const [showMenu, setShowMenu] = useState(false);
   const [saved, setSaved] = useState(() => {
     // 1. Check direct boolean prop
@@ -67,8 +67,8 @@ export default function PostCard({
       const data = await res.json();
 
       if (data.success) {
-        setLikes(data.post.likes.length);
-        setLiked(data.post.likes.includes(userId));
+        setLikes(data.post.likesCount);
+        setLiked(data.post.isLiked);
       }
     } catch (error) {
       console.log("Error liking post");

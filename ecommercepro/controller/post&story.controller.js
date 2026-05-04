@@ -51,16 +51,40 @@ export const allFriends = async (userId, cursor = null) => {
       },
       { $unwind: "$author" },
 
+      // Join Likes to check if current user liked it
+      {
+        $lookup: {
+          from: "likes",
+          let: { postId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$post", "$$postId"] },
+                    { $eq: ["$user", userObjectId] }
+                  ]
+                }
+              }
+            }
+          ],
+          as: "currentUserLike"
+        }
+      },
+
       //Convert everything to STRING 
       {
         $addFields: {
           _id: { $toString: "$_id" },
           "author._id": { $toString: "$author._id" },
+          isLiked: { $gt: [{ $size: "$currentUserLike" }, 0] },
+          likesCount: { $ifNull: ["$likesCount", 0] },
+          // Mock likes array for frontend compatibility if needed
           likes: {
-            $map: {
-              input: "$likes",
-              as: "l",
-              in: { $toString: "$$l" }
+            $cond: {
+              if: { $gt: [{ $size: "$currentUserLike" }, 0] },
+              then: [userId],
+              else: []
             }
           }
         }
@@ -72,6 +96,8 @@ export const allFriends = async (userId, cursor = null) => {
           post: 1,
           caption: 1,
           createdAt: 1,
+          likesCount: 1,
+          isLiked: 1,
           likes: 1,
           author: 1
         }
@@ -147,12 +173,78 @@ export const allFriends = async (userId, cursor = null) => {
 
 
 
-export const IndividualPosts = async (userId) => {
+export const IndividualPosts = async (userId, currentUserId = null) => {
   try {
     await connectDB();
-    const posts = await Post.find({ author: userId })
-      .sort({ createdAt: -1 })
-      .lean();
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const currentUserObjectId = currentUserId ? new mongoose.Types.ObjectId(currentUserId) : null;
+
+    const posts = await Post.aggregate([
+      { $match: { author: userObjectId } },
+      { $sort: { createdAt: -1 } },
+
+      // Join author details
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          pipeline: [{ $project: { username: 1, image: 1 } }],
+          as: "author"
+        }
+      },
+      { $unwind: "$author" },
+
+      // Join Likes to check if current user liked it
+      {
+        $lookup: {
+          from: "likes",
+          let: { postId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$post", "$$postId"] },
+                    { $eq: ["$user", currentUserObjectId] }
+                  ]
+                }
+              }
+            }
+          ],
+          as: "currentUserLike"
+        }
+      },
+
+      {
+        $addFields: {
+          _id: { $toString: "$_id" },
+          "author._id": { $toString: "$author._id" },
+          isLiked: { $gt: [{ $size: "$currentUserLike" }, 0] },
+          likesCount: { $ifNull: ["$likesCount", 0] },
+          // Mock likes array for frontend compatibility if needed
+          likes: {
+            $cond: {
+              if: { $gt: [{ $size: "$currentUserLike" }, 0] },
+              then: [currentUserId],
+              else: []
+            }
+          }
+        }
+      },
+
+      {
+        $project: {
+          post: 1,
+          caption: 1,
+          createdAt: 1,
+          likesCount: 1,
+          isLiked: 1,
+          likes: 1,
+          author: 1
+        }
+      }
+    ]);
 
     return posts;
   } catch (error) {
@@ -231,11 +323,11 @@ export const deleteStory = async (storyId, userId) => {
 export const getLikes = async (postId) => {
   try {
     await connectDB();
-    const post = await Post.findById(postId)
-      .select("likes")
-      .populate("likes", "username image")
+    const likes = await Likes.find({ post: postId })
+      .populate("user", "username image")
       .lean();
-    return post ? post.likes : [];
+    
+    return likes.map(l => l.user);
   } catch (error) {
     console.error("Error in getLikes controller:", error);
     throw error;

@@ -30,7 +30,7 @@ export async function POST(req, context) {
     const [isFriend, isPending, posts, followers, followings, followerCount, followingCount, bioData] = await Promise.all([
       findFriendOrNot(id, user._id),
       findPendingReq(id, user._id),
-      IndividualPosts(user._id),
+      IndividualPosts(user._id, id),
       getFollowersFromDB(user._id),
       getFollowingsFromDB(user._id),
       getFollowersCount(user._id),
