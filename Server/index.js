@@ -14,6 +14,16 @@ const chatController = require("./controllers/chatController");
 const userController = require("./controllers/userController");
 const { handleSocketEvents } = require("./controllers/socketHandler");
 
+process.on('uncaughtException', (err) => {
+  console.error('CRITICAL: Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('CRITICAL: Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 let pubClient, subClient, redisClient;
 const redisUrl = process.env.REDIS_URL;
 const ONLINE_USERS_KEY = "online_users";
