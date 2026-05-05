@@ -42,6 +42,13 @@ export default function CallPage() {
         setCallStatus("error");
       });
 
+    // Auto-start call after media is ready
+    const timer = setTimeout(() => {
+      if (callStatus === "idle") {
+        startCall();
+      }
+    }, 1500);
+
     // Receive Remote Stream
     peer.current.ontrack = (event) => {
       if (remoteVideo.current) {
@@ -107,14 +114,24 @@ export default function CallPage() {
       }
     };
 
+    const handleCallDeclined = ({ by }) => {
+      if (by === roomid) {
+        setErrorMsg("Call declined by user");
+        setCallStatus("error");
+        setTimeout(() => router.back(), 2000);
+      }
+    };
+
     socket.on("ice-candidate", handleIceCandidate);
     socket.on("incoming-call", handleIncomingCall);
     socket.on("call-accepted", handleCallAccepted);
+    socket.on("call-declined", handleCallDeclined);
 
     return () => {
       socket.off("ice-candidate", handleIceCandidate);
       socket.off("incoming-call", handleIncomingCall);
       socket.off("call-accepted", handleCallAccepted);
+      socket.off("call-declined", handleCallDeclined);
 
       if (localVideo.current && localVideo.current.srcObject) {
         localVideo.current.srcObject.getTracks().forEach((track) => track.stop());

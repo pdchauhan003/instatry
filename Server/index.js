@@ -14,6 +14,7 @@ const chatController = require("./controllers/chatController");
 const userController = require("./controllers/userController");
 const { handleSocketEvents } = require("./controllers/socketHandler");
 
+//for socket connection
 process.on('uncaughtException', (err) => {
   console.error('CRITICAL: Uncaught Exception:', err);
   process.exit(1);
@@ -61,7 +62,7 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => console.error("DB Error:", err));
 
 const app = express();
-app.use(express.json()); // Added to parse JSON bodies for /force-logout
+app.use(express.json()); // Added to parse JSON bodies 
 
 const server = http.createServer(app);
 

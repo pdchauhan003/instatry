@@ -64,6 +64,7 @@ const handleSocketEvents = (io, socket, redisClient, ONLINE_USERS_KEY, pendingDi
   socket.on("call-user", callController.handleCallUser(io, socket));
   socket.on("answer-call", callController.handleAnswerCall(io, socket));
   socket.on("ice-candidate", callController.handleIceCandidate(io, socket));
+  socket.on("decline-call", callController.handleDeclineCall(io, socket));
 
   // Disconnect event
   socket.on("disconnect", async () => {

@@ -33,8 +33,21 @@ const handleIceCandidate = (io, socket) => ({ to, candidate }) => {
   }
 };
 
+const handleDeclineCall = (io, socket) => ({ to }) => {
+  try {
+    const from = socket.userId?.toString();
+    const targetTo = to?.toString();
+    if (!from || !targetTo) return;
+
+    io.to(targetTo).emit('call-declined', { by: from });
+  } catch (error) {
+    console.error("decline-call error:", error);
+  }
+};
+
 module.exports = {
   handleCallUser,
   handleAnswerCall,
-  handleIceCandidate
+  handleIceCandidate,
+  handleDeclineCall
 };

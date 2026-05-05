@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname,useRouter } from "next/navigation";
 import socket from "@/lib/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import IncomingCallModal from "@/components/IncomingCallModal";
+import { useState } from "react";
 
 export default function SocketProvider({ children }) {
   const params = useParams();
@@ -11,6 +13,9 @@ export default function SocketProvider({ children }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const pathnameRef = useRef(pathname);
+  const router = useRouter();
+
+  const [incomingCall, setIncomingCall] = useState(null); // { from, offer, callerInfo }
 
   useEffect(() => {
     pathnameRef.current = pathname;
@@ -159,14 +164,84 @@ export default function SocketProvider({ children }) {
       window.location.href = "/login";
     });
 
+    const handleCallIncoming = async ({ from, offer }) => {
+      console.log("Status: [Socket] Incoming call from:", from);
+      
+      // If we are already on a call page, we might want to auto-decline or handle differently
+      if (pathnameRef.current.includes("/callroom/")) return;
+
+      try {
+        const res = await fetch(`/api/auth/home/${id}/chatt/personalchatt`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chatid: from }),
+        });
+        const data = await res.json();
+        
+        setIncomingCall({ 
+          from, 
+          offer, 
+          callerInfo: data.success ? data.userData : { username: "Unknown User" } 
+        });
+
+        // Play a ringtone logic could go here
+      } catch (err) {
+        console.error("Error fetching caller info:", err);
+        setIncomingCall({ from, offer, callerInfo: { username: "Unknown User" } });
+      }
+    };
+
+    const handleCallDeclinedByOther = ({ by }) => {
+      toast.error("Call declined");
+      // If we are on the call room page, we might want to navigate back
+      if (pathnameRef.current.includes(`/callroom/${by}`)) {
+        router.back();
+      }
+    };
+
+    socket.on("incoming-call", handleCallIncoming);
+    socket.on("call-declined", handleCallDeclinedByOther);
+
     return () => {
       socket.off("connect", handleConnect);
       socket.off("connect_error", handleConnectError);
       socket.off("receiveMessage", handleReceiveMessage);
       socket.off("receiveGroupMessage", handleReceiveGroupMessage);
+      socket.off("incoming-call", handleCallIncoming);
+      socket.off("call-declined", handleCallDeclinedByOther);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [id, queryClient]); // Removed params from dependencies
+  }, [id, queryClient, router]); // Removed params from dependencies
 
-  return children;
+  const acceptCall = () => {
+    if (!incomingCall) return;
+    const { from } = incomingCall;
+    // We navigate to the call room. The CallPage will handle the socket listener.
+    // NOTE: Because the SocketProvider already "consumed" the event, 
+    // we need to make sure CallPage can still see the offer.
+    // We can re-emit it locally or store it in a way CallPage can access.
+    
+    // For now, let's just navigate. We will modify CallPage to check for existing offers.
+    router.push(`/home/${id}/callroom/${from}`);
+    setIncomingCall(null);
+  };
+
+  const declineCall = () => {
+    if (!incomingCall) return;
+    socket.emit("decline-call", { to: incomingCall.from });
+    setIncomingCall(null);
+  };
+
+  return (
+    <>
+      {children}
+      {incomingCall && (
+        <IncomingCallModal 
+          caller={incomingCall.callerInfo} 
+          onAccept={acceptCall} 
+          onDecline={declineCall} 
+        />
+      )}
+    </>
+  );
 }
