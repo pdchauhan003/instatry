@@ -10,16 +10,19 @@ import socket from "@/lib/socket"; // make sure socket is imported
 function SharePannel({ post, userId, onClose }) {
   const [selectedUser, setSelectedUser] = useState([]);
 
-  // Fetch friend list
+  // Fetch friend list (Updated to match global structure)
   const fetchContacts = async () => {
     const res = await fetch(`/api/auth/home/${userId}/chatt`, {
       method: "POST",
     });
     const data = await res.json();
-    return data?.friends || [];
+    return {
+      friends: data.friends || [],
+      groups: data.groups || []
+    };
   };
 
-  const { data: contacts = [], isLoading } = useQuery({
+  const { data: { friends: contacts = [] } = {}, isLoading } = useQuery({
     queryKey: ["friends", userId],
     queryFn: fetchContacts,
     staleTime: 1000 * 60 * 5, // 5 minutes
