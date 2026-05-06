@@ -45,6 +45,7 @@ export default function CallPage() {
     // Auto-start call after media is ready
     const timer = setTimeout(() => {
       if (callStatus === "idle") {
+        // eslint-disable-next-line react-hooks/immutability
         startCall();
       }
     }, 1500);

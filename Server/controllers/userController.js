@@ -9,14 +9,13 @@ const getFollowRequest = async (req, res) => {
     const msg = await FollowStatus.findOne({
       $or: [
         { from: user1, to: user2 },
-        { from: user2, to: u1 } // Wait, typo in original code was 'user1' vs 'u1'? No, 'user1'
+        { from: user2, to: user1 }
       ]
     });
-    // Wait, let me check original code for u1/user1.
-    // In index.js:187 it was user1 and user2.
     res.json(msg || null);
-  } catch (err) {
-    res.status(500).json({ err: err.message });
+  } catch (followQueryError) {
+    console.error("Follow Request Query Failure:", followQueryError);
+    res.status(500).json({ err: "Couldn't fetch the follow status. Try again later." });
   }
 };
 
@@ -27,8 +26,9 @@ const getNotifications = async (req, res) => {
       status: "pending",
     }).populate("from", "username image");
     res.json(requests || []);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (notificationFetchError) {
+    console.error("Notification System Failure:", notificationFetchError);
+    res.status(500).json({ error: "Your notifications couldn't be loaded right now." });
   }
 };
 

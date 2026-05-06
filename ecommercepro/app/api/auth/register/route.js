@@ -28,19 +28,19 @@ export async function POST(req) {
     const isValidLength = password.length >= minLength;
 
     if (!isValidLength) {
-      return NextResponse.json({message:"Password must be at least 6 characters long"},{success:409});
+      return NextResponse.json({ message: "Your password is too short. It needs at least 6 characters." }, { status: 409 });
     }
     if (!hasUpperCase) {
-      return NextResponse.json({message:"Password must contain at least one uppercase letter"},{success:409});
+      return NextResponse.json({ message: "Security tip: Add an uppercase letter to your password." }, { status: 409 });
     }
     if (!hasLowerCase) {
-      return NextResponse.json({message:"Password must contain at least one lowercase letter"},{success:409});
+      return NextResponse.json({ message: "Security tip: Add a lowercase letter to your password." }, { status: 409 });
     }
     if (!hasNumber) {
-      return NextResponse.json({message:"Password must contain at least one number"},{success:409});
+      return NextResponse.json({ message: "Security tip: Include a number to make your password stronger." }, { status: 409 });
     }
     if (!hasSymbol) {
-      return NextResponse.json({message:"Password must contain at least one special character"},{success:409});
+      return NextResponse.json({ message: "Security tip: Use a special character (like @ or #) for better security." }, { status: 409 });
     }
 
     //ckeck mobile number
@@ -49,20 +49,20 @@ export async function POST(req) {
     }
 
     // Check if email or username already exists in real Users
-    const [findEmail, findUsername] = await Promise.all([
+    const [existingUserEmail, existingUsername] = await Promise.all([
       User.findOne({ email }),
       User.findOne({ username }),
     ]);
 
-    if (findUsername) {
+    if (existingUsername) {
       return NextResponse.json(
-        { message: 'Username already exists' },
+        { message: 'This username is already taken. Try another one!' },
         { status: 409 }
       );
     }
-    if (findEmail) {
+    if (existingUserEmail) {
       return NextResponse.json(
-        { message: 'Email already exists' },
+        { message: 'This email is already registered. Try logging in instead?' },
         { status: 409 }
       );
     }
@@ -123,10 +123,10 @@ export async function POST(req) {
       { success: true, message: 'OTP sent to your email. Please verify to complete registration.' },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("REGISTER ERROR:", error);
+  } catch (registrationError) {
+    console.error("Critical Registration Failure:", registrationError);
     return NextResponse.json(
-      { message: `Server error: ${error.message || 'Unknown error'}` },
+      { message: `We encountered a problem during registration: ${registrationError.message || 'Unknown server error'}` },
       { status: 500 }
     );
   }

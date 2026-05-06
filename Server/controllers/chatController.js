@@ -22,8 +22,9 @@ const getMessages = async (req, res) => {
     }).sort({ createdAt: -1 }).limit(20);
 
     res.json(messages.reverse());
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (messageRetrievalError) {
+    console.error("Chat Fetch Failure:", messageRetrievalError);
+    res.status(500).json({ error: "We couldn't load your recent messages. Please refresh." });
   }
 };
 
@@ -47,9 +48,9 @@ const getMessagesBefore = async (req, res) => {
       deletedBy: { $ne: u1 }
     }).sort({ createdAt: -1 }).limit(20);
     res.json(messages.reverse());
-  } catch (error) {
-    console.error("Error in fetching old messages:", error);
-    res.status(500).json({ error: error.message });
+  } catch (oldMessagesFetchError) {
+    console.error("Pagination Fetch Error:", oldMessagesFetchError);
+    res.status(500).json({ error: "Problem loading older messages. Check your connection." });
   }
 };
 
@@ -112,8 +113,8 @@ const handleSendMessage = (io, socket) => async ({ to, message }) => {
 
     io.to(targetTo).emit("receiveMessage", savedMessage);
     io.to(from).emit("receiveMessage", savedMessage);
-  } catch (err) {
-    console.error("sendMessage error:", err);
+  } catch (messageSendError) {
+    console.error("Real-time Message Delivery Failure:", messageSendError);
   }
 };
 

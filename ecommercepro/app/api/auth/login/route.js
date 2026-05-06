@@ -12,76 +12,76 @@ export async function POST(req) {
     await connectDB();
 
     const { email, password } = await req.json();
-    const user = await User.findOne({ email });
+    const activeUser = await User.findOne({ email });
 
-    if (!user) {
+    if (!activeUser) {
       return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
     }
 
-    const match = await bcrypt.compare(password, user.password);
+    const isPasswordCorrect = await bcrypt.compare(password, activeUser.password);
 
-    if (!match) {
+    if (!isPasswordCorrect) {
       return NextResponse.json({
         success: false,
-        message: "Wrong password",
+        message: "The password you entered is incorrect. Please try again.",
         forgot: true,
       }, { status: 401 });
     }
 
     const sessionId = crypto.randomBytes(32).toString("hex");
-    user.sessionId = sessionId;
+    activeUser.sessionId = sessionId;
 
-    const refreshToken = generateRefreshToken({ id: user._id,sessionId:sessionId });
-    user.refreshToken = refreshToken;
+    const refreshToken = generateRefreshToken({ id: activeUser._id, sessionId: sessionId });
+    activeUser.refreshToken = refreshToken;
 
-    await user.save();
+    await activeUser.save();
     // call to socket server
     fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/force-logout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user._id.toString() })
-    }).catch(e => console.log("Socket server not reachable or error:", e.message));
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: activeUser._id.toString() })
+    }).catch(e => console.log("Socket server notification failed:", e.message));
 
     const accessToken = generateAccessToken({
-      id: user._id,
-      role: user.role,
+      id: activeUser._id,
+      role: activeUser.role,
       sessionId,
     });
 
     // Create response
     // eslint-disable-next-line no-unused-vars
-    const { password: _, ...userData } = user.toObject();
+    const { password: _, ...userData } = activeUser.toObject();
     const response = NextResponse.json({
       success: true,
-      role: user.role,
-      id: user._id,
+      role: activeUser.role,
+      id: activeUser._id,
       user: userData,
-      accessToken: accessToken, // Export token for socket auth backup
+      accessToken: accessToken, 
     });
 
     //Set cookies
     response.cookies.set("accessToken", accessToken, {
       httpOnly: true,
-      secure: true, // Always true for sameSite: 'none'
+      secure: true, 
       sameSite: "none",
       path: "/",
     });
 
     response.cookies.set("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true, // Always true for sameSite: 'none'
+      secure: true, 
       sameSite: "none",
       path: "/",
     });
 
     return response;
 
-  } catch (error) {
-    console.error("LOGIN ERROR:", error);
+  } catch (loginFailure) {
+    console.error("Critical Login System Failure:", loginFailure);
 
     return NextResponse.json({
       success: false,
-      message: "Server error",
+      message: "We're having trouble logging you in right now. Please try again in a few minutes.",
     }, { status: 500 });
   }
 }
