@@ -1,16 +1,13 @@
 //for check valid sessionid or not 
 
-import { User } from "@/lib/database";
-import { connectDB } from "@/lib/Connection";
+import redis from "@/services/redis";
 
 export async function POST(req){
   try {
-    await connectDB();
-
     const { userId, sessionId } = await req.json();
-    const user = await User.findById(userId);
+    const storedSessionId = await redis.get(`session:${userId}`);
 
-    if(!user || user.sessionId !== sessionId){
+    if(!storedSessionId || storedSessionId !== sessionId){
       console.log('session is not valid')
       return Response.json({ valid: false });
     }

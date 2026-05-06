@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import redis from "@/services/redis";
 
 export async function middleware(req) {
   const token = req.cookies.get("accessToken")?.value;
@@ -32,15 +33,19 @@ export async function middleware(req) {
     const userId = payload.userId;
     const sessionId = payload.sessionId;
 
-    const res = await fetch(`${req.nextUrl.origin}/api/auth/verify-session`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, sessionId })
-    });
-
-    const data = await res.json();
+    // OPTIMIZED: Direct Redis check is much faster than an internal fetch + DB query
+    let isValid = false;
+    try {
+      const storedSessionId = await redis.get(`session:${userId}`);
+      isValid = storedSessionId === sessionId;
+    } catch (redisError) {
+      console.error("Middleware Redis error:", redisError);
+      // Fallback: if redis is down, we might want to allow or hit the API
+      // For now, let's just use the fetch as a fallback or assume invalid
+      isValid = false; 
+    }
     
-    if (data.valid) {
+    if (isValid) {
       // Session is valid
       if (isPublicOnly) {
         return NextResponse.redirect(new URL("/", req.url));

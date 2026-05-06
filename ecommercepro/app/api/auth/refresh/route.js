@@ -4,6 +4,7 @@ import { User } from '@/lib/database.js';
 import { generateAccessToken } from "@/lib/jwt";
 import { connectDB } from "@/services/mongodb";
 import { NextResponse } from "next/server";
+import redis from "@/services/redis";
 
 export async function POST(req) {
     await connectDB();
@@ -23,6 +24,13 @@ export async function POST(req) {
             role: user.role,
             sessionId: user.sessionId
         });
+
+        // Update Redis TTL to keep session alive
+        try {
+            await redis.set(`session:${user._id}`, user.sessionId, { ex: 7 * 24 * 60 * 60 });
+        } catch (redisError) {
+            console.error("Redis session refresh failed:", redisError);
+        }
 
         const response = NextResponse.json({ 
             success: true, 

@@ -1,15 +1,25 @@
 import { NextResponse } from "next/server";
 import { User } from "@/lib/database";
 import { connectDB } from "@/services/mongodb";
+import redis from "@/services/redis";
 
-export async function POST(req) {
+export async function POST(req, { params }) {
   try {
-    const refreshtoken=req.cookies.get('refreshToken')?.value;
-    if(refreshtoken){
+    const { id } = await params;
+    const refreshtoken = req.cookies.get('refreshToken')?.value;
+    
+    if (refreshtoken) {
       await User.findOneAndUpdate(
-        {refreshToken:refreshtoken},
-        {refreshToken:null,sessionId:null}
-      )
+        { refreshToken: refreshtoken },
+        { refreshToken: null, sessionId: null }
+      );
+    }
+
+    // Clear Redis session
+    try {
+      await redis.del(`session:${id}`);
+    } catch (redisError) {
+      console.error("Redis session deletion failed:", redisError);
     }
     const response = NextResponse.json({ success: true });
     response.cookies.set("accessToken",'',{maxAge:0});

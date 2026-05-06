@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useDispatch } from "react-redux";
-import { setAuthUser } from "@/redux/authSlice";
+import { setAuthUser, setToken } from "@/redux/authSlice";
 import { signIn } from "next-auth/react";
 import { toast } from "react-hot-toast";
 
@@ -33,12 +33,10 @@ function LoginPage() {
     console.log('data in login page is ',data);
     if(data.success){
       dispatch(setAuthUser(data.user));
+      dispatch(setToken(data.accessToken));
       // Persist user to localStorage so Redux can be rehydrated on refresh
       try { 
         localStorage.setItem('auth_user', JSON.stringify(data.user)); 
-        if (data.accessToken) {
-          localStorage.setItem('auth_token', data.accessToken);
-        }
       } catch(e) {
         console.error("Storage error:", e);
       }

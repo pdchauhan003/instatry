@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { useParams, usePathname,useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import socket from "@/lib/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import IncomingCallModal from "@/components/IncomingCallModal";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setToken } from "@/redux/authSlice";
 
 export default function SocketProvider({ children }) {
   const params = useParams();
@@ -14,6 +16,8 @@ export default function SocketProvider({ children }) {
   const queryClient = useQueryClient();
   const pathnameRef = useRef(pathname);
   const router = useRouter();
+  const dispatch = useDispatch();
+  const { token } = useSelector(state => state.auth);
 
   const [incomingCall, setIncomingCall] = useState(null); // { from, offer, callerInfo }
 
@@ -31,10 +35,12 @@ export default function SocketProvider({ children }) {
 
     const attemptConnection = () => {
       if (!socket.connected) {
-        const token = localStorage.getItem('auth_token');
         if (token) {
           socket.auth = { ...socket.auth, token };
           socket.connect();
+        } else {
+          // Trigger a silent refresh if no token in memory
+          handleConnectError({ message: "Initial auth check", silent: true });
         }
       } else {
         handleConnect();
@@ -43,23 +49,24 @@ export default function SocketProvider({ children }) {
 
     const handleConnectError = async (error) => {
       const isTokenExpired = error.message.includes("TokenExpiredError");
+      const isInitialAuth = error.silent || error.message === "Initial auth check";
       
-      if (!isTokenExpired) {
+      if (!isTokenExpired && !isInitialAuth) {
         console.error("Status: [Socket] Connection error:", error.message);
-      } else {
+      } else if (isTokenExpired) {
         console.log("Status: [Socket] Token expired, initiating silent refresh...");
       }
       
-      // Handle both specific TokenExpiredError and general auth errors that might occur after timeout
-      if (isTokenExpired || error.message.includes("Authentication error")) {
-        console.log("Token likely expired or invalid, attempting refresh...");
+      // Handle refresh for both expiration and missing initial token
+      if (isTokenExpired || isInitialAuth || error.message.includes("Authentication error")) {
+        if (!isInitialAuth) console.log("Token invalid or expired, attempting refresh...");
         try {
           const res = await fetch("/api/auth/refresh", { method: "POST" });
           const data = await res.json();
           
           if (data.success && data.accessToken) {
             console.log("Status: [Socket] Token refreshed successfully");
-            localStorage.setItem("auth_token", data.accessToken);
+            dispatch(setToken(data.accessToken));
             socket.auth = { ...socket.auth, token: data.accessToken };
             socket.connect();
           } else {

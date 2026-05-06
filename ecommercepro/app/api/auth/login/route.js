@@ -35,6 +35,14 @@ export async function POST(req) {
     activeUser.refreshToken = refreshToken;
 
     await activeUser.save();
+
+    // Store session in Redis for fast verification in middleware
+    try {
+      await redis.set(`session:${activeUser._id}`, sessionId, { ex: 7 * 24 * 60 * 60 });
+    } catch (redisError) {
+      console.error("Redis session storage failed:", redisError);
+    }
+
     // call to socket server
     fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/force-logout`, {
       method: "POST",
@@ -56,7 +64,7 @@ export async function POST(req) {
       role: activeUser.role,
       id: activeUser._id,
       user: userData,
-      accessToken: accessToken, 
+      accessToken: accessToken,
     });
 
     //Set cookies
