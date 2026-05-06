@@ -16,7 +16,7 @@ import LikesData from "../../Server/models/likes";
 import GroupData from "../../Server/models/Group";
 import MemberData from "../../Server/models/Members";
 
-// Helper to get schema from exported model/schema object
+// to get schema from exported model/schema object
 const getSchema = (data) => data.schema || data;
 
 export const User = mongoose.models.User || mongoose.model('User', getSchema(UserData));

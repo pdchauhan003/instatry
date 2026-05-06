@@ -223,12 +223,10 @@ export default function SocketProvider({ children }) {
   const acceptCall = () => {
     if (!incomingCall) return;
     const { from } = incomingCall;
-    // We navigate to the call room. The CallPage will handle the socket listener.
-    // NOTE: Because the SocketProvider already "consumed" the event, 
+    // We navigate to the call room. The CallPage will handle the socket listener. 
     // we need to make sure CallPage can still see the offer.
-    // We can re-emit it locally or store it in a way CallPage can access.
-    
     // For now, let's just navigate. We will modify CallPage to check for existing offers.
+    
     router.push(`/home/${id}/callroom/${from}`);
     setIncomingCall(null);
   };
