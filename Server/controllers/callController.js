@@ -45,9 +45,22 @@ const handleDeclineCall = (io, socket) => ({ to }) => {
   }
 };
 
+const handleEndCall = (io, socket) => ({ to }) => {
+  try {
+    const from = socket.userId?.toString();
+    const targetTo = to?.toString();
+    if (!from || !targetTo) return;
+
+    io.to(targetTo).emit('call-ended', { by: from });
+  } catch (error) {
+    console.error("end-call error:", error);
+  }
+};
+
 module.exports = {
   handleCallUser,
   handleAnswerCall,
   handleIceCandidate,
-  handleDeclineCall
+  handleDeclineCall,
+  handleEndCall
 };

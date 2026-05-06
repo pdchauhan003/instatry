@@ -123,24 +123,39 @@ export default function CallPage() {
       }
     };
 
+    const handleRemoteEndCall = () => {
+      console.log("Remote user ended the call");
+      router.back();
+    };
+
     socket.on("ice-candidate", handleIceCandidate);
     socket.on("incoming-call", handleIncomingCall);
     socket.on("call-accepted", handleCallAccepted);
     socket.on("call-declined", handleCallDeclined);
+    socket.on("call-ended", handleRemoteEndCall);
 
     return () => {
       socket.off("ice-candidate", handleIceCandidate);
       socket.off("incoming-call", handleIncomingCall);
       socket.off("call-accepted", handleCallAccepted);
       socket.off("call-declined", handleCallDeclined);
+      socket.off("call-ended", handleRemoteEndCall);
 
       if (localVideo.current && localVideo.current.srcObject) {
-        localVideo.current.srcObject.getTracks().forEach((track) => track.stop());
+        const stream = localVideo.current.srcObject;
+        stream.getTracks().forEach((track) => {
+          track.stop();
+          console.log(`Track ${track.kind} stopped`);
+        });
+        localVideo.current.srcObject = null;
       }
       
-      peer.current?.close();
+      if (peer.current) {
+        peer.current.close();
+        peer.current = null;
+      }
     };
-  }, [id, roomid]);
+  }, [id, roomid, router]);
 
   // Start Call
   const startCall = async () => {
@@ -161,6 +176,7 @@ export default function CallPage() {
   };
 
   const endCall = () => {
+    socket.emit("end-call", { to: roomid });
     router.back();
   };
 
