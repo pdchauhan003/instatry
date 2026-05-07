@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 export function generateAccessToken(data){
     console.log('accesstoken data is in jwt :',data)
     const userId = data.id?.toString() || data.id;
-    return jwt.sign({userId,role:data.role,sessionId:data.sessionId},process.env.ACCESS_SECRET,{expiresIn:'1m'});
+    return jwt.sign({userId,role:data.role,sessionId:data.sessionId},process.env.ACCESS_SECRET,{expiresIn:'15m'});
 }
 
 export function generateRefreshToken(data){

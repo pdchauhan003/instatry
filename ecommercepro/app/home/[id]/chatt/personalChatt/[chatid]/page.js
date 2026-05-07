@@ -77,7 +77,13 @@ export default function ChatPage() {
   // Socket listeners
   useEffect(() => {
     const handleReceive = (data) => {
-      setMessages((prev) => [...prev, data]);
+      setMessages((prev) => {
+        // Remove the optimistic placeholder if this is the confirmation of my own message
+        const filtered = prev.filter(m => 
+          !(m.isOptimistic && m.from === data.from && m.message === data.message)
+        );
+        return [...filtered, data];
+      });
       shouldScrollRef.current = true;
 
       // If the message is from the other person, mark it as seen immediately
@@ -140,6 +146,19 @@ export default function ChatPage() {
 
   const sendMessage = () => {
     if (!message.trim()) return;
+    
+    const tempId = Date.now().toString();
+    const optimisticMsg = {
+      _id: tempId,
+      from: currentUserId,
+      to: chatid,
+      message,
+      createdAt: new Date().toISOString(),
+      isOptimistic: true
+    };
+
+    setMessages((prev) => [...prev, optimisticMsg]);
+    
     socket.emit("sendMessage", {
       to: chatid,
       message,

@@ -25,6 +25,15 @@ export async function POST(req) {
             sessionId: user.sessionId
         });
 
+        // ROTATION: Generate a new refresh token and update DB
+        const { generateRefreshToken } = await import("@/lib/jwt");
+        const newRefreshToken = generateRefreshToken({
+            id: user._id,
+            sessionId: user.sessionId
+        });
+
+        await User.findByIdAndUpdate(user._id, { refreshToken: newRefreshToken });
+
         // Update Redis TTL to keep session alive
         try {
             await redis.set(`session:${user._id}`, user.sessionId, { ex: 7 * 24 * 60 * 60 });
@@ -43,7 +52,14 @@ export async function POST(req) {
             secure: process.env.NODE_ENV === "production",
             sameSite: 'strict',
             path: '/',
-            // maxAge:60*15 // 15 min
+        });
+
+        response.cookies.set("refreshToken", newRefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: 'strict',
+            path: '/',
+            maxAge: 7 * 24 * 60 * 60 // 7 days
         });
 
         return response;

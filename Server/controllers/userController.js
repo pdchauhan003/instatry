@@ -74,11 +74,11 @@ const handleSendFollowRequest = (io, socket) => async ({ to, status }) => {
     const targetTo = to?.toString();
 
     if (!from || !targetTo) return;
-    const createStatusModel = await FollowStatus.create({
-      from: from,
-      to: targetTo,
-      status: status
-    });
+    const createStatusModel = await FollowStatus.findOneAndUpdate(
+      { from: from, to: targetTo },
+      { status: status },
+      { upsert: true, new: true }
+    );
     const populatedReq = await FollowStatus.findById(createStatusModel._id).populate("from", "username image");
     io.to(targetTo).emit('newFollowReq', populatedReq);
   } catch (error) {

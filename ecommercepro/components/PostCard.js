@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export default function PostCard({
+const PostCard = memo(function PostCard({
   post,
   userId,
   pid,
@@ -287,4 +287,6 @@ export default function PostCard({
       />
     </div>
   );
-}
+});
+
+export default PostCard;
