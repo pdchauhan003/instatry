@@ -5,8 +5,9 @@ import GoogleProvider from "next-auth/providers/google";
 import { User } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
 // import { generateToken } from "@/lib/jwt";
-import { generateAccessToken } from "@/lib/jwt";
+import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
 import crypto from 'crypto';
+import redis from "@/services/redis";
 
 export const authOptions = {
     providers: [
@@ -75,7 +76,19 @@ export const authOptions = {
                     const newSessionId = crypto.randomBytes(32).toString("hex");
 
                     existingUser.sessionId = newSessionId;
-                    await existingUser.save(); //save session id in db
+                    
+                    // Generate and save refreshToken
+                    const refreshToken = generateRefreshToken({ id: existingUser._id, sessionId: newSessionId });
+                    existingUser.refreshToken = refreshToken;
+                    
+                    await existingUser.save(); //save session id and refresh token in db
+
+                    // Store session in Redis
+                    try {
+                        await redis.set(`session:${existingUser._id}`, newSessionId, { ex: 7 * 24 * 60 * 60 });
+                    } catch (redisError) {
+                        console.error("Redis session storage failed:", redisError);
+                    }
 
                     const jwtToken = generateAccessToken({
                         id: existingUser._id,
@@ -84,6 +97,7 @@ export const authOptions = {
                     });
 
                     token.jwt = jwtToken;
+                    token.refreshToken = refreshToken;
                     token.dbId = existingUser._id.toString();
                     token.email = existingUser.email;
                 }
@@ -99,6 +113,7 @@ export const authOptions = {
                         });
 
                         token.jwt = jwtToken;
+                        token.refreshToken = user.refreshToken;
                         token.dbId = user._id.toString();
                     }
                 }
@@ -110,6 +125,7 @@ export const authOptions = {
         },
         async session({ session, token }) {
             session.jwt = token.jwt
+            session.refreshToken = token.refreshToken
             session.dbId = token.dbId
 
             return session
