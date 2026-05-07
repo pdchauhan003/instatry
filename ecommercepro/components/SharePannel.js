@@ -60,27 +60,10 @@ function SharePannel({ post, userId, onClose }) {
           <p className="text-gray-400 text-sm">No friends found</p>
         ) : (
           contacts.map((friend) => (
-            <div
-              key={friend._id}
-              className="flex items-center gap-3 p-2 hover:bg-gray-800 rounded"
-            >
-              <Image
-                src={friend?.image}
-                width={300}
-                height={300}
-                className="w-8 h-8 rounded-full"
-                alt="friend"
-              />
+            <div key={friend._id} className="flex items-center gap-3 p-2 hover:bg-gray-800 rounded">
+              <Image src={friend?.image} width={300} height={300} className="w-8 h-8 rounded-full" alt="friend"/>
               <p className="flex-1">{friend.username}</p>
-              <Button
-                size="sm"
-                onClick={() => handleSelect(friend)}
-                className={
-                  selectedUser.includes(friend._id)
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : ""
-                }
-              >
+              <Button size="sm" onClick={() => handleSelect(friend)} className={selectedUser.includes(friend._id) ? "bg-blue-600 hover:bg-blue-700" : ""}>
                 {selectedUser.includes(friend._id) ? "Selected" : "Send"}
               </Button>
             </div>
@@ -89,11 +72,7 @@ function SharePannel({ post, userId, onClose }) {
       </div>
 
       <div className="border-t border-gray-700 pt-3 mt-2 flex gap-2">
-        <Button
-          className="flex-1"
-          onClick={handleSend}
-          disabled={selectedUser.length === 0}
-        >
+        <Button className="flex-1" onClick={handleSend} disabled={selectedUser.length === 0}>
           Done
         </Button>
         <Button className="flex-1" variant="secondary" onClick={onClose}>

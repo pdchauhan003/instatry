@@ -71,13 +71,7 @@ function FollowerFeed({ id }) {
           <div key={f._id} className="flex items-center gap-3 py-3 px-2 border-b border-gray-900 last:border-0 hover:bg-gray-900/40 transition-colors rounded-lg">
             <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-800 border border-gray-700 shrink-0">
               {f.follower?.image ? (
-                <Image 
-                  src={f.follower.image} 
-                  width={44} 
-                  height={44} 
-                  alt={f.follower.username} 
-                  className="object-cover w-full h-full"
-                />
+                <Image  src={f.follower.image}  width={44}  height={44}  alt={f.follower.username}  className="object-cover w-full h-full"/>
               ) : (
                 <div className="flex items-center justify-center w-full h-full text-sm font-bold text-gray-500">
                   {f.follower.username?.charAt(0).toUpperCase()}
@@ -88,12 +82,7 @@ function FollowerFeed({ id }) {
               <p className="font-bold text-sm tracking-tight">{f.follower.username}</p>
               <p className="text-xs text-gray-500">Follower</p>
             </div>
-            <Button 
-                variant="secondary" 
-                size="sm"
-                className="ml-auto rounded-xl text-xs font-bold h-8 px-4 bg-gray-800 hover:bg-gray-700 text-white" 
-                onClick={() => unfollowMutation.mutate({ friendId: f.follower._id })}
-            >
+            <Button  variant="secondary"  size="sm" className="ml-auto rounded-xl text-xs font-bold h-8 px-4 bg-gray-800 hover:bg-gray-700 text-white"  onClick={() => unfollowMutation.mutate({ friendId: f.follower._id })}>
               Remove
             </Button>
           </div>

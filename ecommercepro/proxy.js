@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import redis from "@/services/redis";
 
-export async function middleware(req) {
+export async function proxy(req) {
   const token = req.cookies.get("accessToken")?.value;
   const { pathname } = req.nextUrl;
 
@@ -40,8 +40,6 @@ export async function middleware(req) {
       isValid = storedSessionId === sessionId;
     } catch (redisError) {
       console.error("Middleware Redis error:", redisError);
-      // Fallback: if redis is down, we might want to allow or hit the API
-      // For now, let's just use the fetch as a fallback or assume invalid
       isValid = false; 
     }
     

@@ -171,8 +171,6 @@ export const allFriends = async (userId, cursor = null) => {
   }
 };
 
-
-
 export const IndividualPosts = async (userId, currentUserId = null) => {
   try {
     await connectDB();

@@ -1,3 +1,5 @@
+//for checking seller verification of admin pannel
+
 import mongoose from 'mongoose';
 import User from '../models/User.js'; // Need to make sure paths are correct
 import dotenv from 'dotenv';
