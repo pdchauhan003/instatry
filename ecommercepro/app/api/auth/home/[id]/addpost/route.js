@@ -33,7 +33,7 @@ export async function POST(req, context) {
       });
     }
 
-    if (option === "story") {
+    if (option == "story") {
       const story = await Story.create({
         story: uploaded.secure_url,
         author: id,
