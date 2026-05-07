@@ -4,7 +4,7 @@ const callController = require("./callController");
 const Member = require("../models/Members");
 
 const handleSocketEvents = (io, socket, redisClient, ONLINE_USERS_KEY, pendingDisconnects) => {
-  // Join event
+  // user can redirect home page then join socket
   socket.on("join", async () => {
     try {
       const userId = socket.userId?.toString();
@@ -19,6 +19,7 @@ const handleSocketEvents = (io, socket, redisClient, ONLINE_USERS_KEY, pendingDi
 
       socket.to(userId).emit("sessionEnded", { message: "Login from another device" });
 
+      //add join user in redis for not multiple req
       if (redisClient) {
         await redisClient.sAdd(ONLINE_USERS_KEY, userId);
         const users = await redisClient.sMembers(ONLINE_USERS_KEY);
@@ -37,7 +38,7 @@ const handleSocketEvents = (io, socket, redisClient, ONLINE_USERS_KEY, pendingDi
     }
   });
 
-  // Clean logout — client emits this before disconnecting on logout
+  // Clean logout client emits this before disconnecting on logout
   socket.on("user-logout", async () => {
     try {
       const userId = socket.userId?.toString();
@@ -91,7 +92,7 @@ const handleSocketEvents = (io, socket, redisClient, ONLINE_USERS_KEY, pendingDi
   socket.on("decline-call", callController.handleDeclineCall(io, socket));
   socket.on("end-call", callController.handleEndCall(io, socket));
 
-  // Disconnect event
+  // disconnect if logout or close app
   socket.on("disconnect", async () => {
     try {
       const userId = socket.userId?.toString();

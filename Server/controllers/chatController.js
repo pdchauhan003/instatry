@@ -2,7 +2,7 @@ const Message = require("../models/Message");
 const ClearedChat = require("../models/ClearedChat");
 const mongoose = require("mongoose");
 
-// HTTP Handlers
+// handelers if chatt 
 const getMessages = async (req, res) => {
   const { user1, user2 } = req.params;
   try {
@@ -28,6 +28,7 @@ const getMessages = async (req, res) => {
   }
 };
 
+//after oprn chat shows messages
 const getMessagesBefore = async (req, res) => {
   const { user1, user2, cursor } = req.params;
   try {
@@ -54,6 +55,8 @@ const getMessagesBefore = async (req, res) => {
   }
 };
 
+
+//for group msgs
 const getGroupMessages = async (req, res) => {
   const { groupId } = req.params;
   try {
@@ -72,6 +75,8 @@ const getGroupMessages = async (req, res) => {
   }
 };
 
+
+//shows after chat before msgs
 const getGroupMessagesBefore = async (req, res) => {
   const { groupId, cursor } = req.params;
   try {
@@ -93,7 +98,7 @@ const getGroupMessagesBefore = async (req, res) => {
   }
 };
 
-// Socket Handlers
+// handle socket for sending msgs
 const handleSendMessage = (io, socket) => async ({ to, message }) => {
   try {
     const from = socket.userId?.toString();
@@ -113,11 +118,13 @@ const handleSendMessage = (io, socket) => async ({ to, message }) => {
 
     io.to(targetTo).emit("receiveMessage", savedMessage);
     io.to(from).emit("receiveMessage", savedMessage);
-  } catch (messageSendError) {
-    console.error("Real-time Message Delivery Failure:", messageSendError);
+  } catch (error) {
+    console.error("Real-time Message Delivery Failure:", error);
   }
 };
 
+
+//send group message of socket handler
 const handleSendGroupMessage = (io, socket) => async ({ groupId, message }) => {
   try {
     const from = socket.userId?.toString();
@@ -144,6 +151,7 @@ const handleSendGroupMessage = (io, socket) => async ({ groupId, message }) => {
   }
 };
 
+//if user can seen msg then handle it
 const handleMarkSeen = (io, socket) => async ({ otherId }) => {
   try {
     const myId = socket.userId?.toString();
@@ -161,6 +169,7 @@ const handleMarkSeen = (io, socket) => async ({ otherId }) => {
   }
 };
 
+//if use can delete msg then instantaly handle with socket
 const handleDeleteMessage = (io, socket) => async ({ messageId, type }) => {
   try {
     const msg = await Message.findById(messageId);
@@ -179,7 +188,7 @@ const handleDeleteMessage = (io, socket) => async ({ messageId, type }) => {
       if (fromId) io.to(fromId).emit("messageDeleted", messageId);
       if (toId) io.to(toId).emit("messageDeleted", messageId);
       
-      // If it's a group message, broadcast to the group room
+      // If it is  a group message broadcast to the group room
       if (msg.groupId) {
         io.to(msg.groupId.toString()).emit("messageDeleted", messageId);
       }

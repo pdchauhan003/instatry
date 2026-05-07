@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 function FollowingFeed({ id }) {
 
   // const { toast } = useToast();
-
+  //for followings
   const fetchFollowings=async(id)=>{
     const res = await fetch(`/api/auth/followings/${id}`);
     if(!res.ok){

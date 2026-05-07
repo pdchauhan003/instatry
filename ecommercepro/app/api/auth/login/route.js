@@ -27,7 +27,7 @@ export async function POST(req) {
         forgot: true,
       }, { status: 401 });
     }
-
+    //session id to check login status
     const sessionId = crypto.randomBytes(32).toString("hex");
     activeUser.sessionId = sessionId;
 
@@ -36,14 +36,15 @@ export async function POST(req) {
 
     await activeUser.save();
 
-    // Store session in Redis for fast verification in middleware
+    // Store session in Redis for fast verification in middleware 
+    //save session in redis
     try {
       await redis.set(`session:${activeUser._id}`, sessionId, { ex: 7 * 24 * 60 * 60 });
     } catch (redisError) {
       console.error("Redis session storage failed:", redisError);
     }
 
-    // call to socket server
+    // socket server
     fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/force-logout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

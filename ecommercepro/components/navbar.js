@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 import { useSelector, useDispatch } from "react-redux";
 import { setAuthUser } from "@/redux/authSlice";
-
+//navbar for shopoing
 function Navbar(){
     const {id}=useParams();
     const [isSeller, setIsSeller] = useState(false);

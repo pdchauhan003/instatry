@@ -21,14 +21,14 @@ export default function CommentDrawer({ open, setOpen, postId }) {
   const shouldScrollToBottomRef = useRef(false);
   const pendingPrependAdjustRef = useRef(null);
 
-  const [comment, setComment] = useState("");
-  const [comments, setComments] = useState([]);
-  const [UName, setUName] = useState("");
+  const [comment, setComment] = useState(""); //new comment
+  const [comments, setComments] = useState([]); // all comments
+  const [UName, setUName] = useState("");  //user name of the commenter
   const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);  //trigger when fetch more comments
   const [hasMore, setHasMore] = useState(false);
   const [cursor, setCursor] = useState(null);
-  const [openMenuCommentId, setOpenMenuCommentId] = useState(null);
+  const [openMenuCommentId, setOpenMenuCommentId] = useState(null);//for delete and reply
 
   // fetch comments
   const fetchInitialComments = useCallback(async () => {
@@ -39,7 +39,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
       setCursor(null);
       setHasMore(false);
       didInitialScrollRef.current = false;
-
+      //fetch comments
       const res = await fetch(`/api/auth/home/${id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -65,7 +65,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
   useEffect(() => {
     fetchInitialComments();
   }, [fetchInitialComments]);
-
+  //fetch more comments
   const fetchMoreComments = useCallback(async () => {
     if (!postId || !open) return;
     if (!hasMore || loadingMore) return;
@@ -100,10 +100,6 @@ export default function CommentDrawer({ open, setOpen, postId }) {
     }
   }, [postId, open, hasMore, loadingMore, cursor, id]);
 
-  // Instagram-like behavior:
-  // - show newest at bottom
-  // - load older when you scroll to top
-  // - keep scroll position stable when older comments are prepended visually
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -128,7 +124,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
     }
   }, [comments, loading]);
 
-  // add comment
+  // when send
   const handleClick = async () => {
     if (!comment.trim()) return;
 
@@ -156,7 +152,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
       console.log("Error adding comment", err);
     }
   };
-
+//for delete comment
   const handleDeleteComment = async (commentId) => {
     try {
       if (!commentId) return;
@@ -181,7 +177,7 @@ export default function CommentDrawer({ open, setOpen, postId }) {
     }
   };
 
-  // profile nav
+  // profile
   const handleProfile = (username) => {
     if (username === UName) {
       router.push(`/home/${id}/profile/`);

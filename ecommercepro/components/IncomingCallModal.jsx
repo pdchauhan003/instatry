@@ -3,7 +3,7 @@
 import React from 'react';
 import { Phone, PhoneOff, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
+//model for call notification
 const IncomingCallModal = ({ caller, onAccept, onDecline }) => {
   return (
     <AnimatePresence>

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { User } from '@/lib/database';
 import { connectDB } from '@/lib/Connection';
 import bcrypt from 'bcryptjs';
+
+//change password api
 export async function POST(req){
     try {
         await connectDB();

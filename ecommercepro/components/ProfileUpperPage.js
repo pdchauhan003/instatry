@@ -18,6 +18,8 @@ export const profilePageContent = ({
   followersCount,
   followingsCount,
 }) => {
+
+  //page of friends page not personal page
   return (
     <>
       <div className="max-w-md m-1 mx-auto min-h-screen rounded-sm border-2 border-black">

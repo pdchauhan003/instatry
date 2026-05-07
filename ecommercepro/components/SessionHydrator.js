@@ -15,11 +15,11 @@ export default function SessionHydrator() {
                 const parsed = JSON.parse(stored);
                 if (parsed && parsed._id) {
                     dispatch(setAuthUser(parsed));
-                    console.log('[SessionHydrator] Restored user from localStorage:', parsed.role);
+                    console.log('Restored user from localStorage:', parsed.role);
                 }
             }
         } catch (e) {
-            console.warn('[SessionHydrator] Failed to restore session:', e);
+            console.warn('Failed to restore session:', e);
         }
     }, [user, dispatch]);
 

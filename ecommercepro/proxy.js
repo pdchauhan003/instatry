@@ -17,7 +17,7 @@ export async function proxy(req) {
     pathname.startsWith(route)
   );
 
-  // 1. Handle cases with NO token
+  //  Handle cases with NO token
   if (!token) {
     if (isProtected) {
       return NextResponse.redirect(new URL("/login", req.url));
@@ -25,7 +25,7 @@ export async function proxy(req) {
     return NextResponse.next();
   }
 
-  // 2. Handle cases WITH token (Need verification)
+  // Handle cases WITH token 
   try {
     const secret = new TextEncoder().encode(process.env.ACCESS_SECRET);
     const { payload } = await jwtVerify(token, secret);
@@ -33,7 +33,7 @@ export async function proxy(req) {
     const userId = payload.userId;
     const sessionId = payload.sessionId;
 
-    // OPTIMIZED: Direct Redis check is much faster than an internal fetch + DB query
+    //  Redis check
     let isValid = false;
     try {
       const storedSessionId = await redis.get(`session:${userId}`);
@@ -49,7 +49,7 @@ export async function proxy(req) {
         return NextResponse.redirect(new URL("/", req.url));
       }
 
-      // SECURITY: Ensure the URL's user ID matches the logged-in user's ID
+      // urls user ID matches the logged-in users id
       const pathSegments = pathname.split("/");
       if (pathSegments.length >= 3) {
         const urlUserId = pathSegments[2];
@@ -61,7 +61,7 @@ export async function proxy(req) {
       }
       return NextResponse.next();
     } else {
-      // Session is NOT valid (e.g., logged in on another device)
+      // Session is NOT valid 
       if (isProtected) {
         const response = NextResponse.redirect(new URL("/login", req.url));
         response.cookies.delete("accessToken");
@@ -70,7 +70,7 @@ export async function proxy(req) {
       return NextResponse.next();
     }
   } catch (error) {
-    // Token verification failed, try refreshing
+    // Token verification failed try refreshing
     try {
       const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh`, {
         method: "POST",

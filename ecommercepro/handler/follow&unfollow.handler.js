@@ -1,6 +1,7 @@
 import socket from "@/lib/socket";
 import { toast } from "react-hot-toast";
 
+//for click follow then trigger socket event
 export const handleFollow=async({id,friendId,setStatus})=>{
     try {
       socket.emit("sendFollowRequest", {

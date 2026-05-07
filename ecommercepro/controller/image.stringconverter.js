@@ -1,5 +1,6 @@
 import cloudinary from "@/lib/cloudinary";
 
+//upload image in cloudinary
 export const getImage=async(image)=>{
     try {
         // Convert file to buffer

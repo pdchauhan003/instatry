@@ -1,6 +1,6 @@
 import { checkFollowers } from "@/controller/follow.controller";
 import { NextResponse } from "next/server";
-
+//follower fetch api
 export async function GET(req,context){
     try {
         const params=await context.params;

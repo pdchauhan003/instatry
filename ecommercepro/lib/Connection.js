@@ -1,1 +1,1 @@
-export { connectDB } from "@/services/mongodb";
+export { connectDB } from "@/services/mongodb"; //just connection db

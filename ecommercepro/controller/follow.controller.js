@@ -3,6 +3,7 @@ import { Follow,FollowStatus } from "@/lib/database";
 import mongoose from "mongoose";
 // import redis from "@/services/redis";
 
+//checking friend or not
 export const findFriendOrNot = async (userId, friendId) => {
   try {
     await connectDB();
@@ -32,6 +33,7 @@ export const findPendingReq = async (userId, friendId) => {
   }
 };
 
+//check followers
 export const checkFollowers=async(userId)=>{
   try {
     await connectDB();
@@ -43,6 +45,7 @@ export const checkFollowers=async(userId)=>{
   }
 }
 
+//check followings
 export const checkFollowings=async(userId)=>{
   try {
     await connectDB();
@@ -115,7 +118,7 @@ export const getFollowingsFromDB = async (userId) => {
     throw error;
   }
 };
-
+//count of followers
 export const getFollowersCount=async(userId)=>{
   try {
     const result=await Follow.aggregate([
@@ -134,7 +137,7 @@ export const getFollowersCount=async(userId)=>{
     throw error;
   }
 }
-
+//count followings
 export const getFollowingsCount=async(userId)=>{
   try {
     const result=await Follow.aggregate([
@@ -164,7 +167,7 @@ export const checkFriend=async(userId,friendId)=>{
     throw error;
   }
 }
-
+//unfollow then trigger
 export const unfollowUser = async (id, friendId) => {
   try {
     await connectDB();

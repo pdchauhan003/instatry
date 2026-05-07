@@ -2,7 +2,8 @@ const User = require('../models/User');
 const FollowStatus = require('../models/FollowStatus');
 const Follow = require('../models/Follow');
 
-// HTTP Handlers
+// handler
+//in notification page get follow req
 const getFollowRequest = async (req, res) => {
   const { user1, user2 } = req.params;
   try {
@@ -19,6 +20,8 @@ const getFollowRequest = async (req, res) => {
   }
 };
 
+
+//notification fetch
 const getNotifications = async (req, res) => {
   try {
     const requests = await FollowStatus.find({
@@ -32,6 +35,8 @@ const getNotifications = async (req, res) => {
   }
 };
 
+
+//send online offline badge 
 const getOnlineUsers = (redisClient, ONLINE_USERS_KEY) => async (req, res) => {
   try {
     if (redisClient) {
@@ -67,7 +72,7 @@ const forceLogout = (io, redisClient, ONLINE_USERS_KEY) => async (req, res) => {
   res.json({ success: true });
 };
 
-// Socket Handlers
+//send follow rq to direct notify 
 const handleSendFollowRequest = (io, socket) => async ({ to, status }) => {
   try {
     const from = socket.userId?.toString();
@@ -113,6 +118,7 @@ const handleAcceptFollowRequest = (io, socket) => async ({ from }) => {
   }
 };
 
+//followback
 const handleFollowBack = (io, socket) => async ({ to }) => {
   try {
     const from = socket.userId?.toString();

@@ -1,5 +1,5 @@
 import Razorpay from "razorpay";
-
+//for rezorpay comnnection 
 export function getRazorpayInstance() {
   return new Razorpay({
     key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,

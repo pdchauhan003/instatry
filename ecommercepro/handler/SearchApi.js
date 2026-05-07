@@ -1,3 +1,4 @@
+//search then handle api
 export const searchApi=async(id,username)=>{
     try {
         const res = await fetch(`/api/auth/home/${id}/search`, {

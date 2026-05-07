@@ -3,7 +3,7 @@ import { User, Bio, Message } from "@/lib/database";
 import redis from "@/services/redis";
 import mongoose from 'mongoose'
 
-
+//full user data
 export const getAllUserData = async (userId) => {
     try {
         await connectDB();
@@ -13,7 +13,7 @@ export const getAllUserData = async (userId) => {
         throw error;
     }
 };
-
+//find data of single person
 export const individualUserData = async (userId) => {
     try {
         await connectDB();
@@ -24,7 +24,7 @@ export const individualUserData = async (userId) => {
         throw error;
     }
 };
-
+//only name 
 export const getUserNameUsingId = async (userId) => {
     try {
         await connectDB();
@@ -35,7 +35,7 @@ export const getUserNameUsingId = async (userId) => {
         throw error;
     }
 };
-
+//only name and profile picture
 export const getUserImageAndUsername = async (userId) => {
     try {
         await connectDB();
@@ -60,7 +60,7 @@ export const getUserImageAndUsername = async (userId) => {
         throw error;
     }
 };
-
+//full bio
 export const getUserBio = async (userId) => {
     try {
         await connectDB();
@@ -79,7 +79,7 @@ export const getUserBio = async (userId) => {
         throw error;
     }
 };
-
+//only bio
 export const getUserBioOnly = async (userId) => {
     try {
         await connectDB();
@@ -90,7 +90,7 @@ export const getUserBioOnly = async (userId) => {
         throw error;
     }
 }
-
+//update of user detail
 export const updateUserField = async (userId, field, value) => {
     try {
         await connectDB();
@@ -105,7 +105,7 @@ export const updateUserField = async (userId, field, value) => {
         throw error;
     }
 }
-
+//update bio
 export const updateBio = async (userId, value) => {
     try {
         await connectDB();
@@ -116,7 +116,7 @@ export const updateBio = async (userId, value) => {
         throw error;
     }
 }
-
+//msg of the two users
 export const getMessageUserData = async (Id) => {
     try {
         await connectDB();

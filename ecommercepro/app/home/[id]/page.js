@@ -7,7 +7,7 @@ import { getUserNameUsingId } from "@/controller/user.controller";
 import InfiniteFeed from "@/components/InfiniteFeed";
 
 async function gethomeData(id, cursor) {
-  return await allFriends(id, cursor);
+  return await allFriends(id, cursor);  //fetching posts and story data of all the friends
 }
 export default async function homePage(context) {
   const params = await context.params;

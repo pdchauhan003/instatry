@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 export const connectDB = async () => {
     try {
-        if (mongoose.connection.readyState >= 1) return;    
+        if (mongoose.connection.readyState >= 1) return;    //if gretter 1 then connected
 
         await mongoose.connect(process.env.MONGODB_URI);
         // await mongoose.connect("mongodb://127.0.0.1:27017/EcommercePro");

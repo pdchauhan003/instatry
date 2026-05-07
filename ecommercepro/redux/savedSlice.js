@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   savedPost: {}
 };
+
+//for save post id store and user id store to fetching
 const savedReducer = createSlice({
   name: "savedSlice",
   initialState,

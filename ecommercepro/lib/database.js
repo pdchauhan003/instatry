@@ -1,3 +1,4 @@
+//import models and schemas from server componan
 import mongoose from 'mongoose';
 import UserData from "../../Server/models/User";
 import PostData from "../../Server/models/Post";

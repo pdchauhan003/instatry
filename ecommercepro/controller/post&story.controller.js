@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/Connection";
 import { User, Follow, Post, Story, Saved } from "@/lib/database";
 import mongoose from 'mongoose'
 
+//for home page find posts and stories
 export const allFriends = async (userId, cursor = null) => {
   try {
     await connectDB();
@@ -171,6 +172,7 @@ export const allFriends = async (userId, cursor = null) => {
   }
 };
 
+//for find personal posts
 export const IndividualPosts = async (userId, currentUserId = null) => {
   try {
     await connectDB();
@@ -251,6 +253,7 @@ export const IndividualPosts = async (userId, currentUserId = null) => {
   }
 }
 
+//for delete post
 export const deletePost = async (postId) => {
   try {
     await connectDB();
@@ -262,6 +265,7 @@ export const deletePost = async (postId) => {
   }
 }
 
+//save post
 export const savePost = async (postId, userId) => {
   try {
     await connectDB();
@@ -275,7 +279,7 @@ export const savePost = async (postId, userId) => {
     throw error;
   }
 }
-
+//unsave post
 export const unsavePost = async (postId, userId) => {
   try {
     await connectDB();
@@ -286,7 +290,7 @@ export const unsavePost = async (postId, userId) => {
     throw error;
   }
 }
-
+//fetching saved posts
 export const getSavedPosts = async (userId) => {
   try {
     await connectDB();
@@ -306,7 +310,7 @@ export const getSavedPosts = async (userId) => {
     throw error;
   }
 };
-
+//for delete story
 export const deleteStory = async (storyId, userId) => {
   try {
     await connectDB();
@@ -317,7 +321,7 @@ export const deleteStory = async (storyId, userId) => {
     throw error;
   }
 }
-
+//like
 export const getLikes = async (postId) => {
   try {
     await connectDB();

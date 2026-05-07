@@ -8,9 +8,9 @@ const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:121
 });
 
 socket.on("connect", () => {
-    console.log('Status: [Socket] Connected:', socket.id);
+    console.log('Status: Socket Connected:', socket.id);
 });
-
+//if prob in connection the triugger
 socket.on("connect_error", (error) => {
     // Suppress common auth errors as they are handled by SocketProvider with a silent refresh
     if (!error.message.includes("TokenExpiredError") && !error.message.includes("Authentication error")) {

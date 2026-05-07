@@ -17,7 +17,7 @@ export default function StoryViewer({ stories, currentIdx, userId }) {
 
   const nextAuthor = stories[currentIdx + 1];
   const prevAuthor = stories[currentIdx - 1];
-
+//next button
   const goToNext = () => {
     if (nextAuthor) {
       router.push(`/home/${userId}/story/${nextAuthor.author._id}`);
@@ -25,17 +25,17 @@ export default function StoryViewer({ stories, currentIdx, userId }) {
       router.push(`/home/${userId}`);
     }
   };
-
+//previous story 
   const goToPrev = () => {
     if (prevAuthor) {
       router.push(`/home/${userId}/story/${prevAuthor.author._id}`);
     }
   };
-
+//close story model
   const closeViewer = () => {
     router.push(`/home/${userId}`);
   };
-
+//delete personal story 
   const handleDelete = async () => {
     if (!storyData?._id) return;
     

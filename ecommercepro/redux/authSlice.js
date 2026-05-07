@@ -1,3 +1,4 @@
+//for storing login user detail and token for verify in backend
 import { createSlice } from "@reduxjs/toolkit";
 
 const authSlice=createSlice({

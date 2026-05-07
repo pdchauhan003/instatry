@@ -1,3 +1,4 @@
+
 'use client'
 import { createSlice } from "@reduxjs/toolkit";
 
@@ -13,6 +14,7 @@ const initialState={
     items:getCartFromStorage()
 }
 
+//for add cart and remove cart also clear cart
 const productSlice=createSlice({
     name:'cart',
     initialState,

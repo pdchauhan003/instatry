@@ -67,7 +67,7 @@ export async function POST(req) {
       );
     }
 
-    // Hash the password
+    // has pass for security
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Convert image to base64 for temporary storage (if provided)

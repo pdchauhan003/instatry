@@ -1,3 +1,4 @@
+//for product fetching in cart of the store
 import { useQuery } from '@tanstack/react-query'
 export const useProducts = () => {
   return useQuery({

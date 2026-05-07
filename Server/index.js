@@ -35,7 +35,7 @@ if (!process.env.ACCESS_SECRET) {
   console.error("ACCESS_SECRET is not defined!");
 }
 
-// Redis setup
+// redis for caching backend data of chats nd user data
 const setupRedis = (ioInstance) => {
   if (!redisUrl) return;
 
@@ -76,7 +76,8 @@ const checkOrigin = (origin, callback) => {
   return callback(new Error("Not allowed by CORS"));
 };
 
-app.use(cors({ origin: checkOrigin, credentials: true }));
+app.use(cors({ origin: checkOrigin, credentials: true }));  // cors origins
+
 
 const io = new Server(server, {
   cors: { origin: checkOrigin, credentials: true }
@@ -84,7 +85,7 @@ const io = new Server(server, {
 
 setupRedis(io);
 
-// Socket Auth
+// socket authentication
 io.use((socket, next) => {
   try {
     const cookies = cookie.parse(socket.handshake.headers.cookie || "");
@@ -102,18 +103,18 @@ io.use((socket, next) => {
   }
 });
 
-// HTTP Routes
+// routes
 app.get("/", (req, res) => res.send("Server is running"));
-app.get("/messages/:user1/:user2", chatController.getMessages);
-app.get("/message/:user1/:user2/before/:cursor", chatController.getMessagesBefore);
-app.get("/group-messages/:groupId", chatController.getGroupMessages);
-app.get("/group-message/:groupId/before/:cursor", chatController.getGroupMessagesBefore);
-app.get("/request/:user1/:user2", userController.getFollowRequest);
-app.get("/notification/:user1", userController.getNotifications);
+app.get("/messages/:user1/:user2", chatController.getMessages);  // for personal messges
+app.get("/message/:user1/:user2/before/:cursor", chatController.getMessagesBefore);  // for cursor points of messages 
+app.get("/group-messages/:groupId", chatController.getGroupMessages);  // group msg
+app.get("/group-message/:groupId/before/:cursor", chatController.getGroupMessagesBefore); //group msg cursor
+app.get("/request/:user1/:user2", userController.getFollowRequest);  // req send foollow
+app.get("/notification/:user1", userController.getNotifications); // notification of follow req pendings
 app.get("/online-users", (req, res) => userController.getOnlineUsers(redisClient, ONLINE_USERS_KEY)(req, res));
 app.post("/force-logout", (req, res) => userController.forceLogout(io, redisClient, ONLINE_USERS_KEY)(req, res));
 
-// Socket Events
+// Socket connection
 io.on("connection", (socket) => {
   handleSocketEvents(io, socket, redisClient, ONLINE_USERS_KEY, pendingDisconnects);
 });

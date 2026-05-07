@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import PostCard from "./PostCard";
-
+//for post feed scroller of fetching
 export default function InfiniteFeed({
   initialPosts,
   nextCursor,
@@ -15,7 +15,7 @@ export default function InfiniteFeed({
   const [loading, setLoading] = useState(false);
 
   const bottomRef = useRef(null);
-
+//when fetch last then load more posts
   const loadMore = async () => {
     if (!cursor || loading) return;
     setLoading(true);

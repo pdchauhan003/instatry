@@ -1,6 +1,8 @@
 import { Post,Comment } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
 
+
+//for fetching post comments of simngle post
 export const getAllPostComments = async (postId, options = {}) => {
     try {
         await connectDB();

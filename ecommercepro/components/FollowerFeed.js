@@ -5,7 +5,7 @@ import { handleUnfollow } from "@/handler/UnFollowhandler";
 import {useMutation,useQueryClient} from "@tanstack/react-query";
 
 function FollowerFeed({ id }) {
-
+  //fetch followers
   const fetchFollowers=async(id)=>{
     const res = await fetch(`/api/auth/followers/${id}`);
     if(!res.ok){
@@ -14,7 +14,7 @@ function FollowerFeed({ id }) {
     const data=await res.json();
     return data.followers || [];
   }
-
+  //tanstack for caching
   const {data:followers=[],isLoading,isError,error}=useQuery({
     queryKey:['followers',id],
     queryFn:()=>fetchFollowers(id),

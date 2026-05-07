@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useState } from "react";
 import socket from "@/lib/socket"; // make sure socket is imported
-
+//for share then open userlist
 function SharePannel({ post, userId, onClose }) {
   const [selectedUser, setSelectedUser] = useState([]);
 
