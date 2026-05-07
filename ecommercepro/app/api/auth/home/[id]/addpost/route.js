@@ -49,7 +49,7 @@ export async function POST(req, context) {
     if (option === "post") {
       const post = await Post.create({
         post: uploaded.secure_url,
-        caption,
+        caption,  
         author: id,
       });
 
