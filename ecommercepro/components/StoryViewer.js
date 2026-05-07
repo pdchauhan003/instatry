@@ -136,9 +136,9 @@ export default function StoryViewer({ stories, currentIdx, userId }) {
 
         {/* Story Content */}
         <div className="flex-1 relative bg-black flex items-center justify-center">
-          {storyData?.story ? (
+          {storyData?.image ? (
             <Image
-              src={storyData.story}
+              src={storyData.image}
               fill
               className="object-contain md:object-cover"
               alt="story"
