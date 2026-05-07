@@ -39,13 +39,13 @@ export default function NotificationPage() {
       if (isFriend) {
         // remove request immediately
         setRequests((prev) =>
-          prev.filter((req) => req.from._id !== from)
+          prev.filter((req) => req.from?._id !== from)
         );
       } else {
         // mark this request as follow-back type
         setRequests((prev) =>
           prev.map((req) =>
-            req.from._id === from
+            req.from?._id === from
               ? { ...req, followBack: true }
               : req
           )
@@ -72,7 +72,7 @@ export default function NotificationPage() {
       from: senderId,
     });
     setRequests((prev) =>
-      prev.filter((req) => req.from._id !== senderId)
+      prev.filter((req) => req.from?._id !== senderId)
     );
   };
 
@@ -82,7 +82,7 @@ export default function NotificationPage() {
       to: senderId
     })
     setRequests((prev) =>
-      prev.filter((req) => req.from._id !== senderId)
+      prev.filter((req) => req.from?._id !== senderId)
     );
   }
 
@@ -100,14 +100,22 @@ export default function NotificationPage() {
         <div key={req._id} className="flex items-center justify-between bg-gray-800 p-3 rounded-lg mb-3">
           {/* profile picture and username section */}
           <div className="flex items-center gap-3">
-            <Image
-              src={req.from.image}
-              width={40}
-              height={40}
-              alt="profile"
-              className="rounded-full"
-            />
-            <span>{req.from.username}</span>
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+              {req.from?.image ? (
+                <Image
+                  src={req.from.image}
+                  width={40}
+                  height={40}
+                  alt={req.from?.username || "user"}
+                  className="rounded-full object-cover w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-300">
+                  {req.from?.username?.charAt(0).toUpperCase() || "?"}
+                </div>
+              )}
+            </div>
+            <span>{req.from?.username}</span>
           </div>
 
           {/*  accept and decline buttons */}
