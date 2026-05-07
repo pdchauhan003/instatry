@@ -37,6 +37,30 @@ const handleSocketEvents = (io, socket, redisClient, ONLINE_USERS_KEY, pendingDi
     }
   });
 
+  // Clean logout — client emits this before disconnecting on logout
+  socket.on("user-logout", async () => {
+    try {
+      const userId = socket.userId?.toString();
+      if (!userId) return;
+
+      // Cancel any pending disconnect timer
+      if (pendingDisconnects[userId]) {
+        clearTimeout(pendingDisconnects[userId]);
+        delete pendingDisconnects[userId];
+      }
+
+      // Immediately remove from Redis online set
+      if (redisClient) {
+        await redisClient.sRem(ONLINE_USERS_KEY, userId);
+      }
+
+      // Broadcast offline to everyone
+      io.emit("userStatus", { userId, status: "offline" });
+    } catch (error) {
+      console.error("user-logout socket error:", error);
+    }
+  });
+
   // Force logout event
   socket.on("force-logout-user", (userId) => {
     try {

@@ -1,6 +1,7 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import socket from "@/lib/socket";
 import { 
   ChevronLeft, 
   Lock, 
@@ -25,9 +26,13 @@ function SettingPage() {
       if (!res.ok) throw new Error("Logout failed");
       const data = await res.json();
       if (data?.success) {
+        // Tell the server to mark this user offline immediately
+        if (socket.connected) {
+          socket.emit("user-logout");
+          socket.disconnect();
+        }
         toast.success('logout success')
         router.replace("/login");
-        router.refresh();
       }
     } catch (error) {
       toast.error('logout failed')

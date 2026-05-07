@@ -111,7 +111,7 @@ app.get("/group-message/:groupId/before/:cursor", chatController.getGroupMessage
 app.get("/request/:user1/:user2", userController.getFollowRequest);
 app.get("/notification/:user1", userController.getNotifications);
 app.get("/online-users", (req, res) => userController.getOnlineUsers(redisClient, ONLINE_USERS_KEY)(req, res));
-app.post("/force-logout", (req, res) => userController.forceLogout(io)(req, res));
+app.post("/force-logout", (req, res) => userController.forceLogout(io, redisClient, ONLINE_USERS_KEY)(req, res));
 
 // Socket Events
 io.on("connection", (socket) => {

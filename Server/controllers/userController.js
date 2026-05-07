@@ -45,12 +45,25 @@ const getOnlineUsers = (redisClient, ONLINE_USERS_KEY) => async (req, res) => {
   }
 };
 
-const forceLogout = (io) => (req, res) => {
+const forceLogout = (io, redisClient, ONLINE_USERS_KEY) => async (req, res) => {
   const { userId } = req.body;
   if (!userId) return res.status(400).json({ error: "No userId provided" });
 
   const targetId = userId.toString();
+
+  // Kick the client off
   io.to(targetId).emit("forceLogout");
+
+  // Remove from Redis online set and broadcast offline
+  try {
+    if (redisClient) {
+      await redisClient.sRem(ONLINE_USERS_KEY, targetId);
+    }
+    io.emit("userStatus", { userId: targetId, status: "offline" });
+  } catch (err) {
+    console.error("forceLogout Redis cleanup error:", err.message);
+  }
+
   res.json({ success: true });
 };
 
