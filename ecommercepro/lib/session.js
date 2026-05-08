@@ -34,3 +34,21 @@ export async function verifySession(token) {
     return null;
   }
 }
+
+const REFRESH_SECRET = new TextEncoder().encode(process.env.REFRESH_SECRET);
+
+/**
+ * Verifies the refresh token.
+ * @param {string} token - The JWT refresh token.
+ * @returns {Promise<{userId: string, sessionId: string} | null>}
+ */
+export async function verifyRefreshToken(token) {
+  if (!token) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, REFRESH_SECRET);
+    return { userId: payload.userId, sessionId: payload.sessionId };
+  } catch (error) {
+    return null;
+  }
+}

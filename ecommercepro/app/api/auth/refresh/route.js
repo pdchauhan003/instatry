@@ -1,10 +1,10 @@
 import { cookies } from "next/headers";
-import jwt from 'jsonwebtoken'
 import { User } from '@/lib/database.js';
 import { generateAccessToken } from "@/lib/jwt";
 import { connectDB } from "@/services/mongodb";
 import { NextResponse } from "next/server";
 import redis from "@/services/redis";
+import { verifyRefreshToken } from "@/lib/session";
 
 export async function POST(req) {
     await connectDB();
@@ -14,8 +14,22 @@ export async function POST(req) {
         return NextResponse.json({ message: 'No refresh token' }, { status: 401 });
     }
     try {
-        const decode = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
-        const user = await User.findById(decode.userId);
+        const decoded = await verifyRefreshToken(refreshToken);
+
+        if (!decoded) {
+            return NextResponse.json({ message: 'Expired or invalid refresh token' }, { status: 401 });
+        }
+
+        const userId = decoded.userId;
+        const sessionId = decoded.sessionId;
+
+        // Verify sessionId against Redis
+        const storedSessionId = await redis.get(`session:${userId}`);
+        if (!storedSessionId || storedSessionId !== sessionId) {
+            return NextResponse.json({ message: 'Session revoked. Please login again.' }, { status: 401 });
+        }
+
+        const user = await User.findById(userId).select('refreshToken role sessionId');
         if (!user || user.refreshToken !== refreshToken) {
             return NextResponse.json({ message: 'invalid refresh token' }, { status: 403 });
         }
@@ -41,8 +55,8 @@ export async function POST(req) {
             console.error("Redis session refresh failed:", redisError);
         }
 
-        const response = NextResponse.json({ 
-            success: true, 
+        const response = NextResponse.json({
+            success: true,
             userId: user._id,
             accessToken: newAccessToken
         }, { status: 200 });

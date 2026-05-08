@@ -16,11 +16,16 @@ export async function POST(req,context){
     }
 
     const {following}=await req.json();
-    console.log(following)
-    await Follow.create({
-      follower:id,
-      following:following,
-    })
+    
+    if (id === following) {
+        return Response.json({ success: false, message: "Cannot follow yourself" }, { status: 400 });
+    }
+
+    await Follow.findOneAndUpdate(
+      { follower: id, following: following },
+      { follower: id, following: following },
+      { upsert: true, new: true }
+    );
     return Response.json({message:'FriendAdded',friend:true})
   } catch (error) {
     console.error("Error in POST /api/auth/home/[id]/profile/send:", error);

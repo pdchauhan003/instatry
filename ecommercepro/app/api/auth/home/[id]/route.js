@@ -37,7 +37,7 @@ export async function GET(req, context) {
       return ourUser._id.toString() === id ? friendUser : ourUser;
     });
 
-    // Remove duplicates (important)
+    // Remove duplicates 
     const uniqueFriends = Array.from(
       new Map(cleanFriends.map((u) => [u._id.toString(), u])).values(),
     );

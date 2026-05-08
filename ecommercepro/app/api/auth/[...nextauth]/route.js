@@ -123,11 +123,10 @@ export const authOptions = {
             }
         },
         async session({ session, token }) {
-            session.jwt = token.jwt
-            session.refreshToken = token.refreshToken
-            session.dbId = token.dbId
-
-            return session
+            // Remove sensitive tokens from client-accessible session object
+            // They are already in HttpOnly cookies
+            session.dbId = token.dbId;
+            return session;
         }
     }
 };

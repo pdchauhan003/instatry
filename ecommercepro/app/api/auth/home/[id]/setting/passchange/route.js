@@ -30,10 +30,21 @@ export async function POST(req, context) {
         }
 
         const hashedPass = await bcrypt.hash(password, 10);
+        
+        // Generate new sessionId to revoke all other sessions
+        const crypto = await import('crypto');
+        const newSessionId = crypto.randomBytes(32).toString("hex");
+
         user.password = hashedPass;
+        user.sessionId = newSessionId;
+        user.refreshToken = null; // Forces re-login on other devices
         await user.save();
 
-        return NextResponse.json({ success: true, message: "Password updated successfully" }, { status: 200 });
+        // Update Redis session
+        const redis = (await import("@/services/redis")).default;
+        await redis.set(`session:${user._id}`, newSessionId, { ex: 7 * 24 * 60 * 60 });
+
+        return NextResponse.json({ success: true, message: "Password updated successfully. Other sessions have been logged out." }, { status: 200 });
     } catch (error) {
         console.error("Error in POST /api/auth/home/[id]/setting/passchange:", error);
         return NextResponse.json(

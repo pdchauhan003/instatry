@@ -2,10 +2,22 @@ import { NextResponse } from "next/server";
 import { User } from "@/lib/database";
 import { connectDB } from "@/services/mongodb";
 import redis from "@/services/redis";
+import { getAuthUserId } from "@/lib/getAuthUser";
 
 export async function POST(req, { params }) {
   try {
+    const authUserId = await getAuthUserId();
+    if (!authUserId) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
+    
+    // Verify ownership
+    if (id !== authUserId) {
+        return NextResponse.json({ success: false, message: "Forbidden: Cannot logout other users" }, { status: 403 });
+    }
+
     const refreshtoken = req.cookies.get('refreshToken')?.value;
     
     if (refreshtoken) {

@@ -26,9 +26,10 @@ export async function POST(req) {
       });
     }
 
-    //  after Success
-    user.otp = null;
-    user.otpExpiry = null;
+    //  after Success - set to a special state to allow password reset
+    user.otp = 'VERIFIED_RESET';
+    // keep expiry for a short window (e.g. 10 more minutes)
+    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); 
     await user.save();
 
     return Response.json({ success: true });

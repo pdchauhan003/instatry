@@ -1,21 +1,13 @@
-import jwt from "jsonwebtoken";
+import { verifySession } from "@/lib/session";
 
 export async function GET(req) {
-  const accessToken = req.cookies.get("accessToken")?.value;
+  const result = await verifySession();
 
-  // access token
-  if (accessToken) {
-    try {
-      const decode = jwt.verify(accessToken, process.env.ACCESS_SECRET);
-
-      return Response.json({
-        success: true,
-        userId: decode.userId,
-      });
-
-    } catch {
-      console.log("Access expired → trying refresh...");
-    }
+  if (result) {
+    return Response.json({
+      success: true,
+      userId: result.userId,
+    });
   }
 
   try {

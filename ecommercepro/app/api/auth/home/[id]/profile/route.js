@@ -22,7 +22,7 @@ export async function POST(req, context) {
     }
     const { username } = await req.json();
 
-    const user = await User.findOne({ username }).lean();
+    const user = await User.findOne({ username }).select("-password -refreshToken -sessionId").lean();
     if (!user) {
       return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
     }

@@ -21,8 +21,9 @@ export async function GET(req) {
         response.cookies.set("accessToken", session.jwt, {
             httpOnly: true,
             path: "/",
-            maxAge: 60 * 60 * 24,
+            maxAge: 15 * 60, // 15 minutes (matches JWT)
             sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
         });
 
         // Also set the refreshToken cookie if it exists
@@ -32,6 +33,7 @@ export async function GET(req) {
                 path: "/",
                 maxAge: 60 * 60 * 24 * 7, // 7 days
                 sameSite: "lax",
+                secure: process.env.NODE_ENV === "production",
             });
         }
 
