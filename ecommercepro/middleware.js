@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import redis from "@/services/redis";
+// import { getAuthUserId } from "@/lib/getAuthUser";
 
-export async function proxy(req) {
+export async function middleware(req) {
   const token = req.cookies.get("accessToken")?.value;
+  // const userId = await getAuthUserId();
   const { pathname } = req.nextUrl;
 
   const protectedRoutes = ["/dashboard", "/home"];
@@ -17,7 +19,7 @@ export async function proxy(req) {
     pathname.startsWith(route)
   );
 
-  //  Handle cases with NO token
+  //  Handle NO token
   if (!token) {
     if (isProtected) {
       return NextResponse.redirect(new URL("/login", req.url));
@@ -25,11 +27,11 @@ export async function proxy(req) {
     return NextResponse.next();
   }
 
-  // Handle cases WITH token 
+  // Handle token 
   try {
     const secret = new TextEncoder().encode(process.env.ACCESS_SECRET);
     const { payload } = await jwtVerify(token, secret);
-    
+
     const userId = payload.userId;
     const sessionId = payload.sessionId;
 
@@ -40,9 +42,9 @@ export async function proxy(req) {
       isValid = storedSessionId === sessionId;
     } catch (redisError) {
       console.error("Middleware Redis error:", redisError);
-      isValid = false; 
+      isValid = false;
     }
-    
+
     if (isValid) {
       // Session is valid
       if (isPublicOnly) {
@@ -61,7 +63,7 @@ export async function proxy(req) {
       }
       return NextResponse.next();
     } else {
-      // Session is NOT valid 
+      // session is NOT valid 
       if (isProtected) {
         const response = NextResponse.redirect(new URL("/login", req.url));
         response.cookies.delete("accessToken");
@@ -70,7 +72,7 @@ export async function proxy(req) {
       return NextResponse.next();
     }
   } catch (error) {
-    // Token verification failed try refreshing
+    // oken verification failed try refreshing
     try {
       const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh`, {
         method: "POST",
@@ -83,13 +85,13 @@ export async function proxy(req) {
         if (isPublicOnly) {
           return NextResponse.redirect(new URL("/", req.url));
         }
-        
+
         const response = NextResponse.next();
         const setCookies = refreshRes.headers.getSetCookie();
         for (const cookie of setCookies) {
           response.headers.append("Set-Cookie", cookie);
         }
-        return response; 
+        return response;
       }
     } catch (refreshError) {
       console.error("Refresh error:", refreshError);
@@ -107,12 +109,12 @@ export async function proxy(req) {
 
 export const config = {
   matcher: [
-    "/dashboard/:path*", 
-    "/home/:path*", 
-    "/login", 
-    "/register", 
-    "/otp", 
-    "/reset", 
+    "/dashboard/:path*",
+    "/home/:path*",
+    "/login",
+    "/register",
+    "/otp",
+    "/reset",
     "/verification"
   ],
 };

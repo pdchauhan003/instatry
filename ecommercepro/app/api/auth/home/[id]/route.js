@@ -56,10 +56,6 @@ export async function GET(req, context) {
         path: "author",
         select: "username image",
       })
-      .populate({
-        path: "comments",
-        select: "username image",
-    });
     console.log("posts iss", posts);
 
     return Response.json({

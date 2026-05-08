@@ -4,9 +4,9 @@ const postSchema = new mongoose.Schema({
     post: { type: String, required: true },
     caption: { type: String, default: '' },
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
-    views: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    // views: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],  // set in future of separate model
     likesCount: { type: Number, default: 0 },
-    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
+    // comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]  // create separete comment model shows comments there
 }, { timestamps: true });
 
 postSchema.index({ author: 1, createdAt: -1 });

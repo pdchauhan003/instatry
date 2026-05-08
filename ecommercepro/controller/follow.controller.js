@@ -1,7 +1,6 @@
 import { connectDB } from "@/lib/Connection";
-import { Follow,FollowStatus } from "@/lib/database";
+import { Follow, FollowStatus } from "@/lib/database";
 import mongoose from "mongoose";
-// import redis from "@/services/redis";
 
 //checking friend or not
 export const findFriendOrNot = async (userId, friendId) => {
@@ -10,7 +9,7 @@ export const findFriendOrNot = async (userId, friendId) => {
 
     //check friend or not
     const relation = await Follow.findOne(
-        { follower: userId, following: friendId},
+      { follower: userId, following: friendId },
     );
     return !!relation; // true if relation exists
   } catch (error) {
@@ -34,10 +33,10 @@ export const findPendingReq = async (userId, friendId) => {
 };
 
 //check followers
-export const checkFollowers=async(userId)=>{
+export const checkFollowers = async (userId) => {
   try {
     await connectDB();
-    const followers=await Follow.find({following:userId}).populate('follower','image username').lean();
+    const followers = await Follow.find({ following: userId }).populate('follower', 'image username').lean();
     return followers;
   } catch (error) {
     console.error("Error in checkFollowers controller:", error);
@@ -46,10 +45,10 @@ export const checkFollowers=async(userId)=>{
 }
 
 //check followings
-export const checkFollowings=async(userId)=>{
+export const checkFollowings = async (userId) => {
   try {
     await connectDB();
-    const followings=await Follow.find({follower:userId}).populate('following','image username').lean();
+    const followings = await Follow.find({ follower: userId }).populate('following', 'image username').lean();
     return followings;
   } catch (error) {
     console.error("Error in checkFollowings controller:", error);
@@ -66,7 +65,7 @@ export const getFollowersFromDB = async (userId) => {
       },
       {
         $lookup: {
-          from: "user",
+          from: "users",
           localField: "follower",
           foreignField: "_id",
           as: "follower"
@@ -119,16 +118,16 @@ export const getFollowingsFromDB = async (userId) => {
   }
 };
 //count of followers
-export const getFollowersCount=async(userId)=>{
+export const getFollowersCount = async (userId) => {
   try {
-    const result=await Follow.aggregate([
+    const result = await Follow.aggregate([
       {
-        $match:{
-          following:new mongoose.Types.ObjectId(userId)
+        $match: {
+          following: new mongoose.Types.ObjectId(userId)
         },
       },
       {
-        $count:'total',
+        $count: 'total',
       }
     ])
     return result[0]?.total || 0;
@@ -138,16 +137,16 @@ export const getFollowersCount=async(userId)=>{
   }
 }
 //count followings
-export const getFollowingsCount=async(userId)=>{
+export const getFollowingsCount = async (userId) => {
   try {
-    const result=await Follow.aggregate([
+    const result = await Follow.aggregate([
       {
-        $match:{
-          follower:new mongoose.Types.ObjectId(userId)
+        $match: {
+          follower: new mongoose.Types.ObjectId(userId)
         }
       },
       {
-        $count:'total'
+        $count: 'total'
       }
     ])
     return result[0]?.total || 0;
@@ -157,10 +156,10 @@ export const getFollowingsCount=async(userId)=>{
   }
 }
 
-export const checkFriend=async(userId,friendId)=>{
+export const checkFriend = async (userId, friendId) => {
   try {
     await connectDB();
-    const friend=await Follow.findOne({follower:userId,following:friendId});
+    const friend = await Follow.findOne({ follower: userId, following: friendId });
     return friend;
   } catch (error) {
     console.error("Error in checkFriend controller:", error);

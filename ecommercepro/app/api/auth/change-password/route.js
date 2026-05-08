@@ -12,9 +12,9 @@ export async function POST(req) {
         const authUserId = await getAuthUserId();
         if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         const { email, password } = await req.json();
-        console.log(email)
+        // console.log(email)
         const hashedPass = await bcrypt.hash(password, 10);
-        const user = await User.findOneAndUpdate({ email }, { password: hashedPass, otp: '' }, { new: true });
+        const user = await User.findOneAndUpdate({ authUserId }, { password: hashedPass, otp: '' }, { new: true });
         if (!user) {
             return NextResponse.json({ message: 'User is not registered' }, { status: 404 });
         }

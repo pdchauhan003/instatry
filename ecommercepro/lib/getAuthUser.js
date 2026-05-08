@@ -2,10 +2,11 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { User } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
+import redis from "@/services/redis";
 
-/**
- * Returns the authenticated user's ID from the JWT token.
- */
+
+//Returns the authenticated user's ID from the JWT token.
+
 export async function getAuthUserId() {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
@@ -14,7 +15,12 @@ export async function getAuthUserId() {
 
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_SECRET);
-    return decoded.userId?.toString() || decoded.userId;
+    const userId = decoded.userId?.toString();
+    const sessionId = decoded.sessionId;
+    // Validate against redis
+    const storedSession = await redis.get(`session:${userId}`);
+    if (storedSession !== sessionId) return null;  // session revoked
+    return userId;
   } catch (error) {
     console.error("Auth User Token Error:", error.message);
     return null;

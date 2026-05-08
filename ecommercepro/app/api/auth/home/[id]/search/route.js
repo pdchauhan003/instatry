@@ -13,16 +13,16 @@ export async function POST(req, context) {
     const id = params.id;
 
     if (id !== authUserId) {
-        return Response.json({ success: false, message: "Forbidden" }, { status: 403 });
+      return Response.json({ success: false, message: "Forbidden" }, { status: 403 });
     }
 
     if (!username || username.trim() === "") {
       return Response.json({ users: [] });
     }
-    const user = await User.findOne({ _id: id });
+    const user = await User.findOne({ _id: id }).select('username image');
     const userData = await User.find(
       { username: { $regex: username, $options: "i" } },
-      { username: 1, _id: 1, image:1 },
+      { username: 1, _id: 1, image: 1 },
     )
       .limit(10)
       .lean();
