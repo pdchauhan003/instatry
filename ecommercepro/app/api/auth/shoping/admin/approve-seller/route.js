@@ -1,9 +1,15 @@
 import { connectDB } from "@/services/mongodb";
 import { User } from "@/lib/database";
 import { NextResponse } from "next/server";
+import { getAuthUser } from "@/lib/getAuthUser";
 
 export async function POST(req) {
   try {
+    const authUser = await getAuthUser();
+    if (!authUser || authUser.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 403 });
+    }
+
     await connectDB();
 
     const { userId, action } = await req.json();
