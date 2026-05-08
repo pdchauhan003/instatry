@@ -20,9 +20,15 @@ export async function POST(req, context) {
     if (id !== authUserId) {
       return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
     }
-    const { username } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const username = body.username;
 
-    const user = await User.findOne({ username }).select("-password -refreshToken -sessionId").lean();
+    let user;
+    if (username) {
+      user = await User.findOne({ username }).select("-password -refreshToken -sessionId").lean();
+    } else {
+      user = await User.findById(id).select("-password -refreshToken -sessionId").lean();
+    }
     if (!user) {
       return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
     }

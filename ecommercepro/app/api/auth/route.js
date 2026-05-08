@@ -1,12 +1,16 @@
+import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 
 export async function GET(req) {
-  const result = await verifySession();
+  const cookieStore = await cookies();
+  const token = cookieStore.get("accessToken")?.value;
+  const result = await verifySession(token);
 
   if (result) {
     return Response.json({
       success: true,
       userId: result.userId,
+      role: result.role
     });
   }
 
@@ -25,6 +29,7 @@ export async function GET(req) {
     return Response.json({
       success: true,
       userId: data.userId,
+      role: data.role
     });
   } catch (error) {
     return Response.json({ success: false });

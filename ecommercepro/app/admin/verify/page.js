@@ -1,103 +1,93 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function AdminVerifySellers() {
   const [activeTab, setActiveTab] = useState("pending"); // "pending" | "sellers"
-
-  // --- Pending Requests State ---
-  const [pendingSellers, setPendingSellers] = useState([]);
-  const [pendingLoading, setPendingLoading] = useState(false);
-  const [pendingError, setPendingError] = useState("");
-
-  // --- Seller List State ---
-  const [sellers, setSellers] = useState([]);
-  const [sellersLoading, setSellersLoading] = useState(false);
-  const [sellersError, setSellersError] = useState("");
+  const queryClient = useQueryClient();
 
   // --- Fetch Pending Requests ---
-  const fetchPendingSellers = async () => {
-    setPendingLoading(true);
-    setPendingError("");
-    try {
+  const { 
+    data: pendingSellers = [], 
+    isLoading: pendingLoading, 
+    error: pendingError 
+  } = useQuery({
+    queryKey: ["admin", "pending-sellers"],
+    queryFn: async () => {
       const res = await fetch("/api/auth/shoping/admin/pending-sellers");
-      const data = await res.json();
-      if (res.ok) {
-        setPendingSellers(data);
-      } else {
-        setPendingError(data.error || "Failed to fetch pending sellers");
-      }
-    } catch {
-      setPendingError("An error occurred while fetching pending sellers.");
-    } finally {
-      setPendingLoading(false);
-    }
-  };
+      if (!res.ok) throw new Error("Failed to fetch pending sellers");
+      return res.json();
+    },
+    enabled: activeTab === "pending",
+  });
 
   // --- Fetch Approved Sellers ---
-  const fetchSellers = async () => {
-    setSellersLoading(true);
-    setSellersError("");
-    try {
+  const { 
+    data: sellers = [], 
+    isLoading: sellersLoading, 
+    error: sellersError 
+  } = useQuery({
+    queryKey: ["admin", "sellers"],
+    queryFn: async () => {
       const res = await fetch("/api/auth/shoping/admin/sellers");
       const data = await res.json();
-      if (data.success) {
-        setSellers(data.sellers);
-      } else {
-        setSellersError(data.error || "Failed to fetch sellers");
-      }
-    } catch {
-      setSellersError("An error occurred while fetching sellers.");
-    } finally {
-      setSellersLoading(false);
-    }
-  };
+      if (!data.success) throw new Error(data.error || "Failed to fetch sellers");
+      return data.sellers;
+    },
+    enabled: activeTab === "sellers",
+  });
 
-  useEffect(() => {
-    if (activeTab === "pending") fetchPendingSellers();
-    else if (activeTab === "sellers") fetchSellers();
-  }, [activeTab]);
-
-  // --- Approve / Reject Pending ---
-  const handleAction = async (userId, action) => {
-    try {
+  // --- Mutation for Actions (Approve/Reject) ---
+  const actionMutation = useMutation({
+    mutationFn: async ({ userId, action }) => {
       const res = await fetch("/api/auth/shoping/admin/approve-seller", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, action }),
       });
       const data = await res.json();
-      if (data.success) {
-        toast.success(`User ${action}ed!`);
-        fetchPendingSellers();
-      } else {
-        toast.error(data.error || `Failed to ${action} user`);
-      }
-    } catch {
-      toast.error("Error taking action.");
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to process request");
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      toast.success(`User ${variables.action}ed!`);
+      queryClient.invalidateQueries({ queryKey: ["admin"] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Error taking action.");
     }
-  };
+  });
 
-  // --- Remove Seller ---
-  const handleRemoveSeller = async (userId, username) => {
-    if (!confirm(`Are you sure you want to remove seller @${username}? They will become a regular user.`)) return;
-    try {
+  // --- Mutation for Removal ---
+  const removeMutation = useMutation({
+    mutationFn: async ({ userId }) => {
       const res = await fetch("/api/auth/shoping/admin/remove-seller", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
       });
       const data = await res.json();
-      if (data.success) {
-        toast.success(`@${username} has been removed as a seller.`);
-        fetchSellers();
-      } else {
-        toast.error(data.error || "Failed to remove seller");
-      }
-    } catch {
-      toast.error("Error removing seller.");
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to remove seller");
+      return data;
+    },
+    onSuccess: () => {
+      toast.success(`Seller removed!`);
+      queryClient.invalidateQueries({ queryKey: ["admin"] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Error removing seller.");
     }
+  });
+
+  const handleAction = (userId, action) => {
+    actionMutation.mutate({ userId, action });
+  };
+
+  const handleRemoveSeller = (userId, username) => {
+    if (!confirm(`Are you sure you want to remove seller @${username}? They will become a regular user.`)) return;
+    removeMutation.mutate({ userId });
   };
 
   return (
@@ -148,7 +138,7 @@ export default function AdminVerifySellers() {
                 Seller Verification Requests
               </h2>
               {pendingError && (
-                <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{pendingError}</div>
+                <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{pendingError.message}</div>
               )}
               {pendingLoading ? (
                 <div className="text-center py-10 text-gray-400">Loading...</div>
@@ -201,14 +191,14 @@ export default function AdminVerifySellers() {
               <div className="flex items-center justify-between mb-4 border-b pb-3">
                 <h2 className="text-xl font-bold text-gray-800">Active Sellers</h2>
                 <button
-                  onClick={fetchSellers}
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ["admin", "sellers"] })}
                   className="text-sm text-emerald-600 hover:underline font-medium"
                 >
                   🔄 Refresh
                 </button>
               </div>
               {sellersError && (
-                <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{sellersError}</div>
+                <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{sellersError.message}</div>
               )}
               {sellersLoading ? (
                 <div className="text-center py-10 text-gray-400">Loading sellers...</div>

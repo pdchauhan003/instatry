@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { MoreVertical, Bookmark, Heart } from "lucide-react";
 import { useDispatch } from "react-redux";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addPost, removePost } from "@/redux/savedSlice";
 import dynamic from "next/dynamic";
 const SharePannel = dynamic(() => import("./SharePannel"), { ssr: false });
@@ -30,7 +31,7 @@ const PostCard = memo(function PostCard({
 }) {
   if (!post) return null;
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const queryClient = useQueryClient();
   const [likes, setLikes] = useState(post.likesCount || post.likes?.length || 0);
   const [liked, setLiked] = useState(post.isLiked ?? post.likes?.includes(userId));
   const [showMenu, setShowMenu] = useState(false);
@@ -56,23 +57,88 @@ const PostCard = memo(function PostCard({
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const router = useRouter();
 
-  const handleLike = async () => {
-    try {
+  // Like Mutation
+  const likeMutation = useMutation({
+    mutationFn: async () => {
       const res = await fetch(`/api/auth/post/${post._id}/like`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
       });
-
-      const data = await res.json();
-
+      if (!res.ok) throw new Error("Failed to like post");
+      return res.json();
+    },
+    onMutate: async () => {
+      // Optimistic update
+      const prevLiked = liked;
+      const prevLikes = likes;
+      setLiked(!prevLiked);
+      setLikes(prevLiked ? prevLikes - 1 : prevLikes + 1);
+      return { prevLiked, prevLikes };
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      setLiked(context.prevLiked);
+      setLikes(context.prevLikes);
+      toast.error("Failed to update like");
+    },
+    onSuccess: (data) => {
       if (data.success) {
         setLikes(data.post.likesCount);
         setLiked(data.post.isLiked);
       }
-    } catch (error) {
-      console.log("Error liking post");
-    }
+    },
+  });
+
+  // Delete Mutation
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/auth/post/${post._id}/delete`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete post");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Post deleted");
+        queryClient.invalidateQueries({ queryKey: ["feed"] });
+        queryClient.invalidateQueries({ queryKey: ["posts", userId] });
+      } else {
+        toast.error(data.message);
+      }
+    },
+  });
+
+  // Save Mutation
+  const saveMutation = useMutation({
+    mutationFn: async (shouldSave) => {
+      const endpoint = shouldSave ? `/api/auth/post/${post._id}/saved` : `/api/auth/post/${post._id}/unsaved`;
+      const method = shouldSave ? "POST" : "DELETE";
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) throw new Error("Failed to update saved status");
+      return res.json();
+    },
+    onMutate: async (shouldSave) => {
+      setSaved(shouldSave);
+      if (shouldSave) dispatch(addPost({ userId, postId: post._id }));
+      else dispatch(removePost({ userId, postId: post._id }));
+    },
+    onError: (err, shouldSave) => {
+      setSaved(!shouldSave);
+      if (shouldSave) dispatch(removePost({ userId, postId: post._id }));
+      else dispatch(addPost({ userId, postId: post._id }));
+      toast.error("Failed to save post");
+    },
+  });
+
+  const handleLike = () => {
+    if (likeMutation.isLoading) return;
+    likeMutation.mutate();
   };
 
   const handleComments = (pid) => {
@@ -88,61 +154,15 @@ const PostCard = memo(function PostCard({
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      const res = await fetch(`/api/auth/post/${post._id}/delete`, {
-        method: "DELETE",
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        router.refresh();
-      } else {
-        console.log(data.message);
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.log("Error deleting post");
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this post?") && !deleteMutation.isLoading) {
+      deleteMutation.mutate();
     }
   };
 
-  const handleSave = async () => {
-    try {
-      if (!saved) {
-        setSaved(true);
-        dispatch(addPost({ userId, postId: post._id }));
-
-        const res = await fetch(`/api/auth/post/${post._id}/saved`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }),
-        });
-
-        const data = await res.json();
-
-        if (!data.success) {
-          setSaved(false);
-        }
-      } else {
-        setSaved(false);
-        dispatch(removePost({ userId, postId: post._id }));
-
-        const res = await fetch(`/api/auth/post/${post._id}/unsaved`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }),
-        });
-
-        const data = await res.json();
-
-        if (!data.success) {
-          setSaved(true);
-        }
-      }
-    } catch (error) {
-      console.log("error in save post", error);
-    }
+  const handleSave = () => {
+    if (saveMutation.isLoading) return;
+    saveMutation.mutate(!saved);
   };
 
   const handleDoubleClick = () => {

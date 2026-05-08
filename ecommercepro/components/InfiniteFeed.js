@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import PostCard from "./PostCard";
-//for post feed scroller of fetching
+
 export default function InfiniteFeed({
   initialPosts,
   nextCursor,
@@ -10,44 +11,49 @@ export default function InfiniteFeed({
   savedIds,
   UName,
 }) {
-  const [posts, setPosts] = useState(initialPosts || []);
-  const [cursor, setCursor] = useState(nextCursor);
-  const [loading, setLoading] = useState(false);
-
   const bottomRef = useRef(null);
-//when fetch last then load more posts
-  const loadMore = async () => {
-    if (!cursor || loading) return;
-    setLoading(true);
-    const res = await fetch(`/api/auth/feed?userId=${userId}&cursor=${cursor}`);
-    const data = await res.json();
-    setPosts((prev) => {
-      const existingIds = new Set(prev.map((p) => p._id));
-      const newPosts = data.posts.filter((p) => !existingIds.has(p._id));
-      return [...prev, ...newPosts];
-    });
-    setCursor(data.nextCursor);
-    setLoading(false);
-  };
-
-useEffect(() => {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      if (entries[0].isIntersecting) {
-        loadMore();
-      }
+  //tanstack query for data caching of posts 
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status,
+  } = useInfiniteQuery({
+    queryKey: ["feed", userId],
+    queryFn: async ({ pageParam = null }) => {
+      const res = await fetch(`/api/auth/feed?userId=${userId}${pageParam ? `&cursor=${pageParam}` : ""}`);
+      if (!res.ok) throw new Error("Network response was not ok");
+      return res.json();
     },
-    { rootMargin: "200px" }
-  );
+    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+    initialData: {
+      pages: [{ posts: initialPosts, nextCursor: nextCursor }],
+      pageParams: [null],
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
 
-  if (bottomRef.current) observer.observe(bottomRef.current);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "400px" } // Load earlier for smoother experience
+    );
 
-  return () => observer.disconnect();
-}, []);
+    if (bottomRef.current) observer.observe(bottomRef.current);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Flatten the pages of posts
+  const allPosts = data?.pages.flatMap((page) => page.posts) || [];
 
   return (
     <>
-      {posts?.map((post) => (
+      {allPosts.map((post) => (
         <PostCard
           key={post._id}
           post={post}
@@ -62,7 +68,15 @@ useEffect(() => {
 
       {/* loader */}
       <div ref={bottomRef} className="h-20 flex justify-center items-center">
-        {loading && <p>Loading...</p>}
+        {(isFetchingNextPage || status === "loading") && (
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-xs text-gray-500">Loading more posts...</p>
+          </div>
+        )}
+        {!hasNextPage && allPosts.length > 0 && (
+          <p className="text-xs text-gray-500">load more</p>
+        )}
       </div>
     </>
   );

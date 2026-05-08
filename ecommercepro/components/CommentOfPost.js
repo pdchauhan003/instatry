@@ -9,11 +9,13 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useRouter, useParams } from "next/navigation";
-import {MoreVertical} from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function CommentDrawer({ open, setOpen, postId }) {
   const { id } = useParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const startY = useRef(null);
   const scrollRef = useRef(null);
@@ -21,160 +23,82 @@ export default function CommentDrawer({ open, setOpen, postId }) {
   const shouldScrollToBottomRef = useRef(false);
   const pendingPrependAdjustRef = useRef(null);
 
-  const [comment, setComment] = useState(""); //new comment
-  const [comments, setComments] = useState([]); // all comments
-  const [UName, setUName] = useState("");  //user name of the commenter
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);  //trigger when fetch more comments
-  const [hasMore, setHasMore] = useState(false);
-  const [cursor, setCursor] = useState(null);
-  const [openMenuCommentId, setOpenMenuCommentId] = useState(null);//for delete and reply
+  const [comment, setComment] = useState(""); // new comment text
+  const [openMenuCommentId, setOpenMenuCommentId] = useState(null);
 
-  // fetch comments
-  const fetchInitialComments = useCallback(async () => {
-    if (!postId || !open) return;
-    try {
-      setLoading(true);
-      setComments([]);
-      setCursor(null);
-      setHasMore(false);
-      didInitialScrollRef.current = false;
-      //fetch comments
+  // TanStack Query for fetching comments
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: loading,
+  } = useInfiniteQuery({
+    queryKey: ["comments", postId],
+    queryFn: async ({ pageParam = null }) => {
+      if (!postId || !open) return { commentData: [], hasMore: false };
       const res = await fetch(`/api/auth/home/${id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postid: postId, limit: 15, cursor: null }),
+        body: JSON.stringify({ postid: postId, limit: 15, cursor: pageParam }),
       });
+      if (!res.ok) throw new Error("Failed to fetch comments");
+      return res.json();
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+    enabled: open && !!postId,
+    staleTime: 1000 * 60 * 2,
+  });
 
-      if (!res.ok) return;
+  const comments = data?.pages.flatMap((page) => page.commentData) || [];
+  const UName = data?.pages[0]?.username || "";
 
-      const data = await res.json();
-
-      setComments(data.commentData || []);
-      setUName(data.username);
-      setHasMore(Boolean(data.hasMore));
-      setCursor(data.nextCursor ?? null);
-      shouldScrollToBottomRef.current = true;
-    } catch (err) {
-      console.log("Error fetching comments", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [postId, id, open]);
-
-  useEffect(() => {
-    fetchInitialComments();
-  }, [fetchInitialComments]);
-  //fetch more comments
-  const fetchMoreComments = useCallback(async () => {
-    if (!postId || !open) return;
-    if (!hasMore || loadingMore) return;
-    if (!cursor?.createdAt || !cursor?._id) return;
-
-    try {
-      const el = scrollRef.current;
-      if (el) {
-        pendingPrependAdjustRef.current = {
-          prevScrollHeight: el.scrollHeight,
-          prevScrollTop: el.scrollTop,
-        };
-      }
-      setLoadingMore(true);
-      const res = await fetch(`/api/auth/home/${id}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postid: postId, limit: 10, cursor }),
-      });
-
-      if (!res.ok) return;
-      const data = await res.json();
-      const nextBatch = data.commentData || [];
-
-      setComments((prev) => [...prev, ...nextBatch]);
-      setHasMore(Boolean(data.hasMore));
-      setCursor(data.nextCursor ?? null);
-    } catch (err) {
-      console.log("Error fetching more comments", err);
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [postId, open, hasMore, loadingMore, cursor, id]);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const pending = pendingPrependAdjustRef.current;
-    if (pending) {
-      pendingPrependAdjustRef.current = null;
-      const delta = el.scrollHeight - pending.prevScrollHeight;
-      el.scrollTop = pending.prevScrollTop + delta;
-      return;
-    }
-
-    if (
-      shouldScrollToBottomRef.current &&
-      !loading &&
-      comments.length > 0 &&
-      !didInitialScrollRef.current
-    ) {
-      didInitialScrollRef.current = true;
-      shouldScrollToBottomRef.current = false;
-      el.scrollTop = el.scrollHeight;
-    }
-  }, [comments, loading]);
-
-  // when send
-  const handleClick = async () => {
-    if (!comment.trim()) return;
-
-    try {
+  // Mutation for adding a comment
+  const addCommentMutation = useMutation({
+    mutationFn: async (text) => {
       const res = await fetch(`/api/auth/home/${id}/comments/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postid: postId, comment }),
+        body: JSON.stringify({ postid: postId, comment: text }),
       });
-
-      const data = await res.json();
-
+      if (!res.ok) throw new Error("Failed to add comment");
+      return res.json();
+    },
+    onSuccess: (data) => {
       if (data.success) {
         setComment("");
-        const newComment = data.comment;
-        if (newComment?._id) {
-          setComments((prev) => [newComment, ...prev]);
-        }
-
-        // keep the user at the latest comment (bottom)
+        queryClient.invalidateQueries({ queryKey: ["comments", postId] });
         shouldScrollToBottomRef.current = true;
         didInitialScrollRef.current = false;
       }
-    } catch (err) {
-      console.log("Error adding comment", err);
-    }
-  };
-//for delete comment
-  const handleDeleteComment = async (commentId) => {
-    try {
-      if (!commentId) return;
-      setOpenMenuCommentId(null);
+    },
+  });
 
+  // Mutation for deleting a comment
+  const deleteCommentMutation = useMutation({
+    mutationFn: async (commentId) => {
       const res = await fetch(`/api/auth/home/${id}/comments/delete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ commentId, postid: postId }),
       });
+      if (!res.ok) throw new Error("Failed to delete comment");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+      setOpenMenuCommentId(null);
+    },
+  });
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.success) {
-        alert(data?.message || "Failed to delete comment");
-        return;
-      }
+  const handleClick = () => {
+    if (!comment.trim() || addCommentMutation.isLoading) return;
+    addCommentMutation.mutate(comment);
+  };
 
-      setComments((prev) => prev.filter((c) => String(c._id) !== String(commentId)));
-    } catch (error) {
-      console.log("error in delete comment", error);
-      alert("error in delete comment");
-    }
+  const handleDeleteComment = (commentId) => {
+    if (!commentId || deleteCommentMutation.isLoading) return;
+    deleteCommentMutation.mutate(commentId);
   };
 
   // profile
@@ -208,8 +132,10 @@ export default function CommentDrawer({ open, setOpen, postId }) {
     const el = scrollRef.current;
     if (!el) return;
     const nearTop = el.scrollTop <= 200;
-    if (nearTop) fetchMoreComments();
-  }, [fetchMoreComments]);
+    if (nearTop && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -312,10 +238,10 @@ export default function CommentDrawer({ open, setOpen, postId }) {
             ))
           )}
 
-          {loadingMore && (
+          {isFetchingNextPage && (
             <p className="text-center text-gray-500 text-sm">Loading more...</p>
           )}
-          {!loading && !loadingMore && comments.length > 0 && !hasMore && (
+          {!loading && !isFetchingNextPage && comments.length > 0 && !hasNextPage && (
             <p className="text-center text-gray-600 text-xs">No more comments</p>
           )}
         </div>

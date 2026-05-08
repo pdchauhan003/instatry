@@ -58,6 +58,7 @@ export async function POST(req) {
         const response = NextResponse.json({
             success: true,
             userId: user._id,
+            role: user.role,
             accessToken: newAccessToken
         }, { status: 200 });
 
