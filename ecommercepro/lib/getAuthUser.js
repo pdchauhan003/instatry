@@ -1,8 +1,7 @@
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
 import { User } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
-import redis from "@/services/redis";
+import { verifySession } from "./session";
 
 
 //Returns the authenticated user's ID from the JWT token.
@@ -13,24 +12,11 @@ export async function getAuthUserId() {
 
   if (!token) return null;
 
-  try {
-    const decoded = jwt.verify(token, process.env.ACCESS_SECRET);
-    const userId = decoded.userId?.toString();
-    const sessionId = decoded.sessionId;
-    // Validate against redis
-    const storedSession = await redis.get(`session:${userId}`);
-    if (storedSession !== sessionId) return null;  // session revoked
-    return userId;
-  } catch (error) {
-    console.error("Auth User Token Error:", error.message);
-    return null;
-  }
+  const session = await verifySession(token);
+  return session ? session.userId : null;
 }
 
-/**
- * Returns the full authenticated user object from the database.
- * Useful for role-based access control.
- */
+//for admin roll base auth
 export async function getAuthUser() {
   const userId = await getAuthUserId();
   if (!userId) return null;

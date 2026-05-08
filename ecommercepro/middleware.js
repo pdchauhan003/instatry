@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { verifySession } from "@/lib/session";
 import redis from "@/services/redis";
-// import { getAuthUserId } from "@/lib/getAuthUser";
 
 export async function middleware(req) {
   const token = req.cookies.get("accessToken")?.value;
@@ -28,51 +27,29 @@ export async function middleware(req) {
   }
 
   // Handle token 
-  try {
-    const secret = new TextEncoder().encode(process.env.ACCESS_SECRET);
-    const { payload } = await jwtVerify(token, secret);
+  const session = await verifySession(token);
 
-    const userId = payload.userId;
-    const sessionId = payload.sessionId;
-
-    //  Redis check
-    let isValid = false;
-    try {
-      const storedSessionId = await redis.get(`session:${userId}`);
-      isValid = storedSessionId === sessionId;
-    } catch (redisError) {
-      console.error("Middleware Redis error:", redisError);
-      isValid = false;
+  if (session) {
+    const { userId } = session;
+    // Session is valid
+    if (isPublicOnly) {
+      return NextResponse.redirect(new URL("/", req.url));
     }
 
-    if (isValid) {
-      // Session is valid
-      if (isPublicOnly) {
-        return NextResponse.redirect(new URL("/", req.url));
+    // urls user ID matches the logged-in users id
+    const pathSegments = pathname.split("/");
+    if (pathSegments.length >= 3) {
+      const urlUserId = pathSegments[2];
+      if (urlUserId && urlUserId !== userId) {
+        console.log(`Security: URL user (${urlUserId}) ≠ token user (${userId}). Redirecting.`);
+        pathSegments[2] = userId;
+        return NextResponse.redirect(new URL(pathSegments.join("/"), req.url));
       }
-
-      // urls user ID matches the logged-in users id
-      const pathSegments = pathname.split("/");
-      if (pathSegments.length >= 3) {
-        const urlUserId = pathSegments[2];
-        if (urlUserId && urlUserId !== userId) {
-          console.log(`Security: URL user (${urlUserId}) ≠ token user (${userId}). Redirecting.`);
-          pathSegments[2] = userId;
-          return NextResponse.redirect(new URL(pathSegments.join("/"), req.url));
-        }
-      }
-      return NextResponse.next();
-    } else {
-      // session is NOT valid 
-      if (isProtected) {
-        const response = NextResponse.redirect(new URL("/login", req.url));
-        response.cookies.delete("accessToken");
-        return response;
-      }
-      return NextResponse.next();
     }
-  } catch (error) {
-    // oken verification failed try refreshing
+    return NextResponse.next();
+  } else {
+    // session is NOT valid 
+    // session is NOT valid or token expired
     try {
       const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh`, {
         method: "POST",
