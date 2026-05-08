@@ -16,7 +16,7 @@ export async function GET(req, context) {
     }
 
     // check for our data only 
-    const user = await User.findById(id).select("username image").lean();
+    const user = await User.findById(id).select("username image role").lean();
 
     // Get friends with full data
     const follows = await Follow.find({

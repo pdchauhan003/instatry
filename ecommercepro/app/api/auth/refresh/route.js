@@ -57,7 +57,7 @@ export async function POST(req) {
 
         const response = NextResponse.json({
             success: true,
-            userId: user._id,
+            id: user._id,
             role: user.role,
             accessToken: newAccessToken
         }, { status: 200 });
@@ -65,14 +65,15 @@ export async function POST(req) {
         response.cookies.set("accessToken", newAccessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: 'strict',
+            sameSite: 'lax',
             path: '/',
+            maxAge: 15 * 60 // 15 minutes
         });
 
         response.cookies.set("refreshToken", newRefreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: 'strict',
+            sameSite: 'lax',
             path: '/',
             maxAge: 7 * 24 * 60 * 60 // 7 days
         });
