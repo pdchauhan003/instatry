@@ -2,15 +2,19 @@ import { NextResponse } from 'next/server';
 import { User } from '@/lib/database';
 import { connectDB } from '@/lib/Connection';
 import bcrypt from 'bcryptjs';
+import { getAuthUserId } from '@/lib/getAuthUser';
 
 //change password api
-export async function POST(req){
+export async function POST(req) {
     try {
         await connectDB();
-        const {email,password}=await req.json();
+
+        const authUserId = await getAuthUserId();
+        if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        const { email, password } = await req.json();
         console.log(email)
-        const hashedPass=await bcrypt.hash(password,10);
-        const user=await User.findOneAndUpdate({email},{password:hashedPass,otp:''},{new:true});
+        const hashedPass = await bcrypt.hash(password, 10);
+        const user = await User.findOneAndUpdate({ email }, { password: hashedPass, otp: '' }, { new: true });
         if (!user) {
             return NextResponse.json({ message: 'User is not registered' }, { status: 404 });
         }

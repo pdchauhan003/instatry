@@ -3,18 +3,23 @@ import { connectDB } from "@/services/mongodb";
 import { Terms } from "@/lib/database";
 import { User } from "@/lib/database";
 import { NextResponse } from "next/server";
+import { getAuthUserId } from "@/lib/getAuthUser";
 
+//for verifying term
 export async function POST(req) {
   try {
     await connectDB();
     const { id } = await req.json();
     const userId = id;
 
+    const authUserId = await getAuthUserId();
+    if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    // Check if user already accepted terms
+    // check if user already accepted terms
     const existingTerm = await Terms.findOne({ userId });
     if (!existingTerm) {
       await Terms.create({
