@@ -76,7 +76,13 @@ const checkOrigin = (origin, callback) => {
   return callback(new Error("Not allowed by CORS"));
 };
 
-app.use(cors({ origin: checkOrigin, credentials: true }));  // cors origins
+app.use(cors({ 
+  origin: allowedOrigins, 
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  exposedHeaders: ["set-cookie"]
+}));
 
 
 const io = new Server(server, {
