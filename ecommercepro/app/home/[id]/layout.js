@@ -2,13 +2,37 @@
 import { useParams, usePathname, useRouter} from "next/navigation";
 import { Home, Search, MessageCircle, ShoppingBag, User, Settings, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useEffect, useRef } from "react";
 
 export default function RootLayoutt({ children }) {
   const { id } = useParams();
   const pathname = usePathname();
   const router = useRouter();
+  const mainRef = useRef(null);
 
   const { user } = useAuth();
+
+  // Save scroll position before navigating away
+  useEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+
+    // Restore saved scroll position for this route
+    const saved = sessionStorage.getItem(`scroll:${pathname}`);
+    if (saved) {
+      el.scrollTop = parseInt(saved, 10);
+    } else {
+      el.scrollTop = 0;
+    }
+
+    // Save scroll position when user scrolls
+    const handleScroll = () => {
+      sessionStorage.setItem(`scroll:${pathname}`, el.scrollTop);
+    };
+
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [pathname]);
   
   // check if current page is one of the allowed mobile nav pages
   const allowedPaths = [
@@ -22,11 +46,11 @@ export default function RootLayoutt({ children }) {
 
   const handleNav = (href) => {
     if (pathname === href) {
-      // Force a hard reload if we are already on the current page
-      window.location.href = href;
+      // Same page: scroll to top
+      mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       router.push(href);
-      router.refresh();
+      // No router.refresh() — prevents full page remount
     }
   };
 
@@ -45,14 +69,13 @@ export default function RootLayoutt({ children }) {
         <button onClick={() => handleNav(`/home/${id}/profile`)} className="text-left hover:text-gray-400">Profile</button>
         {user?.role === "admin" && (
           <button onClick={() => handleNav(`/admin/verify`)} className="text-left text-emerald-400 font-bold hover:text-emerald-300 flex items-center gap-2">
-            {/* <ShieldCheck size={20} /> */}
             Admin Panel
           </button>
         )}
       </nav>
 
       {/* Scroll Container */}
-      <main className="flex-1 md:ml-64 h-full overflow-y-auto pb-20 md:pb-0 no-scrollbar">
+      <main ref={mainRef} className="flex-1 md:ml-64 h-full overflow-y-auto pb-20 md:pb-0 no-scrollbar">
         {children}
       </main>
 
