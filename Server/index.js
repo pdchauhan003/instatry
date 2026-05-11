@@ -93,9 +93,25 @@ io.use((socket, next) => {
 
     if (!token) return next(new Error("Authentication error: No token"));
 
-    jwt.verify(token, process.env.ACCESS_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.ACCESS_SECRET, async (err, decoded) => {
       if (err) return next(new Error(`Authentication error: ${err.name}`));
-      socket.userId = decoded.id?.toString() || decoded.userId?.toString();
+      
+      const userId = decoded.id?.toString() || decoded.userId?.toString();
+      const sessionId = decoded.sessionId;
+
+      if (redisClient && sessionId) {
+        try {
+          const storedSessionId = await redisClient.get(`session:${userId}`);
+          if (storedSessionId !== sessionId) {
+            return next(new Error("Authentication error: Session revoked"));
+          }
+        } catch (e) {
+          console.error("Socket Auth Redis Error:", e);
+        }
+      }
+
+      socket.userId = userId;
+      socket.role = decoded.role;
       next();
     });
   } catch (err) {
@@ -111,10 +127,27 @@ const authenticate = (req, res, next) => {
 
     if (!token) return res.status(401).json({ error: "Unauthorized: No token provided" });
 
-    jwt.verify(token, process.env.ACCESS_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.ACCESS_SECRET, async (err, decoded) => {
       if (err) return res.status(401).json({ error: "Unauthorized: Invalid token" });
       
-      req.userId = decoded.id?.toString() || decoded.userId?.toString();
+      const userId = decoded.id?.toString() || decoded.userId?.toString();
+      const sessionId = decoded.sessionId;
+
+      // Crucial: Check Redis to see if this session is still the active one
+      if (redisClient && sessionId) {
+        try {
+          const storedSessionId = await redisClient.get(`session:${userId}`);
+          if (storedSessionId !== sessionId) {
+            return res.status(401).json({ error: "Session expired or logged in elsewhere" });
+          }
+        } catch (redisErr) {
+          console.error("Redis check failed in socket server:", redisErr);
+          // Fallback: allow if redis is down? No, better be safe.
+        }
+      }
+
+      req.userId = userId;
+      req.role = decoded.role;
       next();
     });
   } catch (err) {
