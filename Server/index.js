@@ -164,6 +164,15 @@ const authenticate = (req, res, next) => {
   }
 };
 
+// Internal server-to-server auth middleware (uses shared secret)
+const authenticateInternal = (req, res, next) => {
+  const internalSecret = req.headers['x-internal-secret'];
+  if (internalSecret && internalSecret === process.env.INTERNAL_API_SECRET) {
+    return next(); // Trusted server-to-server call
+  }
+  return authenticate(req, res, next); // Fall back to normal auth
+};
+
 // IDOR Check Middleware for Personal Messages
 const checkChatOwnership = (req, res, next) => {
   const { user1, user2 } = req.params;
@@ -219,7 +228,7 @@ app.get("/notification/:user1", authenticate, (req, res, next) => {
 }, userController.getNotifications);
 
 app.get("/online-users", authenticate, (req, res) => userController.getOnlineUsers(redisClient, ONLINE_USERS_KEY)(req, res));
-app.post("/force-logout", authenticate, (req, res) => userController.forceLogout(io, redisClient, ONLINE_USERS_KEY)(req, res));
+app.post("/force-logout", authenticateInternal, (req, res) => userController.forceLogout(io, redisClient, ONLINE_USERS_KEY)(req, res));
 
 // Socket connection
 io.on("connection", (socket) => {

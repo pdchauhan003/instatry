@@ -30,9 +30,8 @@ export default function GroupChatPage() {
                     setMembers(infoData.members);
                 }
 
-                // Fetch message history from Server
-                const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
-                const msgRes = await fetch(`${baseUrl}/group-messages/${groupId}`);
+                // Fetch message history via Next.js proxy (avoids cross-domain cookie issue)
+                const msgRes = await fetch(`/api/auth/group-messages/${groupId}`);
                 const msgData = await msgRes.json();
                 setMessages(msgData || []);
 

@@ -14,7 +14,8 @@ export default function NotificationPage() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/notification/${id}`);
+        // Use Next.js proxy to avoid cross-domain cookie issue in production
+        const res = await fetch(`/api/auth/notifications/${id}`);
         const data = await res.json();
         if (Array.isArray(data)) {
           setRequests(data);

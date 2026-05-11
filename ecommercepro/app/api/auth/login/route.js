@@ -44,10 +44,13 @@ export async function POST(req) {
       console.error("Redis session storage failed:", redisError);
     }
 
-    // socket server
+    // Notify socket server to kick old sessions (server-to-server call with internal secret)
     fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/force-logout`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "x-internal-secret": process.env.INTERNAL_API_SECRET || ""
+      },
       body: JSON.stringify({ userId: activeUser._id.toString() })
     }).catch(e => console.log("Socket server notification failed:", e.message));
 

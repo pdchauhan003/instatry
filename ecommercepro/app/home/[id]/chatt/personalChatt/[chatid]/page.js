@@ -31,10 +31,8 @@ export default function ChatPage() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
-        const res = await fetch(`${baseUrl}/messages/${currentUserId}/${chatid}`, {
-          credentials: 'include'
-        });
+        // Use Next.js proxy to avoid cross-domain cookie issue in production
+        const res = await fetch(`/api/auth/messages/${currentUserId}/${chatid}`);
         const data = await res.json();
         
         if (Array.isArray(data)) {
@@ -183,10 +181,9 @@ export default function ChatPage() {
     setLoadingOld(true);
     try {
       const oldest = messages[0].createdAt;
-      const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
+      // Use proxy route with query param to avoid cross-domain cookie issue
       const res = await fetch(
-        `${baseUrl}/message/${currentUserId}/${chatid}/before/${oldest}`,
-        { credentials: 'include' }
+        `/api/auth/messages/${currentUserId}/${chatid}?before=${oldest}`
       );
       const data = await res.json();
       if (Array.isArray(data)) {

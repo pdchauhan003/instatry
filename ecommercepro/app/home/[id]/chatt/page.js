@@ -64,9 +64,8 @@ function AllChats() {
   useEffect(() => {
     const fetchOnline = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/online-users`, {
-          credentials: 'include' // Important: Send cookies to the socket server
-        });
+        // Use Next.js proxy to avoid cross-domain cookie issue in production
+        const res = await fetch(`/api/auth/online-users`);
         const list = await res.json();
 
         if (Array.isArray(list)) {
