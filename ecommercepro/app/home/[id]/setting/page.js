@@ -14,30 +14,19 @@ import {
   Shield
 } from "lucide-react";
 
+import { useAuth } from "@/context/AuthContext";
+
 function SettingPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
-    try {
-      const res = await fetch(`/api/auth/home/${id}/setting/logout`, {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Logout failed");
-      const data = await res.json();
-      if (data?.success) {
-        // Tell the server to mark this user offline immediately
-        if (socket.connected) {
-          socket.emit("user-logout");
-          socket.disconnect();
-        }
-        toast.success('logout success')
-        router.replace("/login");
-      }
-    } catch (error) {
-      toast.error('logout failed')
-      console.error("Logout error:", error);
+    if (socket.connected) {
+      socket.emit("user-logout");
+      socket.disconnect();
     }
+    await logout();
   };
 
   const navTo = (path) => {

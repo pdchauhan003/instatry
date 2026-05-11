@@ -1,36 +1,14 @@
 "use client";
 import { useParams, usePathname, useRouter} from "next/navigation";
 import { Home, Search, MessageCircle, ShoppingBag, User, Settings, ShieldCheck } from "lucide-react";
-import { useSelector, useDispatch } from "react-redux";
-import { setAuthUser } from "@/redux/authSlice";
-import { useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RootLayoutt({ children }) {
   const { id } = useParams();
   const pathname = usePathname();
   const router = useRouter();
 
-  const { user } = useSelector(state => state.auth);
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-      if (!id || user) return;
-      const fetchUserData = async () => {
-          try {
-              const res = await fetch(`/api/auth/home/${id}`, {
-                  method: "GET",
-                  headers: { "Content-Type": "application/json" },
-              });
-              const data = await res.json();
-              if (data.success) {
-                  dispatch(setAuthUser(data.user));
-              }
-          } catch (error) {
-              console.error("Error hydrating user:", error);
-          }
-      };
-      fetchUserData();
-  }, [id, user, dispatch]);
+  const { user } = useAuth();
   
   // check if current page is one of the allowed mobile nav pages
   const allowedPaths = [

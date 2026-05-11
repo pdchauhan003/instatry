@@ -2,8 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useDispatch } from "react-redux";
-import { setAuthUser, setToken } from "@/redux/authSlice";
+import { useAuth } from "@/context/AuthContext";
 import { signIn } from "next-auth/react";
 import { toast } from "react-hot-toast";
 
@@ -11,54 +10,19 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showForgot, setShowForgot] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
-  const dispatch=useDispatch();
+  const { login, isLoading } = useAuth();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const handleClick = async (e) => {      // when click login button then trigger
-    e.preventDefault();  
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    console.log('data in login page is ',data);
-    if(data.success){
-      dispatch(setAuthUser(data.user));
-      dispatch(setToken(data.accessToken));
-      // Persist user to localStorage so Redux can be rehydrated on refresh
-      try { 
-        localStorage.setItem('auth_user', JSON.stringify(data.user)); 
-      } catch(e) {
-        console.error("Storage error:", e);
-      }
-      console.log('data .id is ',data.id)
-      if (data.role && data.id) {
-        console.log(`User logged in as ${data.role}. Redirecting to /home/${data.id}`);
-        toast.success('user login success')
-        router.replace(`/home/${data.id}`);
-        router.refresh();
-      } else {
-        toast.error(data.message || "Login failed: Missing role or ID");
-      }
-    }
-    if(data.forgot){
-        toast.error(data.message)
-        setShowForgot(true);
-      }
-    } catch (error) {
-      console.error("Login Error:", error);
-      toast.error("Login failed. Please check your connection.");
-    } finally {
-      setLoading(false);
+  const handleClick = async (e) => {
+    e.preventDefault();
+    const result = await login(email, password);
+    if (result && result.forgot) {
+      setShowForgot(true);
     }
   };
 
@@ -130,10 +94,10 @@ function LoginPage() {
 
           {/* Login Button */}
           <button type="submit"
-            disabled={loading}
-            className={`w-full ${loading ? 'bg-purple-400' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 rounded-full mt-6 font-semibold transition flex justify-center items-center gap-2`}
+            disabled={isLoading}
+            className={`w-full ${isLoading ? 'bg-purple-400' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 rounded-full mt-6 font-semibold transition flex justify-center items-center gap-2`}
           >
-            {loading ? (
+            {isLoading ? (
               <>
                 <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 Logging in...

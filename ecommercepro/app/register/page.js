@@ -5,6 +5,8 @@ import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
+
 function RegisterPage() {
   const fileInputRef = useRef(null);
   const [email, setEmail] = useState("");
@@ -13,9 +15,9 @@ function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [image, setImage] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
+  const { register, isLoading } = useAuth();
 
   useEffect(() => {
     setIsMounted(true);
@@ -23,32 +25,18 @@ function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("name", name);
-      formData.append("email", email);
-      formData.append("password", password);
-      formData.append("number", number);
-      formData.append("username", username);
-      if (image instanceof File) {
-        formData.append("image", image);
-      }
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.success) {
-        router.push(`/verification/afterregister?email=${email}`);
-      } else {
-        toast.error(data.message || "Error during registration");
-      }
-    } catch (error) {
-      console.log("server error...", error);
-      toast.error("Network error or server crash. Please check your connection.");
-    } finally {
-      setLoading(false);
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("number", number);
+    formData.append("username", username);
+    if (image instanceof File) {
+      formData.append("image", image);
+    }
+    const result = await register(formData);
+    if (result.success) {
+      router.push(`/verification/afterregister?email=${result.email || email}`);
     }
   };
   if (!isMounted) {
@@ -213,10 +201,10 @@ function RegisterPage() {
             {/* Register Button */}
             <button
               type="submit"
-              disabled={loading}
-              className={`w-full ${loading ? 'bg-purple-400' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 rounded-full mt-6 font-semibold transition flex justify-center items-center gap-2`}
+              disabled={isLoading}
+              className={`w-full ${isLoading ? 'bg-purple-400' : 'bg-purple-700 hover:bg-purple-800'} text-white py-3 rounded-full mt-6 font-semibold transition flex justify-center items-center gap-2`}
             >
-              {loading ? (
+              {isLoading ? (
                 <>
                   <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                   Registering...

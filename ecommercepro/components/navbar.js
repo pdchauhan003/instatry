@@ -5,34 +5,12 @@ import { CircleUserRound } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
-import { useSelector, useDispatch } from "react-redux";
-import { setAuthUser } from "@/redux/authSlice";
-//navbar for shopoing
+import { useAuth } from "@/context/AuthContext";
+
 function Navbar(){
     const {id}=useParams();
     const [isSeller, setIsSeller] = useState(false);
-    const { user } = useSelector(state => state.auth);
-    const dispatch = useDispatch();
-
-    useEffect(() => {
-        if (!id || user) return;
-        const fetchUserData = async () => {
-            try {
-                const res = await fetch(`/api/auth/home/${id}/profile`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id }), // Use ID for checking
-                });
-                const data = await res.json();
-                if (data.success) {
-                    dispatch(setAuthUser(data.user));
-                }
-            } catch (error) {
-                console.error("Error hydrating user:", error);
-            }
-        };
-        fetchUserData();
-    }, [id, user, dispatch]);
+    const { user } = useAuth();
 
     useEffect(() => {
         if (!id) return;
