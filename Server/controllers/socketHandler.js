@@ -98,13 +98,22 @@ const handleSocketEvents = (io, socket, redisClient, ONLINE_USERS_KEY, pendingDi
       const userId = socket.userId?.toString();
       if (!userId) return;
 
-      pendingDisconnects[userId] = setTimeout(async () => {
-        if (redisClient) {
-          await redisClient.sRem(ONLINE_USERS_KEY, userId);
-        }
-        delete pendingDisconnects[userId];
-        io.emit('userStatus', { userId, status: 'offline' });
-      }, 5000);
+      // Only start the offline timer if NO MORE sockets for this user are connected
+      const remainingSockets = io.sockets.adapter.rooms.get(userId);
+      
+      if (!remainingSockets || remainingSockets.size === 0) {
+        pendingDisconnects[userId] = setTimeout(async () => {
+          // Double check if they haven't reconnected in the meantime
+          const stillOffline = !io.sockets.adapter.rooms.get(userId);
+          if (stillOffline) {
+            if (redisClient) {
+              await redisClient.sRem(ONLINE_USERS_KEY, userId);
+            }
+            delete pendingDisconnects[userId];
+            io.emit('userStatus', { userId, status: 'offline' });
+          }
+        }, 5000);
+      }
     } catch (error) {
       console.error('Socket disconnect error:', error);
     }
