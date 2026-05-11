@@ -95,17 +95,19 @@ export async function middleware(req) {
 
 // Helper to set cookies consistently
 function setTokenCookies(response, accessToken, refreshToken) {
+  const isProd = process.env.NODE_ENV === "production";
+  
   response.cookies.set("accessToken", accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProd, // Must be true for sameSite: 'none'
+    sameSite: isProd ? "none" : "lax",
     path: "/",
     maxAge: 15 * 60,
   });
   response.cookies.set("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProd, // Must be true for sameSite: 'none'
+    sameSite: isProd ? "none" : "lax",
     path: "/",
     maxAge: 7 * 24 * 60 * 60,
   });

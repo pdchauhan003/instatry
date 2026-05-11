@@ -17,13 +17,15 @@ export async function GET(req) {
         const response = NextResponse.redirect(new URL(`/home/${session.dbId}`, req.url));
         // console.log("SESSION:", session);
 
+        const isProd = process.env.NODE_ENV === "production";
+
         // Set the custom token cookie on the response
         response.cookies.set("accessToken", session.jwt, {
             httpOnly: true,
             path: "/",
             maxAge: 15 * 60, // 15 minutes (matches JWT)
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
+            sameSite: isProd ? "none" : "lax",
+            secure: isProd,
         });
 
         // Also set the refreshToken cookie if it exists
@@ -32,8 +34,8 @@ export async function GET(req) {
                 httpOnly: true,
                 path: "/",
                 maxAge: 60 * 60 * 24 * 7, // 7 days
-                sameSite: "lax",
-                secure: process.env.NODE_ENV === "production",
+                sameSite: isProd ? "none" : "lax",
+                secure: isProd,
             });
         }
 

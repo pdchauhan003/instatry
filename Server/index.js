@@ -77,7 +77,7 @@ const checkOrigin = (origin, callback) => {
 };
 
 app.use(cors({ 
-  origin: allowedOrigins, 
+  origin: checkOrigin, 
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
@@ -97,7 +97,10 @@ io.use((socket, next) => {
     const cookies = cookie.parse(socket.handshake.headers.cookie || "");
     const token = cookies.accessToken || socket.handshake.auth?.token;
 
-    if (!token) return next(new Error("Authentication error: No token"));
+    if (!token) {
+      console.log("Socket Auth Failed: No token found in cookies");
+      return next(new Error("Authentication error: No token"));
+    }
 
     jwt.verify(token, process.env.ACCESS_SECRET, async (err, decoded) => {
       if (err) return next(new Error(`Authentication error: ${err.name}`));

@@ -3,8 +3,8 @@ import { io } from "socket.io-client";
 // const socket = io( `${process.env.NEXT_PUBLIC_SOCKET_URL}` ||"http://localhost:1212");
 const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:1212"}`, {
     withCredentials: true,
-    transports: ["websocket", "polling"],
-    autoConnect: false, // Don't connect until we have the token
+    transports: ["websocket"], // Only use websocket for production stability
+    autoConnect: false,
 });
 
 socket.on("connect", () => {

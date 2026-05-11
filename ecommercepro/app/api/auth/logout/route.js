@@ -32,8 +32,19 @@ export async function POST(req) {
     const response = NextResponse.json({ success: true, message: "Logged out successfully" });
     
     // Clear cookies
-    response.cookies.set("accessToken", "", { maxAge: 0, path: "/" });
-    response.cookies.set("refreshToken", "", { maxAge: 0, path: "/" });
+    const isProd = process.env.NODE_ENV === "production";
+    response.cookies.set("accessToken", "", { 
+      maxAge: 0, 
+      path: "/", 
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax"
+    });
+    response.cookies.set("refreshToken", "", { 
+      maxAge: 0, 
+      path: "/",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax"
+    });
     
     return response;
   } catch (error) {
