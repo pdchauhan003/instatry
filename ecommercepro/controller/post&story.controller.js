@@ -254,11 +254,16 @@ export const IndividualPosts = async (userId, currentUserId = null) => {
 }
 
 //for delete post
-export const deletePost = async (postId) => {
+export const deletePost = async (postId, userId, role) => {
   try {
     await connectDB();
-    const res = await Post.deleteOne({ _id: postId });
-    return !!res
+    // Allow if user is owner OR if user is admin
+    const query = (role === 'admin') 
+      ? { _id: postId } 
+      : { _id: postId, author: userId };
+      
+    const res = await Post.deleteOne(query);
+    return res.deletedCount > 0;
   } catch (error) {
     console.error("Error in deletePost controller:", error);
     throw error;
@@ -311,11 +316,16 @@ export const getSavedPosts = async (userId) => {
   }
 };
 //for delete story
-export const deleteStory = async (storyId, userId) => {
+export const deleteStory = async (storyId, userId, role) => {
   try {
     await connectDB();
-    const res = await Story.deleteOne({ _id: storyId, author: userId });
-    return !!res.deletedCount;
+    // Allow if user is owner OR if user is admin
+    const query = (role === 'admin')
+      ? { _id: storyId }
+      : { _id: storyId, author: userId };
+
+    const res = await Story.deleteOne(query);
+    return res.deletedCount > 0;
   } catch (error) {
     console.error("Error in deleteStory controller:", error);
     throw error;

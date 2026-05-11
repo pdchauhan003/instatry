@@ -41,7 +41,11 @@ export async function verifyRefreshToken(token) {
 
   try {
     const { payload } = await jwtVerify(token, REFRESH_SECRET);
-    return { userId: payload.userId, sessionId: payload.sessionId };
+    return { 
+      userId: payload.userId, 
+      sessionId: payload.sessionId,
+      role: payload.role || 'user' 
+    };
   } catch (error) {
     return null;
   }
@@ -51,7 +55,7 @@ export async function rotateTokens(refreshToken) {
   const decoded = await verifyRefreshToken(refreshToken);
   if (!decoded) return null;
 
-  const { userId, sessionId } = decoded;
+  const { userId, sessionId, role } = decoded;
 
   // redis verify
   const storedSessionId = await redis.get(`session:${userId}`);
@@ -59,8 +63,8 @@ export async function rotateTokens(refreshToken) {
 
   const { generateAccessToken, generateRefreshToken } = await import("@/lib/jwt");
   
-  const newAccessToken = await generateAccessToken({ id: userId, sessionId, role: 'user' }); 
-  const newRefreshToken = await generateRefreshToken({ id: userId, sessionId });
+  const newAccessToken = await generateAccessToken({ id: userId, sessionId, role }); 
+  const newRefreshToken = await generateRefreshToken({ id: userId, sessionId, role });
 
   // Update Redis 
   await redis.set(`session:${userId}`, sessionId, { ex: 7 * 24 * 60 * 60 });

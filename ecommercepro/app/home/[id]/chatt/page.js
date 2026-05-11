@@ -63,12 +63,20 @@ function AllChats() {
   // fetch online users
   useEffect(() => {
     const fetchOnline = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/online-users`);
-      const list = await res.json();
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/online-users`, {
+          credentials: 'include' // Important: Send cookies to the socket server
+        });
+        const list = await res.json();
 
-      const map = {};
-      list.forEach(id => map[id] = true);
-      setOnlineUsers(map);
+        if (Array.isArray(list)) {
+          const map = {};
+          list.forEach(id => map[id] = true);
+          setOnlineUsers(map);
+        }
+      } catch (error) {
+        console.error("Error fetching online users:", error);
+      }
     }
     fetchOnline()
   }, [])

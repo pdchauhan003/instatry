@@ -103,16 +103,81 @@ io.use((socket, next) => {
   }
 });
 
+// Authentication Middleware for Express Routes
+const authenticate = (req, res, next) => {
+  try {
+    const cookies = cookie.parse(req.headers.cookie || "");
+    const token = cookies.accessToken || req.headers.authorization?.split(" ")[1];
+
+    if (!token) return res.status(401).json({ error: "Unauthorized: No token provided" });
+
+    jwt.verify(token, process.env.ACCESS_SECRET, (err, decoded) => {
+      if (err) return res.status(401).json({ error: "Unauthorized: Invalid token" });
+      
+      req.userId = decoded.id?.toString() || decoded.userId?.toString();
+      next();
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Internal server error during authentication" });
+  }
+};
+
+// IDOR Check Middleware for Personal Messages
+const checkChatOwnership = (req, res, next) => {
+  const { user1, user2 } = req.params;
+  const currentUserId = req.userId;
+
+  if (currentUserId !== user1 && currentUserId !== user2) {
+    return res.status(403).json({ error: "Forbidden: You are not a participant in this chat" });
+  }
+  next();
+};
+
+// Group Membership Check Middleware
+const checkGroupMembership = async (req, res, next) => {
+  try {
+    const { groupId } = req.params;
+    const userId = req.userId;
+    const Member = require("./models/Member");
+
+    const isMember = await Member.findOne({ groupId, userId });
+    if (!isMember) {
+      return res.status(403).json({ error: "Forbidden: You are not a member of this group" });
+    }
+    next();
+  } catch (err) {
+    res.status(500).json({ error: "Internal server error during membership check" });
+  }
+};
+
 // routes
 app.get("/", (req, res) => res.send("Server is running"));
-app.get("/messages/:user1/:user2", chatController.getMessages);  // for personal messges
-app.get("/message/:user1/:user2/before/:cursor", chatController.getMessagesBefore);  // for cursor points of messages 
-app.get("/group-messages/:groupId", chatController.getGroupMessages);  // group msg
-app.get("/group-message/:groupId/before/:cursor", chatController.getGroupMessagesBefore); //group msg cursor
-app.get("/request/:user1/:user2", userController.getFollowRequest);  // req send foollow
-app.get("/notification/:user1", userController.getNotifications); // notification of follow req pendings
-app.get("/online-users", (req, res) => userController.getOnlineUsers(redisClient, ONLINE_USERS_KEY)(req, res));
-app.post("/force-logout", (req, res) => userController.forceLogout(io, redisClient, ONLINE_USERS_KEY)(req, res));
+
+// Personal messages (with Auth + IDOR check)
+app.get("/messages/:user1/:user2", authenticate, checkChatOwnership, chatController.getMessages);
+app.get("/message/:user1/:user2/before/:cursor", authenticate, checkChatOwnership, chatController.getMessagesBefore);
+
+// Group messages (Auth + Membership check)
+app.get("/group-messages/:groupId", authenticate, checkGroupMembership, chatController.getGroupMessages);
+app.get("/group-message/:groupId/before/:cursor", authenticate, checkGroupMembership, chatController.getGroupMessagesBefore);
+
+// User specific data (Auth)
+app.get("/request/:user1/:user2", authenticate, (req, res, next) => {
+    if (req.userId !== req.params.user1 && req.userId !== req.params.user2) {
+        return res.status(403).json({ error: "Forbidden" });
+    }
+    next();
+}, userController.getFollowRequest);
+
+app.get("/notification/:user1", authenticate, (req, res, next) => {
+    if (req.userId !== req.params.user1) {
+        return res.status(403).json({ error: "Forbidden" });
+    }
+    next();
+}, userController.getNotifications);
+
+app.get("/online-users", authenticate, (req, res) => userController.getOnlineUsers(redisClient, ONLINE_USERS_KEY)(req, res));
+app.post("/force-logout", authenticate, (req, res) => userController.forceLogout(io, redisClient, ONLINE_USERS_KEY)(req, res));
 
 // Socket connection
 io.on("connection", (socket) => {

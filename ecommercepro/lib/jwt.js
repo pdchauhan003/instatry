@@ -24,6 +24,7 @@ export async function generateRefreshToken(data) {
     
     return await new SignJWT({ 
         userId, 
+        role: data.role || 'user',
         sessionId: data.sessionId 
     })
         .setProtectedHeader({ alg: 'HS256' })

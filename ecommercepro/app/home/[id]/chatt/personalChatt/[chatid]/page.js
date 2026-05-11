@@ -30,13 +30,24 @@ export default function ChatPage() {
   // Fetch last messages and user info
   useEffect(() => {
     const fetchMessages = async () => {
-      const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
-      const res = await fetch(`${baseUrl}/messages/${currentUserId}/${chatid}`);
-      const data = await res.json();
-      setMessages(data);
-      if (data && data.length < 20) setHasMore(false);
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
+        const res = await fetch(`${baseUrl}/messages/${currentUserId}/${chatid}`, {
+          credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (Array.isArray(data)) {
+          setMessages(data);
+          if (data.length < 20) setHasMore(false);
+        } else {
+          console.error("Failed to fetch messages: ", data);
+          setMessages([]);
+        }
+      } catch (error) {
+        console.error("Error in fetchMessages:", error);
+      }
       shouldScrollRef.current = true;
-      console.log("Chat messages fetched:", data?.length || 0);
     };
 
     const fetchUserInfo = async () => {
@@ -170,14 +181,21 @@ export default function ChatPage() {
   const fetchOldMessages = async () => {
     if (!messages.length || !hasMore || loadingOld) return;
     setLoadingOld(true);
-    const oldest = messages[0].createdAt;
-    const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
-    const res = await fetch(
-      `${baseUrl}/message/${currentUserId}/${chatid}/before/${oldest}`,
-    );
-    const data = await res.json();
-    if (!data.length) setHasMore(false);
-    else setMessages((prev) => [...data, ...prev]);
+    try {
+      const oldest = messages[0].createdAt;
+      const baseUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.replace(/\/$/, "");
+      const res = await fetch(
+        `${baseUrl}/message/${currentUserId}/${chatid}/before/${oldest}`,
+        { credentials: 'include' }
+      );
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        if (!data.length) setHasMore(false);
+        else setMessages((prev) => [...data, ...prev]);
+      }
+    } catch (error) {
+      console.error("Error fetching old messages:", error);
+    }
     setLoadingOld(false);
     shouldScrollRef.current = false;
   };

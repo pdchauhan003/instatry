@@ -27,7 +27,8 @@ export async function middleware(req) {
   }
 
   // Handle token 
-  const session = await verifySession(token, pathname.startsWith("/api"));
+  // Always check Redis for protected routes to ensure session revocation is instant
+  const session = await verifySession(token, isProtected);
 
   if (session) {
     // ... (existing session logic)
@@ -71,6 +72,18 @@ export async function middleware(req) {
 
     // Refresh failed or no refresh token
     if (isProtected) {
+      if (pathname.startsWith("/api")) {
+        // API request should get a 401 JSON, not a redirect to HTML
+        const response = NextResponse.json(
+          { success: false, message: "Session expired or logged in elsewhere" },
+          { status: 401 }
+        );
+        response.cookies.delete("accessToken");
+        response.cookies.delete("refreshToken");
+        return response;
+      }
+
+      // Page request gets a redirect
       const response = NextResponse.redirect(new URL("/login", req.url));
       response.cookies.delete("accessToken");
       response.cookies.delete("refreshToken");
