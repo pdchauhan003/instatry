@@ -59,7 +59,15 @@ function SearchPage() {
             onClick={() => handleProfile(user.username)}
             className="flex p-3 rounded-md mb-2 cursor-pointer hover:bg-gray-700"
           >
-            <Image src={user?.image} style={{ width: '30px', height: '30px', borderRadius: '50%' }} width={300} height={300} className="mr-3" loading="lazy" alt='image1' />
+            <div className="mr-3 w-8 h-8 rounded-full overflow-hidden bg-gray-600 flex-shrink-0 flex items-center justify-center">
+              {user?.image ? (
+                <Image src={user.image} width={32} height={32} className="w-full h-full object-cover" loading="lazy" alt={user.username || 'user'} />
+              ) : (
+                <span className="text-sm font-bold text-white">
+                  {user?.username?.charAt(0).toUpperCase() || '?'}
+                </span>
+              )}
+            </div>
             {user?.username}
           </div>
         ))}

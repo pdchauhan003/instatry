@@ -77,7 +77,7 @@ export const authOptions = {
                     existingUser.sessionId = newSessionId;
                     
                     // Generate and save refreshToken
-                    const refreshToken = generateRefreshToken({ id: existingUser._id, sessionId: newSessionId });
+                    const refreshToken = await generateRefreshToken({ id: existingUser._id, sessionId: newSessionId });
                     existingUser.refreshToken = refreshToken;
                     
                     await existingUser.save(); //save session id and refresh token in db
@@ -89,7 +89,7 @@ export const authOptions = {
                         console.error("Redis session storage failed:", redisError);
                     }
 
-                    const jwtToken = generateAccessToken({
+                    const jwtToken = await generateAccessToken({
                         id: existingUser._id,
                         role: existingUser.role,
                         sessionId: newSessionId,
@@ -105,7 +105,7 @@ export const authOptions = {
                     const user = await User.findOne({ email: token.email });
 
                     if (user) {
-                        const jwtToken = generateAccessToken({
+                        const jwtToken = await generateAccessToken({
                             id: user._id,
                             role: user.role,
                             sessionId: user.sessionId,

@@ -3,12 +3,9 @@ import redis from "@/services/redis";
 
 const ACCESS_SECRET = new TextEncoder().encode(process.env.ACCESS_SECRET);
 
-/**
- * Verifies the access token and checks the sessionId against Redis.
- * @param {string} token - The JWT access token.
- * @returns {Promise<{userId: string, sessionId: string, role: string} | null>}
- */
-export async function verifySession(token) {
+
+//   Verifies the access token and checks the sessionId against Redis.
+export async function verifySession(token, checkRedis = true) {
   if (!token) return null;
 
   try {
@@ -21,11 +18,13 @@ export async function verifySession(token) {
       return null;
     }
 
-    // Validate against Redis
-    const storedSessionId = await redis.get(`session:${userId}`);
-    if (storedSessionId !== sessionId) {
-      console.log(`Session verification failed for user ${userId}: Session ID mismatch or revoked`);
-      return null;
+    // Validate against Redis only if explicitly requested (usually for API routes)
+    if (checkRedis) {
+      const storedSessionId = await redis.get(`session:${userId}`);
+      if (storedSessionId !== sessionId) {
+        console.log(`Session verification failed for user ${userId}: Session ID mismatch or revoked`);
+        return null;
+      }
     }
 
     return { userId, sessionId, role: payload.role };
@@ -37,11 +36,6 @@ export async function verifySession(token) {
 
 const REFRESH_SECRET = new TextEncoder().encode(process.env.REFRESH_SECRET);
 
-/**
- * Verifies the refresh token.
- * @param {string} token - The JWT refresh token.
- * @returns {Promise<{userId: string, sessionId: string} | null>}
- */
 export async function verifyRefreshToken(token) {
   if (!token) return null;
 
@@ -51,4 +45,25 @@ export async function verifyRefreshToken(token) {
   } catch (error) {
     return null;
   }
+}
+
+export async function rotateTokens(refreshToken) {
+  const decoded = await verifyRefreshToken(refreshToken);
+  if (!decoded) return null;
+
+  const { userId, sessionId } = decoded;
+
+  // redis verify
+  const storedSessionId = await redis.get(`session:${userId}`);
+  if (!storedSessionId || storedSessionId !== sessionId) return null;
+
+  const { generateAccessToken, generateRefreshToken } = await import("@/lib/jwt");
+  
+  const newAccessToken = await generateAccessToken({ id: userId, sessionId, role: 'user' }); 
+  const newRefreshToken = await generateRefreshToken({ id: userId, sessionId });
+
+  // Update Redis 
+  await redis.set(`session:${userId}`, sessionId, { ex: 7 * 24 * 60 * 60 });
+
+  return { newAccessToken, newRefreshToken, userId };
 }

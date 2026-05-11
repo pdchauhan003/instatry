@@ -1,5 +1,6 @@
 import { allFriends } from "@/controller/post&story.controller";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { Plus, Heart } from "lucide-react";
 import StoryAvatar from "@/components/StoryPart";
@@ -28,20 +29,20 @@ export default async function homePage(context) {
       <div className="w-full max-w-xl border-x border-gray-800">
         {/* navbar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-          <a href={`/home/${id}/addpost`} className="p-2 rounded-full border border-gray-700 hover:bg-gray-800 transition-all active:scale-95">
+          <Link href={`/home/${id}/addpost`} className="p-2 rounded-full border border-gray-700 hover:bg-gray-800 transition-all active:scale-95">
             <Plus size={20} />
-          </a>
+          </Link>
           <h1 className="text-xl font-bold font-serif tracking-tight">Instagram</h1>
-          <a href={`/home/${id}/notification`} className="p-2 rounded-full border border-gray-700 hover:bg-gray-800 transition-all active:scale-95">
+          <Link href={`/home/${id}/notification`} className="p-2 rounded-full border border-gray-700 hover:bg-gray-800 transition-all active:scale-95">
             <Heart size={20} />
-          </a>
+          </Link>
         </div>
 
         {/* stories side tray */}
         <div className="flex gap-4 overflow-x-auto px-4 py-4 border-b border-gray-800 no-scrollbar overscroll-x-contain items-start">
           {/* Your Story Badge */}
           <div className="flex flex-col items-center gap-1 cursor-pointer group shrink-0">
-            <a href={myStory ? `/home/${id}/story/${id}` : `/home/${id}/addpost`} className="relative p-[2px] rounded-full transition-transform active:scale-95 duration-200">
+            <Link href={myStory ? `/home/${id}/story/${id}` : `/home/${id}/addpost`} className="relative p-[2px] rounded-full transition-transform active:scale-95 duration-200">
               <div className={`p-[2px] ${myStory ? 'bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600' : 'bg-gray-800'} rounded-full`}>
                 <div className="p-[2px] bg-black rounded-full overflow-hidden">
                   {user?.image ? (
@@ -64,7 +65,7 @@ export default async function homePage(context) {
                   <Plus size={12} strokeWidth={4} />
                 </div>
               )}
-            </a>
+            </Link>
             <p className="text-[10px] text-gray-300 font-medium truncate w-16 text-center">Your Story</p>
           </div>
 

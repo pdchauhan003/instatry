@@ -27,20 +27,18 @@ export async function middleware(req) {
   }
 
   // Handle token 
-  const session = await verifySession(token);
+  const session = await verifySession(token, pathname.startsWith("/api"));
 
   if (session) {
+    // ... (existing session logic)
     const { userId } = session;
-    // Session is valid
     if (isPublicOnly) {
-      return NextResponse.redirect(new URL("/", req.url));
+      return NextResponse.redirect(new URL(`/home/${userId}`, req.url));
     }
-
-    // urls user ID matches the logged-in users id
     const pathSegments = pathname.split("/");
     if (pathSegments.length >= 3) {
       const urlUserId = pathSegments[2];
-      if (urlUserId && urlUserId !== userId) {
+      if (urlUserId && urlUserId !== userId && !pathname.startsWith("/api")) {
         console.log(`Security: URL user (${urlUserId}) ≠ token user (${userId}). Redirecting.`);
         pathSegments[2] = userId;
         return NextResponse.redirect(new URL(pathSegments.join("/"), req.url));
@@ -48,40 +46,56 @@ export async function middleware(req) {
     }
     return NextResponse.next();
   } else {
-    // session is NOT valid 
-    // session is NOT valid or token expired
-    try {
-      const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh`, {
-        method: "POST",
-        headers: {
-          cookie: req.headers.get("cookie") || "",
-        },
-      });
-
-      if (refreshRes.ok) {
+    // Session invalid/expired - try to refresh
+    const refreshToken = req.cookies.get("refreshToken")?.value;
+    if (refreshToken) {
+      const { rotateTokens } = await import("@/lib/session");
+      const result = await rotateTokens(refreshToken);
+      
+      if (result) {
+        const { newAccessToken, newRefreshToken, userId } = result;
+        
+        // If they were going to a public route, redirect to home
         if (isPublicOnly) {
-          return NextResponse.redirect(new URL("/", req.url));
+          const response = NextResponse.redirect(new URL(`/home/${userId}`, req.url));
+          setTokenCookies(response, newAccessToken, newRefreshToken);
+          return response;
         }
 
+        // Proceed to destination with new tokens
         const response = NextResponse.next();
-        const setCookies = refreshRes.headers.getSetCookie();
-        for (const cookie of setCookies) {
-          response.headers.append("Set-Cookie", cookie);
-        }
+        setTokenCookies(response, newAccessToken, newRefreshToken);
         return response;
       }
-    } catch (refreshError) {
-      console.error("Refresh error:", refreshError);
     }
 
-    // Refresh failed or token completely invalid
+    // Refresh failed or no refresh token
     if (isProtected) {
       const response = NextResponse.redirect(new URL("/login", req.url));
       response.cookies.delete("accessToken");
+      response.cookies.delete("refreshToken");
       return response;
     }
     return NextResponse.next();
   }
+}
+
+// Helper to set cookies consistently
+function setTokenCookies(response, accessToken, refreshToken) {
+  response.cookies.set("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 15 * 60,
+  });
+  response.cookies.set("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  });
 }
 
 export const config = {

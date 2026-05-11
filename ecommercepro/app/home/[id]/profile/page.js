@@ -6,8 +6,9 @@ const FollowingFeed = dynamic(() => import("@/components/FollowingFeed"), { ssr:
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogClose,} from "@/components/ui/dialog"; // ShadCN dialog
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogClose,} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 function PersonalProfilePage() {
@@ -15,25 +16,23 @@ function PersonalProfilePage() {
   const params = useParams();
   const id = params.id;
 
-  const [ourData, setourData] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [dialogType, setDialogType] = useState("followers"); // or "followings"
+  const [dialogType, setDialogType] = useState("followers");
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const { data: ourData = {}, isLoading } = useQuery({
+    queryKey: ['profile', id],
+    queryFn: async () => {
       const res = await fetch(`/api/auth/home/${id}/pprofile`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
-      setourData(data.userData);
-      console.log('data in page ',ourData)
-    };
-    if (id) {
-      fetchData();
-    }
-  }, [id]);
+      return data.userData || {};
+    },
+    staleTime: 1000 * 60 * 5,  // 5 min cache - won't re-fetch on navigation
+    enabled: !!id,
+  });
 
   const handleEditProfile = async () => {
     router.push(`/home/${id}/profile/edit`);

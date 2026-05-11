@@ -31,7 +31,7 @@ export async function POST(req) {
     const sessionId = crypto.randomBytes(32).toString("hex");
     activeUser.sessionId = sessionId;
 
-    const refreshToken = generateRefreshToken({ id: activeUser._id, sessionId: sessionId });
+    const refreshToken = await generateRefreshToken({ id: activeUser._id, sessionId: sessionId });
     activeUser.refreshToken = refreshToken;
 
     await activeUser.save();
@@ -51,7 +51,7 @@ export async function POST(req) {
       body: JSON.stringify({ userId: activeUser._id.toString() })
     }).catch(e => console.log("Socket server notification failed:", e.message));
 
-    const accessToken = generateAccessToken({
+    const accessToken = await generateAccessToken({
       id: activeUser._id,
       role: activeUser.role,
       sessionId,
