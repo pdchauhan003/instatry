@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { signIn } from "next-auth/react";
-// import { toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { loginSchema } from "@/zodschemas/authSchema";
 
 function LoginPage() {

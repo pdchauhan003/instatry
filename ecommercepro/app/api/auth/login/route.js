@@ -6,28 +6,28 @@ import bcrypt from "bcryptjs";
 import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
 import { connectDB } from "@/lib/Connection";
 import redis from "@/services/redis";
-import {rateLimiter} from '@/lib/ratelimiter'
+import { rateLimiter } from '@/lib/ratelimiter'
 import { loginSchema } from "@/zodschemas/authSchema";
 
 
 export async function POST(req) {
   try {
 
-    const body=await req.json();
+    const body = await req.json();
     //zod validation
-    const validateData=loginSchema.safeParse(body);
-    if(!validateData.success){
+    const validateData = loginSchema.safeParse(body);
+    if (!validateData.success) {
       return NextResponse.json(
         {
           success: false,
-          errors: validatedData.error.flatten().fieldErrors,
+          errors: validateData.error.flatten().fieldErrors,
         },
         { status: 400 }
       );
     }
 
     //safe validate data
-    const { email, password } = validateData.data;
+    const { email, password } = validateData.data;  //data from body 
 
     //for rate limiting
     const forwardedFor = req.headers.get("x-forwarded-for");
@@ -89,7 +89,7 @@ export async function POST(req) {
     // Notify socket server to kick old sessions (server-to-server call with internal secret)
     fetch(`${process.env.NEXT_PUBLIC_SOCKET_URL}/force-logout`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
         "x-internal-secret": process.env.INTERNAL_API_SECRET || ""
       },
