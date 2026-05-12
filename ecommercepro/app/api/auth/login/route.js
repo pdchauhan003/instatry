@@ -6,12 +6,39 @@ import bcrypt from "bcryptjs";
 import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
 import { connectDB } from "@/lib/Connection";
 import redis from "@/services/redis";
+import {rateLimiter} from '@/lib/ratelimiter'
+
 
 export async function POST(req) {
   try {
-    await connectDB();
 
-    const { email, password } = await req.json();
+    const { email, password } = await req.json();  //data from body 
+
+    //for rate limiting
+    const forwardedFor = req.headers.get("x-forwarded-for");
+    const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : "unknown";
+
+    const rateLimitKey = `${ip}_${email}`;
+
+    // Rate limit 
+    const { success, reset } = await rateLimiter.limit(rateLimitKey);
+    if (!success) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Too many login attempts. Try again later.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(reset),
+          },
+        }
+      );
+    }
+
+    await connectDB();
     const activeUser = await User.findOne({ email });
 
     if (!activeUser) {
@@ -91,8 +118,8 @@ export async function POST(req) {
 
     return response;
 
-  } catch (loginFailure) {
-    console.error("Critical Login System Failure:", loginFailure);
+  } catch (error) {
+    console.error("Critical Login System Failure:", error);
 
     return NextResponse.json({
       success: false,

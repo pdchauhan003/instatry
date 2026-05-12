@@ -22,12 +22,16 @@ export async function PUT(req, context) {
 
     if (existingLike) {
       // Unlike
-      await Likes.deleteOne({ _id: existingLike._id });
-      await Post.findByIdAndUpdate(postid, { $inc: { likesCount: -1 } });
+      await Promise.all([
+        Likes.deleteOne({ _id: existingLike._id }),
+        Post.findByIdAndUpdate(postid, { $inc: { likesCount: -1 } })
+      ])      
     } else {
       // Like
-      await Likes.create({ post: postid, user: userId });
-      await Post.findByIdAndUpdate(postid, { $inc: { likesCount: 1 } });
+      await Promise.all([
+        Likes.create({ post: postid, user: userId }),
+        Post.findByIdAndUpdate(postid, { $inc: { likesCount: 1 } })
+      ])
     }
 
     const updatedPost = await Post.findById(postid)

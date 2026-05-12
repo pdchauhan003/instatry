@@ -1,5 +1,5 @@
 import { connectDB } from "@/lib/Connection";
-import { User, Follow, Post, Story, Saved } from "@/lib/database";
+import { User, Follow, Post, Story, Saved, Likes } from "@/lib/database";
 import mongoose from 'mongoose'
 
 //for home page find posts and stories

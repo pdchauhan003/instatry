@@ -32,18 +32,18 @@ const PostCard = memo(function PostCard({
   if (!post) return null;
 
   const queryClient = useQueryClient();
-  const [likes, setLikes] = useState(post.likesCount || post.likes?.length || 0);
-  const [liked, setLiked] = useState(post.isLiked ?? post.likes?.includes(userId));
+  const [likes, setLikes] = useState(post.likesCount || post.likes?.length || 0);  //count of the like
+  const [liked, setLiked] = useState(post.isLiked ?? post.likes?.includes(userId));  //our like 
   const [showMenu, setShowMenu] = useState(false);
   const [saved, setSaved] = useState(() => {
-    //  Check direct boolean prop
+    //  Check save
     if (typeof isSaved === "boolean") return isSaved;
 
-    // Check savedI
+    // Check savedId
     if (savedIds instanceof Set) return savedIds.has(post._id?.toString());
     if (Array.isArray(savedIds)) return savedIds.includes(post._id?.toString());
 
-    // Check savedPosts array fallback
+    // Check savedPosts array
     return savedPosts?.some((s) => s.post?.toString() === post._id?.toString());
   });
   // eslint-disable-next-line react-hooks/rules-of-hooks
