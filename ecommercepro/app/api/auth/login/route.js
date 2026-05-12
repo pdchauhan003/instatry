@@ -27,7 +27,7 @@ export async function POST(req) {
     }
 
     //safe validate data
-    const { email, password } = await req.json();  //data from body 
+    const { email, password } = validateData.data;
 
     //for rate limiting
     const forwardedFor = req.headers.get("x-forwarded-for");
