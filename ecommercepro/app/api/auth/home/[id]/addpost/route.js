@@ -2,6 +2,7 @@ import { Post, User, Story } from "@/lib/database";
 import { connectDB } from "@/lib/Connection";
 import { uploadCloudinary } from "@/handler/UploadCloudinary";
 import { getAuthUserId } from "@/lib/getAuthUser";
+import { addPostSchema } from "@/zodschemas/authSchema";
 
 export async function POST(req, context) {
   try {
@@ -17,9 +18,27 @@ export async function POST(req, context) {
     }
 
     const formData = await req.formData();
-    const image = formData.get("image");
-    const caption = formData.get("caption");
-    const option = formData.get('option');
+    const rawData = {
+      image: formData.get("image"),
+      caption: formData.get("caption"),
+      option: formData.get("option"),
+    };
+
+    //ZOD VALIDATION
+    const result = addPostSchema.safeParse(rawData);
+
+    if (!result.success) {
+      return Response.json(
+        {
+          success: false,
+          message: "Validation failed",
+          errors: result.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { image, caption, option } = result.data;
 
     if (!image || typeof image === 'string' || image.size === 0) {
       return Response.json({ success: false, message: "Image required" });

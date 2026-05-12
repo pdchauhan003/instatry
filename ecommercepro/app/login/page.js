@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { signIn } from "next-auth/react";
-import { toast } from "react-hot-toast";
+// import { toast } from "react-hot-toast";
+import { loginSchema } from "@/zodschemas/authSchema";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -15,15 +16,29 @@ function LoginPage() {
   const { login, isLoading } = useAuth();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
 
   const handleClick = async (e) => {
     e.preventDefault();
-    const result = await login(email, password);
-    if (result && result.forgot) {
-      setShowForgot(true);
+    //validate data
+    const result=loginSchema.safeParse({email,password});
+    if(!result.success){
+      const errors = result.error.flatten().fieldErrors;
+      if (errors.email) {
+        toast.error(errors.email[0]);
+      }
+      if (errors.password) {
+        toast.error(errors.password[0]);
+      }
+      return;
     }
+   // Login API
+  const loginResult = await login(email, password);
+  if (loginResult && loginResult.forgot) {
+    setShowForgot(true);
+  }
   };
 
   const forgotPassword = async () => {

@@ -1,6 +1,7 @@
 import { getUserBio, updateBio, updateUserField } from "@/controller/user.controller";
 import { uploadCloudinary } from "@/handler/UploadCloudinary";
 import { getAuthUserId } from "@/lib/getAuthUser";
+import { editProfileSchema } from "@/zodschemas/authSchema";
 
 export async function GET(req,context){
     try {
@@ -37,10 +38,28 @@ export async function PUT(req, context) {
 
         const formData = await req.formData();
 
-        const name = formData.get("name");
-        const username = formData.get("username");
-        const bio = formData.get("bio");
-        const image = formData.get("image");
+        const rawData = {
+            name: formData.get("name"),
+            username: formData.get("username"),
+            bio: formData.get("bio"),
+            image: formData.get("image"),
+        };
+
+        //  ZOD VALIDATION
+        const result = editProfileSchema.safeParse(rawData);
+
+        if (!result.success) {
+        return Response.json(
+            {
+            success: false,
+            message: "Validation failed",
+            errors: result.error.flatten().fieldErrors,
+            },
+            { status: 400 }
+        );
+        }
+
+        const { name, username, bio, image } = result.data;
 
         let updatedFields = [];
 

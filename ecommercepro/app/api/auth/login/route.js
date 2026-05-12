@@ -7,11 +7,26 @@ import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
 import { connectDB } from "@/lib/Connection";
 import redis from "@/services/redis";
 import {rateLimiter} from '@/lib/ratelimiter'
+import { loginSchema } from "@/zodschemas/authSchema";
 
 
 export async function POST(req) {
   try {
 
+    const body=await req.json();
+    //zod validation
+    const validateData=loginSchema.safeParse(body);
+    if(!validateData.success){
+      return NextResponse.json(
+        {
+          success: false,
+          errors: validatedData.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    //safe validate data
     const { email, password } = await req.json();  //data from body 
 
     //for rate limiting

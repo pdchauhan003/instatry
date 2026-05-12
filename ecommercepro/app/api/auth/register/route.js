@@ -2,50 +2,42 @@ import { NextResponse } from 'next/server';
 import { User, PendingUser } from '@/lib/database';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/Connection';
+import { registerSchema } from '@/zodschemas/authSchema';
 const nodemailer = require('nodemailer');
+
 
 export async function POST(req) {
   await connectDB();
   try {
     const data = await req.formData();
-    const name = data.get("name");
-    const email = data.get("email");
-    const password = data.get("password");
-    const number = data.get("number");
-    const username = data.get("username");
-    const image = data.get("image");
+
+    const rawData = {
+      name: data.get("name"),
+      email: data.get("email"),
+      password: data.get("password"),
+      number: data.get("number"),
+      username: data.get("username"),
+      image: data.get("image"),
+    };
+
+    // Zod validation
+    const result = registerSchema.safeParse(rawData);
+
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          errors: result.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    // safe validated data
+    const { name, email, password, number, username, image } = result.data;
 
     if (!name || !email || !password || !number || !username) {
       return NextResponse.json({ message: 'Please fill all fields' }, { status: 400 });
-    }
-
-    //check password requirements
-    const minLength = 6;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    const isValidLength = password.length >= minLength;
-
-    if (!isValidLength) {
-      return NextResponse.json({ message: "Your password is too short. It needs at least 6 characters." }, { status: 409 });
-    }
-    if (!hasUpperCase) {
-      return NextResponse.json({ message: "Security tip: Add an uppercase letter to your password." }, { status: 409 });
-    }
-    if (!hasLowerCase) {
-      return NextResponse.json({ message: "Security tip: Add a lowercase letter to your password." }, { status: 409 });
-    }
-    if (!hasNumber) {
-      return NextResponse.json({ message: "Security tip: Include a number to make your password stronger." }, { status: 409 });
-    }
-    if (!hasSymbol) {
-      return NextResponse.json({ message: "Security tip: Use a special character (like @ or #) for better security." }, { status: 409 });
-    }
-
-    //ckeck mobile number
-    if(number.length!==10){
-      return NextResponse.json({message:'mobile number is must be 10 digit'},{status:409});
     }
 
     // Check if email or username already exists in real Users
