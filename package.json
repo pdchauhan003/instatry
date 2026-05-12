@@ -1,0 +1,8 @@
+{
+  "name": "instagram-clone-root",
+  "private": true,
+  "workspaces": [
+    "ecommercepro",
+    "Server"
+  ]
+}
