@@ -33,7 +33,13 @@ export default function GroupChatPage() {
                 // Fetch message history via Next.js proxy (avoids cross-domain cookie issue)
                 const msgRes = await fetch(`/api/auth/group-messages/${groupId}`);
                 const msgData = await msgRes.json();
-                setMessages(msgData || []);
+                
+                if (Array.isArray(msgData)) {
+                    setMessages(msgData);
+                } else {
+                    console.error("Failed to fetch group messages. Response was:", JSON.stringify(msgData));
+                    setMessages([]);
+                }
 
                 // Mark as seen
                 await fetch(`/api/auth/home/${id}/chatt/group/${groupId}/seen`, { method: "POST" });
@@ -135,7 +141,7 @@ export default function GroupChatPage() {
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
-                {messages.map((msg, index) => {
+                {messages?.map((msg, index) => {
                     const isMe = msg.from._id === id || msg.from === id;
                     const sender = typeof msg.from === 'object' ? msg.from : { username: 'User' };
                     

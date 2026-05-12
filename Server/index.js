@@ -189,7 +189,7 @@ const checkGroupMembership = async (req, res, next) => {
   try {
     const { groupId } = req.params;
     const userId = req.userId;
-    const Member = require("./models/Member");
+    const Member = require("./models/Members");
 
     const isMember = await Member.findOne({ groupId, userId });
     if (!isMember) {
