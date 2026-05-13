@@ -76,8 +76,8 @@ const checkOrigin = (origin, callback) => {
   return callback(new Error("Not allowed by CORS"));
 };
 
-app.use(cors({ 
-  origin: checkOrigin, 
+app.use(cors({
+  origin: checkOrigin,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
@@ -104,12 +104,13 @@ io.use((socket, next) => {
 
     jwt.verify(token, process.env.ACCESS_SECRET, async (err, decoded) => {
       if (err) return next(new Error(`Authentication error: ${err.name}`));
-      
+
       const userId = decoded.id?.toString() || decoded.userId?.toString();
       const sessionId = decoded.sessionId;
 
       if (redisClient && sessionId) {
         try {
+
           const storedSessionId = await redisClient.get(`session:${userId}`);
           if (storedSessionId !== sessionId) {
             return next(new Error("Authentication error: Session revoked"));
@@ -138,7 +139,7 @@ const authenticate = (req, res, next) => {
 
     jwt.verify(token, process.env.ACCESS_SECRET, async (err, decoded) => {
       if (err) return res.status(401).json({ error: "Unauthorized: Invalid token" });
-      
+
       const userId = decoded.id?.toString() || decoded.userId?.toString();
       const sessionId = decoded.sessionId;
 
@@ -214,17 +215,17 @@ app.get("/group-message/:groupId/before/:cursor", authenticate, checkGroupMember
 
 // User specific data (Auth)
 app.get("/request/:user1/:user2", authenticate, (req, res, next) => {
-    if (req.userId !== req.params.user1 && req.userId !== req.params.user2) {
-        return res.status(403).json({ error: "Forbidden" });
-    }
-    next();
+  if (req.userId !== req.params.user1 && req.userId !== req.params.user2) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  next();
 }, userController.getFollowRequest);
 
 app.get("/notification/:user1", authenticate, (req, res, next) => {
-    if (req.userId !== req.params.user1) {
-        return res.status(403).json({ error: "Forbidden" });
-    }
-    next();
+  if (req.userId !== req.params.user1) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  next();
 }, userController.getNotifications);
 
 app.get("/online-users", authenticate, (req, res) => userController.getOnlineUsers(redisClient, ONLINE_USERS_KEY)(req, res));
